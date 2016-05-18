@@ -15,107 +15,25 @@ def main():
     startTime = time.time()
     
     p42()
-    # p100()
-    # p243()
-    # p40()
+    # p89()
     # testPrimeToolsModule()
     
     elapsedTime = time.time()-startTime
     print('\n'+'Done!')
     printElapsedTime()
     
+    
 def printElapsedTime():
     global startTime
     elapsedTime = time.time()-startTime
     print('Elapsed time: {}s'.format(elapsedTime))
     
-'''
-Arranged probability
-Problem 100
-If a box contains twenty-one coloured discs, composed of fifteen blue discs and six red discs, and two discs were taken at random, it can be seen that the probability of taking two blue discs, P(BB) = (15/21)×(14/20) = 1/2.
+    
+    
+    
 
-The next such arrangement, for which there is exactly 50% chance of taking two blue discs at random, is a box containing eighty-five blue discs and thirty-five red discs.
-
-By finding the first arrangement to contain over 10^12 = 1,000,000,000,000 discs in total, determine the number of blue discs that the box would contain.
-'''
+''' problems ''' 
     
-def p100():
-    
-    # use diophantine eqs!!!
-    
-    from math import sqrt
-    from itertools import count
-    
-    rootHalf = sqrt(.5)
-    # print(rootHalf)
-    
-    
-    for totalDiscs in count((10)+1):
-    
-        blueDiscs = 1+int(totalDiscs*rootHalf)
-        # print(totalDiscs, blueDiscs)
-        
-        # probTwoBlue = (blueDiscs/totalDiscs)*((blueDiscs-1)/(totalDiscs-1))
-        # print(probTwoBlue)
-        
-        numers = blueDiscs*(blueDiscs-1)*2
-        denoms = totalDiscs*(totalDiscs-1)
-        if numers == denoms:
-            # print('y')
-            print(totalDiscs, blueDiscs)
-            # break
-            
-        if totalDiscs % 10000000 == 0:
-            print('prog:',totalDiscs)
-            break
-            
-        
-        
-    
-'''
-Resilience
-Problem 243
-A positive fraction whose numerator is less than its denominator is called a proper fraction.
-For any denominator, d, there will be d−1 proper fractions; for example, with d=12:
-1/12 , 2/12 , 3/12 , 4/12 , 5/12 , 6/12 , 7/12 , 8/12 , 9/12 , 10/12 , 11/12 .
-
-We shall call a fraction that cannot be cancelled down a resilient fraction.
-Furthermore we shall define the resilience of a denominator, R(d), to be the ratio of its proper fractions that are resilient; for example, R(12) = 4/11 .
-In fact, d=12 is the smallest denominator having a resilience R(d) < 4/10 .
-
-Find the smallest denominator d, having a resilience R(d) < 15499/94744 .
-'''
-
-def p243():
-    
-    # greater than 112000...
-    
-    from fractions import gcd
-    from itertools import count
-    
-    # fracToBeat = 4/10
-    fracToBeat = 15499/94744
-    
-    for d in count(2,2): # d will be even (mult of 60?)
-        
-        cap = fracToBeat*(d-1)
-        
-        numRes = 0
-        for num in range(1,d,2): # num will be odd
-            # print(num, d)
-            
-            if gcd(d, num) == 1:
-                numRes += 1
-                if numRes > cap:
-                    break
-            
-        if numRes/(d-1) < fracToBeat:
-            print(d)
-            break
-        
-        if d % 1000 == 0:
-            print(d)
-            
 
 def p89():
     
