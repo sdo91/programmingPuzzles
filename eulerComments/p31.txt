@@ -1,0 +1,25 @@
+This one turned out to be easier than I thought it would be:
+
+[code=Python]
+def p31():
+    coins = [200,100,50,20,10,5,2,1]
+    print(waysToMakeChange(200,200,coins))
+    
+def waysToMakeChange(amount, maxCoin, coins):
+    
+    if maxCoin == 1:
+        return 1
+    if amount == 0:
+        return 1
+    
+    possibleNumMaxCoin = int(amount/maxCoin)
+    totalWays = 0
+    nextSmallerCoin = coins[coins.index(maxCoin)+1]
+    
+    for numMaxCoin in range(possibleNumMaxCoin+1):
+        valueOfSmallerCoins = amount-numMaxCoin*maxCoin
+        totalWays += waysToMakeChange(valueOfSmallerCoins, nextSmallerCoin, coins)
+        
+    return totalWays
+
+[/code]
