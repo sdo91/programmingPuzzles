@@ -81,15 +81,13 @@ def plotOptimal():
 
     # xValues = np.arange(0, 100, 0.5)
     xValues = np.arange(0, 100, 2)
-    print len(xValues)
     xValues = np.delete(xValues, 0)
-    print len(xValues)
 
 
     for x in xValues:
-        bestTheta = givenXFindTheta(x)
-        print x, bestTheta * RAD2DEG, calcY(x, bestTheta)
-        plt.plot(x, calcY(x, bestTheta), 'r.')
+        # bestTheta = givenXFindTheta(x)
+        # print x, bestTheta * RAD2DEG, calcY(x, bestTheta)
+        plt.plot(x, givenXFindY(x), 'r.')
 
 
 
@@ -114,8 +112,11 @@ def givenXFindY(x):
     """
     final function to integrate
     combine 'givenXFindTheta' and 'calcY'
+
+    NOTE: wolfram alpha reverses atan2 params
     """
-    pass
+    # theta_rad = 2 * math.atan2(math.sqrt(962361 * x**2 + 1.6e9) - 40000, 981 * x)
+    return 100 + (x / math.tan(2 * math.atan2(math.sqrt(962361 * x ** 2 + 1.6e9) - 40000, 981 * x))) - (9.81 * x ** 2) / (800 * math.sin(2 * math.atan2(math.sqrt(962361 * x ** 2 + 1.6e9) - 40000, 981 * x)) ** 2)
 
 
 
@@ -136,11 +137,15 @@ def givenXFindTheta(x):
     if x == 0:
         return 0
 
-    num1 = math.sqrt(962361 * x**2 + 1.6e9) - 40000
-    denom = 981 * x
-    t1 = 2 * math.atan2(num1, denom)
-    # print 'theta:', t1 * RAD2DEG
-    return t1
+    # t1 is correct
+    return 2 * math.atan2(math.sqrt(962361 * x**2 + 1.6e9) - 40000, 981 * x)
+
+
+    # num1 = math.sqrt(962361 * x**2 + 1.6e9) - 40000
+    # denom = 981 * x
+    # t1 = 2 * math.atan2(num1, denom)
+    # # print 'theta:', t1 * RAD2DEG
+    # return t1
 
     # num2 = math.sqrt(962361 * x * x + 1.6e9) + 40000
     # denom = 981 * x
