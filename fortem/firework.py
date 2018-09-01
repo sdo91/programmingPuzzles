@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python2
 
 import math
 import matplotlib.pyplot as plt
@@ -145,7 +145,7 @@ def finalEquation():
 def varyDeltaX():
 
     dxValues = []
-    for x in range(5):
+    for x in range(6):
         dxValues.append(1 * 10 ** -x)
 
     print dxValues
