@@ -737,10 +737,10 @@ def p59():
                     print(len(words))
                     print(decrypted)
                     
-                    print('key: ', end='')
-                    for x in chars:
-                        print(chr(x), end='')
-                    print()
+                    # print('key: ', end='')
+                    # for x in chars:
+                    #     print(chr(x), end='')
+                    # print()
                     
                     sum = 0
                     for x in decrypted:
