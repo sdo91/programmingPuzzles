@@ -11,7 +11,7 @@ class PrimeTools(object):
     def getTenMilPrimesList(self, whichPart, numPrimesToLoad=10e6):
         result = []
         primesFile = PRIMES_FOLDER + '2T_part{}.txt'.format(whichPart)
-        # NUM_LINES = 1e6
+        print 'loading primes from {}'.format(primesFile)
         with open(primesFile) as infile:
             i = 0
             for line in infile:
@@ -23,8 +23,7 @@ class PrimeTools(object):
                 tokens = line.split()
                 for x in tokens:
                     result.append(int(x))
-            print '\ndone loading part {}'.format(whichPart)
-            print 'loaded {} primes'.format(len(result))
+            print '\nloaded {} primes'.format(len(result))
         return result
 
     def getTenMilPrimesSet(self, whichPart, numPrimesToLoad=10e6):
