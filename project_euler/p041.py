@@ -37,11 +37,13 @@ def main():
 
     pt = PrimeTools()
 
-    for x in range(1, 7):
+    for x in range(1, 2):
         tenMilPrimes_list = pt.getTenMilPrimesList(x)
         # print len(tenMilPrimes_list)
 
         for prime in tenMilPrimes_list:
+            if prime > 7654321:
+                break
             if isPandigital(prime):
                 print prime
 
