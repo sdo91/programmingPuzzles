@@ -8,20 +8,29 @@ PRIMES_FOLDER = '/home/sdo91/Downloads/primes/'
 
 class PrimeTools(object):
 
-    def getTenMilPrimesList(self, whichPart):
+    def getTenMilPrimesList(self, whichPart, numPrimesToLoad=10e6):
         result = []
         primesFile = PRIMES_FOLDER + '2T_part{}.txt'.format(whichPart)
-        NUM_LINES = 1e6
+        # NUM_LINES = 1e6
         with open(primesFile) as infile:
             i = 0
             for line in infile:
                 i += 1
-                if i % (NUM_LINES / 10) == 0:
-                    print '{}%'.format(int(i * 100 / NUM_LINES)),
+                if i * 10 > numPrimesToLoad:
+                    break
+                if i % (numPrimesToLoad / 100) == 0:
+                    print '{}%'.format(int(i * 1000 / numPrimesToLoad)),
                 tokens = line.split()
                 for x in tokens:
                     result.append(int(x))
             print '\ndone loading part {}'.format(whichPart)
+            print 'loaded {} primes'.format(len(result))
+        return result
+
+    def getTenMilPrimesSet(self, whichPart, numPrimesToLoad=10e6):
+        l = self.getTenMilPrimesList(whichPart, numPrimesToLoad)
+        result = set(l)
+        print 'converted to set'
         return result
 
 
