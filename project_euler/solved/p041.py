@@ -11,7 +11,7 @@ def addToPath(relPath):
     else:
         print 'already in path:', dirToAdd
 
-addToPath('..')
+addToPath('../..')
 
 import time
 

@@ -3,7 +3,7 @@
 import time
 
 
-PRIMES_FOLDER = '/home/sdo91/Downloads/primes/'
+PRIMES_FOLDER = '/home/sdo91/code/programming_puzzles/prime_tools/primes/'
 
 
 class PrimeTools(object):
