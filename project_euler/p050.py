@@ -36,8 +36,8 @@ def main():
 
     # CIELING = 100
     # CIELING = 1000
-    # CIELING = 1e6
-    CIELING = 1e7
+    CIELING = 1e6
+    # CIELING = 1e12
 
     # primes_list = primefac.primes(CIELING)
     primes_list = list(itertools.islice(primefac.primegen(), int(math.sqrt(CIELING))))
@@ -64,9 +64,9 @@ def main():
     result = {}
 
     # maxNumTerms = len(primes_list)  # improve?
-    numTerms = 1
+    numTerms = numTermsGuess
     while not done:
-        numTerms += 1
+        numTerms -= 1
 
         maxStartIndex = len(primes_list) - numTerms
         for startIndex in xrange(0, maxStartIndex):
@@ -88,19 +88,20 @@ def main():
                     'sumOfTerms': sumOfTerms,
                     'startIndex': startIndex,
                 }
+                done = True
 
-                # todo: pretty print
     # end outer loop
 
     print
     print result
-    for i in range(result['startIndex'], result['startIndex'] + result['numTerms']):
-        print primes_list[i],
-        if i + 1 < result['startIndex'] + result['numTerms']:
-            print '+',
-        else:
-            print '=',
-    print result['sumOfTerms']
+    if result['numTerms'] < 1e3:
+        for i in range(result['startIndex'], result['startIndex'] + result['numTerms']):
+            print primes_list[i],
+            if i + 1 < result['startIndex'] + result['numTerms']:
+                print '+',
+            else:
+                print '=',
+        print result['sumOfTerms']
     print
 
 
