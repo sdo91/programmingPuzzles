@@ -3,6 +3,8 @@
 from __future__ import division
 
 import time
+import primefac
+from itertools import count
 
 
 """
@@ -22,6 +24,11 @@ def main():
 
 
 
+def assertEqual(a, b):
+    if a != b:
+        print 'a: {}'.format(a)
+        print 'b: {}'.format(b)
+    assert a == b
 
 
 if __name__ == '__main__':
