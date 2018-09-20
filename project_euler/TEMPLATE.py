@@ -5,6 +5,7 @@ from __future__ import division
 import time
 import primefac
 from itertools import count
+from fractions import Fraction
 
 
 """
