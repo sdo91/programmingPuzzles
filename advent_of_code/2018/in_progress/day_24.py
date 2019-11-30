@@ -34,13 +34,10 @@ class Group(object):
         self.text = text.lower()
         # print(self.text)
 
-        self.target_id = -1
-        self.attacker_id = -1
-
         self.ints = aoc_util.ints(text)
 
         self.num_units = self.ints[0]
-        self.hit_points_per_unit = self.ints[1]
+        self.hp_per_unit = self.ints[1]
         self.damage = self.ints[2]
         self.initiative = self.ints[3]
 
@@ -59,6 +56,10 @@ class Group(object):
         results = re.findall(r" [a-z]+ damage", self.text)
         self.damage_type = results[0].strip().split()[0]
 
+        # other stuff
+        self.target_id = -1
+        self.attacker_id = -1
+        self.ep = -1
         self.tsp = -1
 
     def calc_effective_power(self):
@@ -69,16 +70,15 @@ class Group(object):
         self.tsp = -(self.calc_effective_power() * 100 + self.initiative)
         return self.tsp
 
-    def attack(self, defense_team):
-        print('{} {} -> {} {}'.format(
-            self.team, self.id, self.get_other_team(), self.target_id))
-
     def choose_target(self, potential_targets):
+        """
+        input is a set of Group
+        """
         narrowed_targets = []
 
         # 1st check potential damage
         max_dmg = 0
-        for defense_group in potential_targets:
+        for defense_group in potential_targets.values():
             dmg = defense_group.check_damage(self.calc_effective_power(), self.damage_type)
             if dmg == max_dmg:
                 narrowed_targets.append(defense_group)
@@ -124,6 +124,33 @@ class Group(object):
         result.attacker_id = self.id
         return result
 
+    def do_attack(self, defense_team):
+        """
+        Args:
+            defense_team (dict of group):
+
+        Returns:
+
+        """
+
+        target_group = defense_team[self.target_id]
+        print(target_group)
+
+        num_killed = target_group.deal_damage(self.calc_effective_power(), self.damage_type)
+        print('{} {} -> {} {}: killed {}'.format(self.team, self.id, self.get_other_team(), self.target_id, num_killed))
+        self.target_id = -1
+
+    def deal_damage(self, ep, type):
+        self.attacker_id = -1
+        if type in self.immunities:
+            print('impossible')
+            raise RuntimeError()
+        if type in self.weaknesses:
+            ep *= 2
+        units_killed = min(ep // self.hp_per_unit, self.num_units)
+        self.num_units -= units_killed
+        return units_killed
+
     def check_damage(self, ep, type):
         if self.attacker_id >= 0:
             return 0  # can't have more than one attacker
@@ -141,8 +168,8 @@ class Group(object):
             return 'Immune'
 
     def __str__(self):
-        return '{} {}: {}, {}'.format(
-            self.team, self.id, self.ints, self.text)
+        return '{} {}: {} left, {}'.format(
+            self.team, self.id, self.num_units, self.text)
 
     def __repr__(self):
         return str(self)
@@ -195,41 +222,54 @@ Infection:
                 continue
 
             new_group = Group(current_team, id_counter, line)
-            id_counter += 1
             if current_team not in teams:
-                teams[current_team] = []
+                teams[current_team] = {}
 
-            teams[current_team].append(new_group)
+            teams[current_team][id_counter] = new_group
             all_groups.append(new_group)
+            id_counter += 1
 
         # start the fighting
-        while True:
+        is_done = False
+        while not is_done:
+            print()
 
-            # todo: reset all
+            # target selection phase
+            all_groups.sort(key=lambda x: x.calc_target_selection_priority())
 
-            # for each army
-            for key in teams:
-                # target selection phase
-                attack_team = teams[key]
-                defense_team = teams[attack_team[0].get_other_team()]
+            for attacking_group in all_groups:
+                defense_team = teams[attacking_group.get_other_team()]
 
-                # choose order
-                attack_team.sort(key=lambda x: x.calc_target_selection_priority())
+                # choose the target
+                attacking_group.choose_target(defense_team)
 
-                for attack_group in attack_team:
-                    # choose the target
-                    attack_group.choose_target(defense_team)
-
-            # order for attack
+            # attack phase
             all_groups.sort(key=lambda x: -x.initiative)
 
-            for group in all_groups:
+            for attacking_group in all_groups:
                 # do the attack
-                defense_team = teams[group.get_other_team()]
-                group.attack(defense_team)
+                defense_team = teams[attacking_group.get_other_team()]
+                attacking_group.do_attack(defense_team)
 
-            z = 5
-            break
+                # todo: count units, check if done
+                defense_units_left = 0
+                for d_group in defense_team.values():
+                    defense_units_left += d_group.num_units
+                if not defense_units_left:
+                    is_done = True
+                    break
+
+        print()
+        print('summary')
+        for g in all_groups:
+            print(g)
+
+
+            #
+            # for x in
+            #
+            # z = 5
+            # break
 
 
 
