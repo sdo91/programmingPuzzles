@@ -15,6 +15,9 @@ def addToPath(relPath):
 
 ### IMPORTS ###
 
+import aocd
+import aoc_util
+
 
 class Star(object):
 
@@ -39,6 +42,22 @@ class Star(object):
         return result
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class AdventOfCode(object):
     """
     https://adventofcode.com/2018/day/2
@@ -47,21 +66,13 @@ class AdventOfCode(object):
     def run(self):
         print('starting {}'.format(__file__.split('/')[-1]))
 
-        input_dir = '/home/sdo91/code/subdirs/personal/programming_puzzles/advent_of_code/2018/input/'
-        input_path = '{}/input_{}.txt'.format(input_dir, 25)
+        puzzle_input = aocd.data
 
-        with open(input_path) as infile:
-            puzzle_input = infile.read()
-
-            self.test_part_1()
-            print('num groups: {}'.format(self.count_groups(puzzle_input)))
-
-    @staticmethod
-    def assert_equal(expected, actual):
-        if expected != actual:
-            print('expected: {}'.format(expected))
-            print('actual: {}'.format(actual))
-        assert expected == actual
+        self.test_part_1()
+        aoc_util.assert_equal(
+            390,
+            self.count_groups(puzzle_input)
+        )
 
     def test_part_1(self):
         test_input = '''
@@ -74,10 +85,10 @@ class AdventOfCode(object):
             9,0,0,0
             12,0,0,0
         '''
-        self.assert_equal(2, self.count_groups(test_input))
+        aoc_util.assert_equal(2, self.count_groups(test_input))
 
         test_input += '6,0,0,0'
-        self.assert_equal(1, self.count_groups(test_input))
+        aoc_util.assert_equal(1, self.count_groups(test_input))
 
 
 
@@ -131,7 +142,9 @@ class AdventOfCode(object):
         if verbose:
             self.print_groups(groups)
 
-        return len(groups)
+        result = len(groups)
+        print('result: {}'.format(result))
+        return result
 
     def print_groups(self, groups):
         print()

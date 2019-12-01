@@ -15,6 +15,8 @@ def addToPath(relPath):
 
 ### IMPORTS ###
 
+import aocd
+import aoc_util
 
 
 
@@ -26,17 +28,19 @@ class AdventOfCode(object):
     def run(self):
         print('starting {}'.format(__file__.split('/')[-1]))
 
-        input_dir = '/home/sdo91/code/subdirs/personal/programming_puzzles/advent_of_code/2018/input/'
-        input_path = '{}/input_{}.txt'.format(input_dir, 2)
+        puzzle_input = aocd.data
 
-        with open(input_path) as infile:
-            puzzle_input = infile.read()
-
-            self.test_part_1()
+        self.test_part_1()
+        aoc_util.assert_equal(
+            6000,
             self.solve_part_1(puzzle_input)
+        )
 
-            self.test_part_2()
+        self.test_part_2()
+        aoc_util.assert_equal(
+            'pbykrmjmizwhxlqnasfgtycdv',
             self.solve_part_2(puzzle_input)
+        )
 
     def test_part_2(self):
         test_input = 'abcde fghij klmno pqrst fguij axcye wvxyz'
@@ -63,6 +67,7 @@ class AdventOfCode(object):
                     print('match: {}, {}'.format(id_1, id_2))
                     result = id_1[:diff_index] + id_1[diff_index+1:]
                     print('part 2 result: {}'.format(result))
+                    return result
 
     def test_part_1(self):
         test_input = 'abcdef bababc abbcde abcccd aabcdd abcdee ababab'
@@ -99,6 +104,7 @@ class AdventOfCode(object):
                 num_3 += 1
         result = num_2 * num_3
         print('part 1 result: {} * {} = {}'.format(num_2, num_3, result))
+        return result
 
 
 

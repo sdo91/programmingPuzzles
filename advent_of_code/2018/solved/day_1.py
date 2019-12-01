@@ -1,42 +1,28 @@
 #!/usr/bin/env python3
 
-def addToPath(relPath):
-    from os import path
-    import sys
-    dirOfThisFile = path.dirname(path.realpath(__file__))
-    dirToAdd = path.normpath(path.join(dirOfThisFile, relPath))
-    if dirToAdd not in sys.path:
-        print('adding to path: {}'.format(dirToAdd))
-        sys.path.insert(0, dirToAdd)
-    else:
-        print('already in path: {}'.format(dirToAdd))
-
-# addToPath('.')
 
 ### IMPORTS ###
 
-import requests
+import aocd
+import aoc_util
 
 
 
 class MyClass(object):
     """
-    https://adventofcode.com/2018/day/1#part2
+    https://adventofcode.com/2018/day/1
     """
 
     def run(self):
         print('starting {}'.format(__file__.split('/')[-1]))
 
-        input_path = '/home/sdo91/code/subdirs/personal/programming_puzzles/advent_of_code/2018/input/input_1.txt'
+        puzzle_input = aocd.data
 
-        with open(input_path) as infile:
-            puzzle_input = infile.read()
-
+        aoc_util.assert_equal(
+            (561, 563),
             self.solve(puzzle_input)
+        )
 
-        # url = 'https://adventofcode.com/2018/day/1/input'
-        # downloaded_input = requests.get(url)
-        # self.solve(downloaded_input)
 
 
     def solve(self, puzzle_input):
@@ -51,14 +37,12 @@ class MyClass(object):
 
         already_seen = set()
         sum_so_far = 0
-        isDone = False
-        while not isDone:
+        while True:
             for token in tokens:
                 sum_so_far += int(token)
                 if sum_so_far in already_seen:
                     print('seen 2x: {}'.format(sum_so_far))
-                    isDone = True
-                    break
+                    return part_1_result, sum_so_far
                 else:
                     already_seen.add(sum_so_far)
 
