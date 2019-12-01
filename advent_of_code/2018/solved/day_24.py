@@ -1,17 +1,5 @@
 #!/usr/bin/env python3
 
-def addToPath(relPath):
-    from os import path
-    import sys
-    dirOfThisFile = path.dirname(path.realpath(__file__))
-    dirToAdd = path.normpath(path.join(dirOfThisFile, relPath))
-    if dirToAdd not in sys.path:
-        print('adding to path: {}'.format(dirToAdd))
-        sys.path.insert(0, dirToAdd)
-    else:
-        print('already in path: {}'.format(dirToAdd))
-
-# addToPath('.')
 
 ### IMPORTS ###
 
@@ -27,9 +15,28 @@ import aoc_util
 IMMUNE_SYSTEM = 'Immune System'
 INFECTION = 'Infection'
 
+TEST_INPUT = '''
+Immune System:
+17 units each with 5390 hit points (weak to radiation, bludgeoning) with an attack that does 4507 fire damage at initiative 2
+989 units each with 1274 hit points (immune to fire; weak to bludgeoning, slashing) with an attack that does 25 slashing damage at initiative 3
+
+Infection:
+801 units each with 4706 hit points (weak to radiation) with an attack that does 116 bludgeoning damage at initiative 1
+4485 units each with 2961 hit points (immune to radiation; weak to fire, cold) with an attack that does 12 slashing damage at initiative 4        
+'''
 
 
 class Group(object):
+
+    verbose = True
+
+    @classmethod
+    def log(cls, msg=None):
+        if cls.verbose:
+            if msg is None:
+                print()
+            else:
+                print(msg)
 
     def __init__(self, team, id, text, boost=0):
         self.team = team
@@ -101,7 +108,7 @@ class Group(object):
                 max_dmg = dmg
                 narrowed_targets = [defense_group]
         if not narrowed_targets:
-            # print('cant deal dmg: {}'.format(self))
+            # self.log('cant deal dmg: {}'.format(self))
             return  # cant deal damage
         if len(narrowed_targets) == 1:
             self.target_id = narrowed_targets[0].id
@@ -120,8 +127,7 @@ class Group(object):
                 max_ep = ep
                 narrowed_targets = [defense_group]
         if not narrowed_targets:
-            print('this should be impossible?')
-            raise RuntimeError('impossible!')
+            raise RuntimeError('this should be impossible?: choose_target')
         if len(narrowed_targets) == 1:
             self.target_id = narrowed_targets[0].id
             narrowed_targets[0].attacker_id = self.id
@@ -139,35 +145,36 @@ class Group(object):
         result.attacker_id = self.id
         return result
 
-    def print_selection(self):
+    def log_selection(self):
         if self.target_id > -1:
-            print('\t{} {} has selected {}'.format(self.team, self.id, self.target_id))
+            self.log('\t{} {} has selected {}'.format(self.team, self.id, self.target_id))
 
     def do_attack(self, defense_team):
         """
         Args:
             defense_team (dict of group):
 
-        Returns:
-
+        Returns (int): num enemy units killed
         """
         if self.target_id < 0:
-            return
+            # cannot attack, this group did not select a target
+            return 0
 
         target_group = defense_team[self.target_id]
 
         num_killed = target_group.deal_damage(self.calc_effective_power(), self.damage_type)
-        print('{} {} ({} left) -> {} {} ({} left): killed {}'.format(
+        self.log('{} {} ({} left) -> {} {} ({} left): killed {}'.format(
             self.team, self.id, self.num_units,
             self.get_other_team(), self.target_id, target_group.num_units,
             num_killed))
         self.target_id = -1
 
+        return num_killed
+
     def deal_damage(self, ep, type):
         self.attacker_id = -1
         if type in self.immunities:
-            print('impossible')
-            raise RuntimeError()
+            raise RuntimeError('impossible case in deal_damage')
         if type in self.weaknesses:
             ep *= 2
         units_killed = min(ep // self.hp_per_unit, self.num_units)
@@ -198,6 +205,23 @@ class Group(object):
         return str(self)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class AdventOfCode(object):
     """
     https://adventofcode.com/2018
@@ -206,52 +230,57 @@ class AdventOfCode(object):
     def run(self):
         print('starting {}'.format(__file__.split('/')[-1]))
 
-        self.test_cases()
-
         puzzle_input = aocd.data
-        # self.solve_part_1(puzzle_input)
 
-    def test_cases(self):
-        test_input = '''
-Immune System:
-17 units each with 5390 hit points (weak to radiation, bludgeoning) with an attack that does 4507 fire damage at initiative 2
-989 units each with 1274 hit points (immune to fire; weak to bludgeoning, slashing) with an attack that does 25 slashing damage at initiative 3
+        Group.verbose = False
+        # Group.verbose = True
+        self.test_cases(puzzle_input)
 
-Infection:
-801 units each with 4706 hit points (weak to radiation) with an attack that does 116 bludgeoning damage at initiative 1
-4485 units each with 2961 hit points (immune to radiation; weak to fire, cold) with an attack that does 12 slashing damage at initiative 4        
-'''
+        Group.verbose = False
+        aoc_util.assert_equal(
+            (INFECTION, 15392),
+            self.solve_part_1(puzzle_input)
+        )
+        aoc_util.assert_equal(
+            (46, 1092),
+            self.solve_part_2(puzzle_input)
+        )
+
+
+    def test_cases(self, puzzle_input):
+        # test part 1
         aoc_util.assert_equal(
             (INFECTION, 5216),
-            self.solve_part_1(test_input))
+            self.solve_part_1(TEST_INPUT))
 
+        # added boost to part 1 (for part 2)
         boost = 1570
         aoc_util.assert_equal(
             (IMMUNE_SYSTEM, 51),
-            self.solve_part_1(test_input, boost))
+            self.solve_part_1(TEST_INPUT, boost))
 
-        aoc_util.assert_equal(1570, self.solve_part_2(test_input))
+        # test stalemate edge case
+        aoc_util.assert_equal(
+            (INFECTION, -1),
+            self.solve_part_1(puzzle_input, 45)
+        )
+
+        # test part 2
+        aoc_util.assert_equal(
+            (1570, 51),
+            self.solve_part_2(TEST_INPUT)
+        )
+
+        print('all tests passed!{}'.format('\n' * 10))
 
 
-
-
-    def solve_part_2(self, puzzle_input):
-        """
-        Args:
-            puzzle_input (string):
-                the input
-
-        Returns (int):
-            min boost
-        """
-        return 0
 
 
     def solve_part_1(self, puzzle_input, boost=0):
         """
         14897 is too low...
         """
-        print()
+        Group.log()
 
         # load all groups
         lines = puzzle_input.split('\n')
@@ -279,18 +308,18 @@ Infection:
         # start the fighting
         winning_army = ''
         while not winning_army:
-            print('\n' * 5)
+            Group.log('\n' * 5)
 
-            # print summary
-            print('unit summary:')
+            # log summary
+            Group.log('unit summary:')
             for team_name in sorted(teams.keys()):
-                print(team_name)
+                Group.log(team_name)
                 num_groups_in_army = len(teams[team_name])
                 for i in range(1, num_groups_in_army + 1):
                     group = teams[team_name][i]
                     if group.num_units:
-                        print('\t{}'.format(group))
-            print()
+                        Group.log('\t{}'.format(group))
+            Group.log()
 
             # target selection phase
             all_groups.sort(key=lambda x: x.calc_target_selection_priority())
@@ -301,18 +330,20 @@ Infection:
                 # choose the target
                 attacking_group.choose_target(defense_team)
 
-            # print('selection summary:')
+            # Group.log('selection summary:')
             # for g in all_groups:
-            #     g.print_selection()
-            # print()
+            #     g.log_selection()
+            # Group.log()
 
             # attack phase
             all_groups.sort(key=lambda x: -x.initiative)
 
+            total_killed_this_round = 0
             for attacking_group in all_groups:
                 # do the attack
                 defense_team = teams[attacking_group.get_other_team()]
-                attacking_group.do_attack(defense_team)
+                num_killed = attacking_group.do_attack(defense_team)
+                total_killed_this_round += num_killed
 
                 # todo: count units, check if done
                 defense_units_left = 0
@@ -322,17 +353,77 @@ Infection:
                     winning_army = attacking_group.team
                     break
 
+            if total_killed_this_round == 0:
+                # handle the edge case where a stalemate is reached
+                # return INFECTION as winning team, since we need IMMUNE_SYSTEM to win outright
+                result = (INFECTION, -1)
+                print('STALEMATE REACHED: {}'.format(result))
+                return result
+
             for g in all_groups:
                 g.reset()
 
-        print('{}FINAL SUMMARY'.format('\n' * 5))
+        Group.log('{}FINAL SUMMARY'.format('\n' * 5))
         units_left = 0
         for g in all_groups:
-            print(g)
+            Group.log(g)
             units_left += g.num_units
-        print('units_left: {}'.format(units_left))
+        Group.log('units_left: {}'.format(units_left))
         return winning_army, units_left
 
+
+    def solve_part_2(self, puzzle_input):
+        """
+        Args:
+            puzzle_input (string):
+                the input
+
+        Returns (tuple of int):
+            (min boost, num units left)
+        """
+
+        # find lower/upper bound (such that opposite armies win)
+        lower_bound_min_boost = 1
+        upper_bound_min_boost = 2
+
+        cached_results = {}
+        def check_boost(boost):
+            if boost not in cached_results:
+                print('checking new boost: {}'.format(boost))
+                cached_results[boost] = self.solve_part_1(puzzle_input, boost)
+                print('new boost result: {}'.format([boost, cached_results[boost]]))
+            return cached_results[boost]
+
+        while True:
+            war_result = check_boost(upper_bound_min_boost)
+            if war_result[0] == IMMUNE_SYSTEM:
+                # we have found the upper bound
+                break
+            else:
+                # adjust the bounds
+                lower_bound_min_boost = upper_bound_min_boost
+                upper_bound_min_boost *= 2
+
+        print('lower_bound_min_boost: {}'.format([lower_bound_min_boost, check_boost(lower_bound_min_boost)]))
+        print('upper_bound_min_boost: {}'.format([upper_bound_min_boost, check_boost(upper_bound_min_boost)]))
+
+        # lower loses, upper wins
+        # do a binary search algo until lower and upper are next to each other
+        while True:
+            if upper_bound_min_boost - lower_bound_min_boost == 1:
+                break
+
+            mid_point_min_boost = (lower_bound_min_boost + upper_bound_min_boost) // 2
+            war_result = check_boost(mid_point_min_boost)
+            if war_result[0] == IMMUNE_SYSTEM:
+                upper_bound_min_boost = mid_point_min_boost
+            else:
+                lower_bound_min_boost = mid_point_min_boost
+
+        # now upper is the result
+        result = (upper_bound_min_boost, check_boost(upper_bound_min_boost)[1])
+        print('part 2 result: {}'.format(result))
+        return result
 
 
 
