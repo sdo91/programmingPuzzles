@@ -9,6 +9,7 @@ import re
 import parse
 import typing
 import aoc_util
+from aoc_util import AocLogger
 
 
 
@@ -44,31 +45,28 @@ class AdventOfCode(object):
     https://adventofcode.com
     """
 
-    def __init__(self):
-        self.verbose = True
-
     def run(self):
         print('starting {}'.format(__file__.split('/')[-1]))
 
-        self.verbose = True
+        puzzle_input = aocd.data
+
+        AocLogger.verbose = True
         self.test_cases()
 
-        self.verbose = False
-        puzzle_input = aocd.data
-        self.solve_part_1(puzzle_input)
-        self.solve_part_2(puzzle_input)
-
-    def log(self, msg=None, verbose=None):
-        if verbose or (verbose is None and self.verbose):
-            if msg is None:
-                print()
-            else:
-                print(msg)
+        AocLogger.verbose = False
+        aoc_util.assert_equal(
+            3395944,
+            self.solve_part_1(puzzle_input)
+        )
+        aoc_util.assert_equal(
+            5091036,
+            self.solve_part_2(puzzle_input)
+        )
 
     def test_cases(self):
         self.verbose = True
-        self.log()
-        self.log('running test cases')
+        AocLogger.log()
+        AocLogger.log('running test cases')
 
         for test_in, test_out in zip(TEST_INPUT, TEST_OUTPUT_2):
             test_in = test_in.strip()
@@ -81,8 +79,8 @@ class AdventOfCode(object):
                 self.solve_part_2(test_in)
             )
 
-        self.log('all test cases passed')
-        self.log('\n' * 5)
+        AocLogger.log('all test cases passed')
+        AocLogger.log('\n' * 5)
 
     def solve_part_1(self, puzzle_input):
         """
@@ -109,7 +107,7 @@ class AdventOfCode(object):
         3395944 too low
         5093873 too high
         """
-        self.log('\n' * 5)
+        AocLogger.log('\n' * 5)
         lines = puzzle_input.strip().split()
         total_fuel_needed = 0
         for line in lines:
@@ -120,7 +118,7 @@ class AdventOfCode(object):
                 extra_fuel_needed = prev_step_fuel_needed // 3 - 2
                 if extra_fuel_needed < 1:
                     break
-                self.log(extra_fuel_needed)
+                AocLogger.log(extra_fuel_needed)
                 fuel_needed_this_module += extra_fuel_needed
                 prev_step_fuel_needed = extra_fuel_needed
 
