@@ -6,7 +6,17 @@ import re
 import typing
 
 
+class AocLogger(object):
 
+    verbose = True
+
+    @classmethod
+    def log(cls, msg=None):
+        if cls.verbose:
+            if msg is None:
+                print()
+            else:
+                print(msg)
 
 def lmap(func, *iterables):
     return list(map(func, *iterables))

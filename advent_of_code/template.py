@@ -9,6 +9,7 @@ import re
 import parse
 import typing
 import aoc_util
+from aoc_util import AocLogger
 
 
 
@@ -44,32 +45,23 @@ class AdventOfCode(object):
     https://adventofcode.com
     """
 
-    def __init__(self):
-        self.verbose = True
-
-    def log(self, msg=None, verbose=None):
-        if verbose or (verbose is None and self.verbose):
-            if msg is None:
-                print()
-            else:
-                print(msg)
-
     def run(self):
         print('starting {}'.format(__file__.split('/')[-1]))
 
-        self.verbose = True
-        self.test_cases()
-
-        self.verbose = False
         puzzle_input = 'todo: use real data'
         # puzzle_input = aocd.data
+
+        AocLogger.verbose = True
+        self.test_cases()
+
+        AocLogger.verbose = False
         self.solve_part_1(puzzle_input)
         self.solve_part_2(puzzle_input)
 
     def test_cases(self):
         self.verbose = True
-        self.log()
-        self.log('running test cases')
+        AocLogger.log()
+        AocLogger.log('running test cases')
 
         for test_in, test_out in zip(TEST_INPUT, TEST_OUTPUT_1):
             test_in = test_in.strip()
@@ -93,8 +85,8 @@ class AdventOfCode(object):
         #         self.solve_part_2(test_in)
         #     )
 
-        self.log('all test cases passed')
-        self.log('\n' * 5)
+        AocLogger.log('all test cases passed')
+        AocLogger.log('\n' * 5)
 
     def solve_part_1(self, puzzle_input):
         """
@@ -109,7 +101,7 @@ class AdventOfCode(object):
             line = line.strip()
 
             # todo: process line here
-            self.log(line)
+            AocLogger.log(line)
 
         print('\npart 1 result: {}'.format(result))
         return result
@@ -127,7 +119,7 @@ class AdventOfCode(object):
             line = line.strip()
 
             # todo: process line here
-            self.log(line)
+            AocLogger.log(line)
 
         print('\npart 2 result: {}'.format(result))
         return result
