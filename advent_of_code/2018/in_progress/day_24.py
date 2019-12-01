@@ -20,19 +20,21 @@ import aocd
 import re
 import parse
 import typing
-
-
 import aoc_util
+
+
+
+IMMUNE_SYSTEM = 'Immune System'
+INFECTION = 'Infection'
 
 
 
 class Group(object):
 
-    def __init__(self, team, id, text):
+    def __init__(self, team, id, text, boost=0):
         self.team = team
         self.id = id
         self.text = text.lower()
-        # print(self.text)
 
         self.ints = aoc_util.ints(text)
 
@@ -40,6 +42,9 @@ class Group(object):
         self.hp_per_unit = self.ints[1]
         self.damage = self.ints[2]
         self.initiative = self.ints[3]
+
+        if self.team == IMMUNE_SYSTEM:
+            self.damage += boost
 
         self.weaknesses = []
         self.immunities = []
@@ -62,6 +67,12 @@ class Group(object):
         self.ep = -1
         self.tsp = -1
 
+    def reset(self):
+        self.target_id = -1
+        self.attacker_id = -1
+        self.ep = -1
+        self.tsp = -1
+
     def calc_effective_power(self):
         self.ep = self.num_units * self.damage
         return self.ep
@@ -79,13 +90,18 @@ class Group(object):
         # 1st check potential damage
         max_dmg = 0
         for defense_group in potential_targets.values():
+            if not defense_group.num_units:
+                continue
             dmg = defense_group.check_damage(self.calc_effective_power(), self.damage_type)
+            if not dmg:
+                continue
             if dmg == max_dmg:
                 narrowed_targets.append(defense_group)
             elif dmg > max_dmg:
                 max_dmg = dmg
                 narrowed_targets = [defense_group]
         if not narrowed_targets:
+            # print('cant deal dmg: {}'.format(self))
             return  # cant deal damage
         if len(narrowed_targets) == 1:
             self.target_id = narrowed_targets[0].id
@@ -105,8 +121,7 @@ class Group(object):
                 narrowed_targets = [defense_group]
         if not narrowed_targets:
             print('this should be impossible?')
-            assert False
-            return
+            raise RuntimeError('impossible!')
         if len(narrowed_targets) == 1:
             self.target_id = narrowed_targets[0].id
             narrowed_targets[0].attacker_id = self.id
@@ -124,6 +139,10 @@ class Group(object):
         result.attacker_id = self.id
         return result
 
+    def print_selection(self):
+        if self.target_id > -1:
+            print('\t{} {} has selected {}'.format(self.team, self.id, self.target_id))
+
     def do_attack(self, defense_team):
         """
         Args:
@@ -132,12 +151,16 @@ class Group(object):
         Returns:
 
         """
+        if self.target_id < 0:
+            return
 
         target_group = defense_team[self.target_id]
-        print(target_group)
 
         num_killed = target_group.deal_damage(self.calc_effective_power(), self.damage_type)
-        print('{} {} -> {} {}: killed {}'.format(self.team, self.id, self.get_other_team(), self.target_id, num_killed))
+        print('{} {} ({} left) -> {} {} ({} left): killed {}'.format(
+            self.team, self.id, self.num_units,
+            self.get_other_team(), self.target_id, target_group.num_units,
+            num_killed))
         self.target_id = -1
 
     def deal_damage(self, ep, type):
@@ -162,14 +185,14 @@ class Group(object):
             return ep
 
     def get_other_team(self):
-        if self.team != 'Infection':
-            return 'Infection'
+        if self.team != INFECTION:
+            return INFECTION
         else:
-            return 'Immune'
+            return IMMUNE_SYSTEM
 
     def __str__(self):
-        return '{} {}: {} left, {}'.format(
-            self.team, self.id, self.num_units, self.text)
+        return '{} {}: {} left, damage={}'.format(
+            self.team, self.id, self.num_units, self.damage)
 
     def __repr__(self):
         return str(self)
@@ -183,14 +206,12 @@ class AdventOfCode(object):
     def run(self):
         print('starting {}'.format(__file__.split('/')[-1]))
 
-        puzzle_input = aocd.data
+        self.test_cases()
 
-        self.test_part_1()
+        puzzle_input = aocd.data
         # self.solve_part_1(puzzle_input)
 
-
-
-    def test_part_1(self):
+    def test_cases(self):
         test_input = '''
 Immune System:
 17 units each with 5390 hit points (weak to radiation, bludgeoning) with an attack that does 4507 fire damage at initiative 2
@@ -200,28 +221,54 @@ Infection:
 801 units each with 4706 hit points (weak to radiation) with an attack that does 116 bludgeoning damage at initiative 1
 4485 units each with 2961 hit points (immune to radiation; weak to fire, cold) with an attack that does 12 slashing damage at initiative 4        
 '''
-        self.solve_part_1(test_input)
+        aoc_util.assert_equal(
+            (INFECTION, 5216),
+            self.solve_part_1(test_input))
+
+        boost = 1570
+        aoc_util.assert_equal(
+            (IMMUNE_SYSTEM, 51),
+            self.solve_part_1(test_input, boost))
+
+        aoc_util.assert_equal(1570, self.solve_part_2(test_input))
 
 
-    def solve_part_1(self, puzzle_input):
+
+
+    def solve_part_2(self, puzzle_input):
+        """
+        Args:
+            puzzle_input (string):
+                the input
+
+        Returns (int):
+            min boost
+        """
+        return 0
+
+
+    def solve_part_1(self, puzzle_input, boost=0):
+        """
+        14897 is too low...
+        """
         print()
 
         # load all groups
         lines = puzzle_input.split('\n')
-        current_team = 'Immune'
+        current_team = IMMUNE_SYSTEM
         id_counter = 1
         teams = {}
         all_groups = []
         for line in lines:
             line = line.strip()
-            if line in {'', 'Immune System:'}:
+            if not line or line.startswith(IMMUNE_SYSTEM):
                 continue
-            elif line == 'Infection:':
-                current_team = 'Infection'
+            elif line.startswith(INFECTION):
+                current_team = INFECTION
                 id_counter = 1
                 continue
 
-            new_group = Group(current_team, id_counter, line)
+            new_group = Group(current_team, id_counter, line, boost)
             if current_team not in teams:
                 teams[current_team] = {}
 
@@ -230,8 +277,19 @@ Infection:
             id_counter += 1
 
         # start the fighting
-        is_done = False
-        while not is_done:
+        winning_army = ''
+        while not winning_army:
+            print('\n' * 5)
+
+            # print summary
+            print('unit summary:')
+            for team_name in sorted(teams.keys()):
+                print(team_name)
+                num_groups_in_army = len(teams[team_name])
+                for i in range(1, num_groups_in_army + 1):
+                    group = teams[team_name][i]
+                    if group.num_units:
+                        print('\t{}'.format(group))
             print()
 
             # target selection phase
@@ -242,6 +300,11 @@ Infection:
 
                 # choose the target
                 attacking_group.choose_target(defense_team)
+
+            # print('selection summary:')
+            # for g in all_groups:
+            #     g.print_selection()
+            # print()
 
             # attack phase
             all_groups.sort(key=lambda x: -x.initiative)
@@ -256,20 +319,21 @@ Infection:
                 for d_group in defense_team.values():
                     defense_units_left += d_group.num_units
                 if not defense_units_left:
-                    is_done = True
+                    winning_army = attacking_group.team
                     break
 
-        print()
-        print('summary')
+            for g in all_groups:
+                g.reset()
+
+        print('{}FINAL SUMMARY'.format('\n' * 5))
+        units_left = 0
         for g in all_groups:
             print(g)
+            units_left += g.num_units
+        print('units_left: {}'.format(units_left))
+        return winning_army, units_left
 
 
-            #
-            # for x in
-            #
-            # z = 5
-            # break
 
 
 
