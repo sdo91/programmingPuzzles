@@ -9,6 +9,7 @@ import re
 import parse
 import typing
 import aoc_util
+from aoc_util import AocLogger
 
 
 
@@ -27,16 +28,6 @@ Infection:
 
 
 class Group(object):
-
-    verbose = True
-
-    @classmethod
-    def log(cls, msg=None):
-        if cls.verbose:
-            if msg is None:
-                print()
-            else:
-                print(msg)
 
     def __init__(self, team, id, text, boost=0):
         self.team = team
@@ -108,7 +99,7 @@ class Group(object):
                 max_dmg = dmg
                 narrowed_targets = [defense_group]
         if not narrowed_targets:
-            # self.log('cant deal dmg: {}'.format(self))
+            # AocLogger.log('cant deal dmg: {}'.format(self))
             return  # cant deal damage
         if len(narrowed_targets) == 1:
             self.target_id = narrowed_targets[0].id
@@ -147,7 +138,7 @@ class Group(object):
 
     def log_selection(self):
         if self.target_id > -1:
-            self.log('\t{} {} has selected {}'.format(self.team, self.id, self.target_id))
+            AocLogger.log('\t{} {} has selected {}'.format(self.team, self.id, self.target_id))
 
     def do_attack(self, defense_team):
         """
@@ -163,7 +154,7 @@ class Group(object):
         target_group = defense_team[self.target_id]
 
         num_killed = target_group.deal_damage(self.calc_effective_power(), self.damage_type)
-        self.log('{} {} ({} left) -> {} {} ({} left): killed {}'.format(
+        AocLogger.log('{} {} ({} left) -> {} {} ({} left): killed {}'.format(
             self.team, self.id, self.num_units,
             self.get_other_team(), self.target_id, target_group.num_units,
             num_killed))
@@ -232,11 +223,10 @@ class AdventOfCode(object):
 
         puzzle_input = aocd.data
 
-        Group.verbose = False
-        # Group.verbose = True
+        AocLogger.verbose = False
         self.test_cases(puzzle_input)
 
-        Group.verbose = False
+        AocLogger.verbose = False
         aoc_util.assert_equal(
             (INFECTION, 15392),
             self.solve_part_1(puzzle_input)
@@ -280,7 +270,7 @@ class AdventOfCode(object):
         """
         14897 is too low...
         """
-        Group.log()
+        AocLogger.log()
 
         # load all groups
         lines = puzzle_input.split('\n')
@@ -308,18 +298,18 @@ class AdventOfCode(object):
         # start the fighting
         winning_army = ''
         while not winning_army:
-            Group.log('\n' * 5)
+            AocLogger.log('\n' * 5)
 
             # log summary
-            Group.log('unit summary:')
+            AocLogger.log('unit summary:')
             for team_name in sorted(teams.keys()):
-                Group.log(team_name)
+                AocLogger.log(team_name)
                 num_groups_in_army = len(teams[team_name])
                 for i in range(1, num_groups_in_army + 1):
                     group = teams[team_name][i]
                     if group.num_units:
-                        Group.log('\t{}'.format(group))
-            Group.log()
+                        AocLogger.log('\t{}'.format(group))
+            AocLogger.log()
 
             # target selection phase
             all_groups.sort(key=lambda x: x.calc_target_selection_priority())
@@ -330,10 +320,10 @@ class AdventOfCode(object):
                 # choose the target
                 attacking_group.choose_target(defense_team)
 
-            # Group.log('selection summary:')
+            # AocLogger.log('selection summary:')
             # for g in all_groups:
             #     g.log_selection()
-            # Group.log()
+            # AocLogger.log()
 
             # attack phase
             all_groups.sort(key=lambda x: -x.initiative)
@@ -363,12 +353,12 @@ class AdventOfCode(object):
             for g in all_groups:
                 g.reset()
 
-        Group.log('{}FINAL SUMMARY'.format('\n' * 5))
+        AocLogger.log('{}FINAL SUMMARY'.format('\n' * 5))
         units_left = 0
         for g in all_groups:
-            Group.log(g)
+            AocLogger.log(g)
             units_left += g.num_units
-        Group.log('units_left: {}'.format(units_left))
+        AocLogger.log('units_left: {}'.format(units_left))
         return winning_army, units_left
 
 
