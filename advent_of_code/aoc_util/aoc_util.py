@@ -1,6 +1,7 @@
 
 import re
 import typing
+from os import path
 
 
 class AocLogger(object):
@@ -49,6 +50,16 @@ def assert_equal(expected, actual):
         print('expected: {}'.format(expected))
         print('actual: {}'.format(actual))
     assert expected == actual
+
+
+def write_input(text, file_path):
+    out_dir = path.dirname(file_path)
+    while not path.basename(out_dir).startswith('advent'):
+        out_dir = path.realpath(path.join(out_dir, '..'))
+
+    with open(out_dir + '/input.txt', 'w') as outfile:
+        outfile.write(text)
+
 
 
 

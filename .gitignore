@@ -5,3 +5,5 @@
 *.png
 
 prime_tools/primes/*.txt
+
+advent_of_code/input.txt

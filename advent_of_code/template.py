@@ -50,13 +50,14 @@ class AdventOfCode(object):
 
         puzzle_input = 'todo: use real data'
         # puzzle_input = aocd.data
+        aoc_util.write_input(puzzle_input, __file__)
 
         AocLogger.verbose = True
         self.test_cases()
 
         AocLogger.verbose = False
-        self.solve_part_1(puzzle_input)
-        self.solve_part_2(puzzle_input)
+        # self.solve_part_1(puzzle_input)
+        # self.solve_part_2(puzzle_input)
 
     def test_cases(self):
         self.verbose = True
@@ -95,7 +96,7 @@ class AdventOfCode(object):
 
         Returns: the answer
         """
-        lines = puzzle_input.strip().split()
+        lines = puzzle_input.strip().split('\n')
         result = 0
         for line in lines:
             line = line.strip()
@@ -113,7 +114,7 @@ class AdventOfCode(object):
 
         Returns: the answer
         """
-        lines = puzzle_input.strip().split()
+        lines = puzzle_input.strip().split('\n')
         result = 0
         for line in lines:
             line = line.strip()
