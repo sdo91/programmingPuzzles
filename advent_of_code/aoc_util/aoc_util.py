@@ -28,3 +28,13 @@ def words(s: str) -> typing.List[str]:
 
 def split_and_strip_each(s: str, c: str) -> typing.List[str]:
     return lmap(str.strip, s.split(c))
+
+def assert_equal(expected, actual):
+    if expected != actual:
+        print('expected: {}'.format(expected))
+        print('actual: {}'.format(actual))
+    assert expected == actual
+
+
+
+
