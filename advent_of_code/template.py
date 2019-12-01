@@ -1,17 +1,6 @@
 #!/usr/bin/env python3
 
-def addToPath(relPath):
-    from os import path
-    import sys
-    dirOfThisFile = path.dirname(path.realpath(__file__))
-    dirToAdd = path.normpath(path.join(dirOfThisFile, relPath))
-    if dirToAdd not in sys.path:
-        print('adding to path: {}'.format(dirToAdd))
-        sys.path.insert(0, dirToAdd)
-    else:
-        print('already in path: {}'.format(dirToAdd))
 
-# addToPath('.')
 
 ### IMPORTS ###
 
@@ -22,7 +11,8 @@ import typing
 import aoc_util
 
 
-### constants ###
+
+### CONSTANTS ###
 TEST_INPUT = [
     """
 
@@ -47,23 +37,40 @@ TEST_OUTPUT_2 = [
 
 
 
+
+
 class AdventOfCode(object):
     """
     https://adventofcode.com
     """
 
+    def __init__(self):
+        self.verbose = True
+
+    def log(self, msg=None, verbose=None):
+        if verbose or (verbose is None and self.verbose):
+            if msg is None:
+                print()
+            else:
+                print(msg)
+
     def run(self):
         print('starting {}'.format(__file__.split('/')[-1]))
 
-        # puzzle_input = aocd.data
-
+        self.verbose = True
         self.test_cases()
-        # self.solve_part_1(puzzle_input)
-        # self.solve_part_2(puzzle_input)
 
-
+        self.verbose = False
+        puzzle_input = 'todo: use real data'
+        # puzzle_input = aocd.data
+        self.solve_part_1(puzzle_input)
+        self.solve_part_2(puzzle_input)
 
     def test_cases(self):
+        self.verbose = True
+        self.log()
+        self.log('running test cases')
+
         for test_in, test_out in zip(TEST_INPUT, TEST_OUTPUT_1):
             test_in = test_in.strip()
             if not test_in:
@@ -75,6 +82,20 @@ class AdventOfCode(object):
                 self.solve_part_1(test_in)
             )
 
+        # for test_in, test_out in zip(TEST_INPUT, TEST_OUTPUT_2):
+        #     test_in = test_in.strip()
+        #     if not test_in:
+        #         continue
+        #
+        #     # do the test
+        #     aoc_util.assert_equal(
+        #         test_out,
+        #         self.solve_part_2(test_in)
+        #     )
+
+        self.log('all test cases passed')
+        self.log('\n' * 5)
+
     def solve_part_1(self, puzzle_input):
         """
         Args:
@@ -82,7 +103,16 @@ class AdventOfCode(object):
 
         Returns: the answer
         """
-        return 0
+        lines = puzzle_input.strip().split()
+        result = 0
+        for line in lines:
+            line = line.strip()
+
+            # todo: process line here
+            self.log(line)
+
+        print('\npart 1 result: {}'.format(result))
+        return result
 
     def solve_part_2(self, puzzle_input):
         """
@@ -91,15 +121,16 @@ class AdventOfCode(object):
 
         Returns: the answer
         """
-        return 0
+        lines = puzzle_input.strip().split()
+        result = 0
+        for line in lines:
+            line = line.strip()
 
+            # todo: process line here
+            self.log(line)
 
-
-
-
-
-
-
+        print('\npart 2 result: {}'.format(result))
+        return result
 
 
 
