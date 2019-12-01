@@ -1,17 +1,6 @@
 #!/usr/bin/env python3
 
-def addToPath(relPath):
-    from os import path
-    import sys
-    dirOfThisFile = path.dirname(path.realpath(__file__))
-    dirToAdd = path.normpath(path.join(dirOfThisFile, relPath))
-    if dirToAdd not in sys.path:
-        print('adding to path: {}'.format(dirToAdd))
-        sys.path.insert(0, dirToAdd)
-    else:
-        print('already in path: {}'.format(dirToAdd))
 
-# addToPath('.')
 
 ### IMPORTS ###
 
@@ -22,7 +11,8 @@ import typing
 import aoc_util
 
 
-### constants ###
+
+### CONSTANTS ###
 TEST_INPUT = [
     """
 1969
@@ -47,23 +37,39 @@ TEST_OUTPUT_2 = [
 
 
 
+
+
 class AdventOfCode(object):
     """
     https://adventofcode.com
     """
 
+    def __init__(self):
+        self.verbose = True
+
     def run(self):
         print('starting {}'.format(__file__.split('/')[-1]))
 
-        puzzle_input = aocd.data
-
+        self.verbose = True
         self.test_cases()
-        # self.solve_part_1(puzzle_input)
+
+        self.verbose = False
+        puzzle_input = aocd.data
+        self.solve_part_1(puzzle_input)
         self.solve_part_2(puzzle_input)
 
-
+    def log(self, msg=None, verbose=None):
+        if verbose or (verbose is None and self.verbose):
+            if msg is None:
+                print()
+            else:
+                print(msg)
 
     def test_cases(self):
+        self.verbose = True
+        self.log()
+        self.log('running test cases')
+
         for test_in, test_out in zip(TEST_INPUT, TEST_OUTPUT_2):
             test_in = test_in.strip()
             if not test_in:
@@ -74,6 +80,9 @@ class AdventOfCode(object):
                 test_out,
                 self.solve_part_2(test_in)
             )
+
+        self.log('all test cases passed')
+        self.log('\n' * 5)
 
     def solve_part_1(self, puzzle_input):
         """
@@ -87,7 +96,7 @@ class AdventOfCode(object):
         for line in lines:
             result += (int(line) // 3) - 2
 
-        print('part 1 result: {}'.format(result))
+        print('\npart 1 result: {}'.format(result))
         return result
 
     def solve_part_2(self, puzzle_input):
@@ -100,6 +109,7 @@ class AdventOfCode(object):
         3395944 too low
         5093873 too high
         """
+        self.log('\n' * 5)
         lines = puzzle_input.strip().split()
         total_fuel_needed = 0
         for line in lines:
@@ -110,22 +120,14 @@ class AdventOfCode(object):
                 extra_fuel_needed = prev_step_fuel_needed // 3 - 2
                 if extra_fuel_needed < 1:
                     break
-                print(extra_fuel_needed)
+                self.log(extra_fuel_needed)
                 fuel_needed_this_module += extra_fuel_needed
                 prev_step_fuel_needed = extra_fuel_needed
 
             total_fuel_needed += fuel_needed_this_module
 
-        print('part 2 result: {}'.format(total_fuel_needed))
+        print('\npart 2 result: {}'.format(total_fuel_needed))
         return total_fuel_needed
-
-
-
-
-
-
-
-
 
 
 
