@@ -48,46 +48,34 @@ class AdventOfCode(object):
     def run(self):
         print('starting {}'.format(__file__.split('/')[-1]))
 
-        puzzle_input = 'todo: use real data'
-        # puzzle_input = aocd.data
+        try:
+            puzzle_input = aocd.data
+        except aocd.exceptions.AocdError:
+            puzzle_input = 'unable to get input'
         aoc_util.write_input(puzzle_input, __file__)
 
         AocLogger.verbose = True
-        self.test_cases()
+        self.run_tests()
 
         AocLogger.verbose = False
+
         # self.solve_part_1(puzzle_input)
+
+        # aoc_util.assert_equal(
+        #     0,
+        #     self.solve_part_1(puzzle_input)
+        # )
+
         # self.solve_part_2(puzzle_input)
 
-    def test_cases(self):
-        self.verbose = True
-        AocLogger.log()
-        AocLogger.log('running test cases')
+        # aoc_util.assert_equal(
+        #     0,
+        #     self.solve_part_2(puzzle_input)
+        # )
 
-        for test_in, test_out in zip(TEST_INPUT, TEST_OUTPUT_1):
-            test_in = test_in.strip()
-            if not test_in:
-                continue
-
-            # do the test
-            aoc_util.assert_equal(
-                test_out,
-                self.solve_part_1(test_in)
-            )
-
-        # for test_in, test_out in zip(TEST_INPUT, TEST_OUTPUT_2):
-        #     test_in = test_in.strip()
-        #     if not test_in:
-        #         continue
-        #
-        #     # do the test
-        #     aoc_util.assert_equal(
-        #         test_out,
-        #         self.solve_part_2(test_in)
-        #     )
-
-        AocLogger.log('all test cases passed')
-        AocLogger.log('\n' * 5)
+    def run_tests(self):
+        aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
+        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def solve_part_1(self, puzzle_input):
         """
@@ -97,7 +85,7 @@ class AdventOfCode(object):
         Returns: the answer
         """
         lines = puzzle_input.strip().split('\n')
-        result = 0
+        result = 1
         for line in lines:
             line = line.strip()
 
@@ -115,7 +103,7 @@ class AdventOfCode(object):
         Returns: the answer
         """
         lines = puzzle_input.strip().split('\n')
-        result = 0
+        result = 2
         for line in lines:
             line = line.strip()
 

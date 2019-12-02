@@ -63,6 +63,27 @@ def write_input(text, file_path):
         outfile.write(text)
 
 
+def run_tests(function, test_inputs, test_outputs):
+    AocLogger.log('\nrunning test cases')
+    num_tests_passed = 0
+
+    for test_in, test_out in zip(test_inputs, test_outputs):
+        test_in = test_in.strip()
+        if not test_in:
+            continue
+
+        # do the test
+        assert_equal(
+            test_out,
+            function(test_in)
+        )
+
+        num_tests_passed += 1
+
+    AocLogger.log('passed all test cases ({} tests)'.format(num_tests_passed))
+    AocLogger.log('\n' * 5)
+
+
 
 
 
