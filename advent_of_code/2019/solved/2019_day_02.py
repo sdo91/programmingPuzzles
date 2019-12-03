@@ -5,9 +5,6 @@
 ### IMPORTS ###
 
 import aocd
-import re
-import parse
-import typing
 import aoc_util
 from aoc_util import AocLogger
 
@@ -37,7 +34,9 @@ TEST_OUTPUT_1 = [
     [2,0,0,0,99],
 
     [2,3,0,6,99],
+
     [2,4,4,5,99,9801],
+
     [30,1,1,4,2,5,6,0,99],
 ]
 
@@ -85,28 +84,7 @@ class AdventOfCode(object):
             codes[1] = first
             codes[2] = second
 
-        i = 0
-        while True:
-            opcode = codes[i]
-
-            if opcode == 99:
-                break
-            elif opcode == 1:
-                # add
-                a_index = codes[i+1]
-                b_index = codes[i+2]
-                dest_index = codes[i+3]
-                codes[dest_index] = codes[a_index] + codes[b_index]
-            elif opcode == 2:
-                # mult
-                a_index = codes[i+1]
-                b_index = codes[i+2]
-                dest_index = codes[i+3]
-                codes[dest_index] = codes[a_index] * codes[b_index]
-            else:
-                raise RuntimeError('bad opcode')
-
-            i += 4
+        aoc_util.run_intcode(codes)
 
         if verbose:
             print('\npart 1 result: {}'.format(codes[0]))

@@ -84,6 +84,35 @@ def run_tests(function, test_inputs, test_outputs):
     AocLogger.log('\n' * 5)
 
 
+def run_intcode(codes_list):
+    """
+    from 2019 day 2
+    may need to reuse...
+    """
+    i = 0
+    while True:
+        opcode = codes_list[i]
+
+        if opcode == 99:
+            break
+        elif opcode == 1:
+            # add
+            a_index = codes_list[i + 1]
+            b_index = codes_list[i + 2]
+            dest_index = codes_list[i + 3]
+            codes_list[dest_index] = codes_list[a_index] + codes_list[b_index]
+        elif opcode == 2:
+            # mult
+            a_index = codes_list[i + 1]
+            b_index = codes_list[i + 2]
+            dest_index = codes_list[i + 3]
+            codes_list[dest_index] = codes_list[a_index] * codes_list[b_index]
+        else:
+            raise RuntimeError('bad opcode')
+
+        i += 4
+    return codes_list
+
 
 
 
