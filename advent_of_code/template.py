@@ -40,6 +40,23 @@ TEST_OUTPUT_2 = [
 
 
 
+class MyObject(object):
+
+    def __init__(self, text):
+        self.text = text
+        self.id = 0
+
+    def __str__(self):
+        return 'MyObject {}: {}'.format(
+            self.id, self.text)
+
+    def __repr__(self):
+        return str(self)
+
+
+
+
+
 class AdventOfCode(object):
     """
     https://adventofcode.com
