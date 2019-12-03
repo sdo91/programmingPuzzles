@@ -43,6 +43,9 @@ def words(s: str) -> typing.List[str]:
 
 
 def split_and_strip_each(s: str, c: str) -> typing.List[str]:
+    """
+    split the string on the char, and strip each item in the resulting list
+    """
     return lmap(str.strip, s.split(c))
 
 
@@ -114,5 +117,9 @@ def run_intcode(codes_list):
     return codes_list
 
 
-
+def manhatten_dist(a, b):
+    result = 0
+    for i in range(len(a)):
+        result += abs(a[i] - b[i])
+    return result
 
