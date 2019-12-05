@@ -79,7 +79,7 @@ def run_tests(function, test_inputs, test_outputs):
             if test_in == '':
                 continue
 
-        print('index: {}'.format(i))
+        print('\nindex: {}'.format(i))
 
         # do the test
         assert_equal(
@@ -89,7 +89,7 @@ def run_tests(function, test_inputs, test_outputs):
 
         num_tests_passed += 1
 
-    AocLogger.log('passed all test cases ({} tests)'.format(num_tests_passed))
+    AocLogger.log('\npassed all test cases ({} tests)'.format(num_tests_passed))
     AocLogger.log('\n' * 5)
 
 

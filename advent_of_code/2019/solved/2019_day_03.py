@@ -51,11 +51,6 @@ class AdventOfCode(object):
 
         AocLogger.verbose = False
 
-        # aoc_util.assert_equal(
-        #     768,
-        #     self.solve_part_1(puzzle_input)
-        # )
-
         aoc_util.assert_equal(
             (768, 8684),
             self.solve_test_case(puzzle_input)
@@ -109,7 +104,7 @@ class AdventOfCode(object):
 
                     if is_first_line:
                         first_wire_spots[coord] = total_steps
-                        # print('first wire: {}'.format([coord, total_steps]))
+                        AocLogger.log('first wire: {}'.format([coord, total_steps]))
                     else:
                         if coord in first_wire_spots:
                             # match found
