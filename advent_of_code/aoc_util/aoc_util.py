@@ -70,10 +70,16 @@ def run_tests(function, test_inputs, test_outputs):
     AocLogger.log('\nrunning test cases')
     num_tests_passed = 0
 
-    for test_in, test_out in zip(test_inputs, test_outputs):
-        test_in = test_in.strip()
-        if not test_in:
-            continue
+    for i in range(len(test_inputs)):
+        test_in = test_inputs[i]
+        test_out = test_outputs[i]
+
+        if type(test_in) == str:
+            test_in = test_in.strip()
+            if test_in == '':
+                continue
+
+        print('index: {}'.format(i))
 
         # do the test
         assert_equal(
@@ -87,7 +93,7 @@ def run_tests(function, test_inputs, test_outputs):
     AocLogger.log('\n' * 5)
 
 
-def run_intcode(codes_list):
+def run_intcode(codes_list: typing.List[int]) -> typing.List[int]:
     """
     from 2019 day 2
     may need to reuse...
@@ -123,3 +129,7 @@ def manhatten_dist(a, b):
         result += abs(a[i] - b[i])
     return result
 
+
+def re_find_all_matches(pattern, text):
+    matcher = re.compile(pattern)
+    return [match.group() for match in matcher.finditer(text)]

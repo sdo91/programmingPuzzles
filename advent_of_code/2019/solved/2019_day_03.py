@@ -5,9 +5,6 @@
 ### IMPORTS ###
 
 import aocd
-import re
-import parse
-import typing
 import aoc_util
 from aoc_util import AocLogger
 
@@ -25,34 +22,11 @@ U7,R6,D4,L4
     """
 ]
 
-TEST_OUTPUT_1 = [
-    6,
+TEST_OUTPUT = [
+    (6, 30),
     0,
     0,
 ]
-
-TEST_OUTPUT_2 = [
-    30,
-    0,
-    0,
-]
-
-
-
-
-
-class MyObject(object):
-
-    def __init__(self, text):
-        self.text = text
-        self.id = 0
-
-    def __str__(self):
-        return 'MyObject {}: {}'.format(
-            self.id, self.text)
-
-    def __repr__(self):
-        return str(self)
 
 
 
@@ -77,177 +51,90 @@ class AdventOfCode(object):
 
         AocLogger.verbose = False
 
-        self.solve_part_1(puzzle_input)
-
         # aoc_util.assert_equal(
-        #     0,
+        #     768,
         #     self.solve_part_1(puzzle_input)
         # )
 
-        self.solve_part_2(puzzle_input)
-
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            (768, 8684),
+            self.solve_test_case(puzzle_input)
+        )
 
     def run_tests(self):
-        aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+        aoc_util.run_tests(self.solve_test_case, TEST_INPUT, TEST_OUTPUT)
 
-    def solve_part_1(self, puzzle_input):
+
+    def solve_test_case(self, puzzle_input):
         """
         Args:
             puzzle_input (string): the input
 
         Returns: the answer
 
-        rank 842
+        part 1: rank 842
+        part 2: rank 716
         """
-        lines = puzzle_input.strip().split('\n')
-        # for line in lines:
-
-        current_x = 0
-        current_y = 0
-
-        first_wire_spots = set()
-
-        first_line = lines[0]
-        tokens = first_line.strip().split(',')
-        for token in tokens:
-            dir = token[0].lower()
-            num_steps = aoc_util.ints(token)[0]
-
-            for i in range(num_steps):
-                if dir == 'r':
-                    current_x += 1
-                if dir == 'l':
-                    current_x -= 1
-                if dir == 'u':
-                    current_y += 1
-                if dir == 'd':
-                    current_y -= 1
-
-                coord = (current_x, current_y)
-                first_wire_spots.add(coord)
-                print('first wire: {}'.format(coord))
-
-        # done with first wire
-
-        current_x = 0
-        current_y = 0
-
-        min_dist = 99999
-
-        second_line = lines[1]
-        tokens = second_line.strip().split(',')
-        for token in tokens:
-            dir = token[0].lower()
-            num_steps = aoc_util.ints(token)[0]
-
-            for i in range(num_steps):
-                if dir == 'r':
-                    current_x += 1
-                if dir == 'l':
-                    current_x -= 1
-                if dir == 'u':
-                    current_y += 1
-                if dir == 'd':
-                    current_y -= 1
-
-                coord = (current_x, current_y)
-                # print('2nd wire: {}'.format(coord))
-
-                if coord in first_wire_spots:
-                    print('match: {}'.format(coord))
-                    md = aoc_util.manhatten_dist((0,0), coord)
-                    print('dist: {}'.format(md))
-
-                    min_dist = min(min_dist, md)
-
-
-        print('\npart 1 result: {}'.format(min_dist))
-        return min_dist
-
-    def solve_part_2(self, puzzle_input):
-        """
-        Args:
-            puzzle_input (string): the input
-
-        Returns: the answer
-
-        rank 716
-        """
-        lines = puzzle_input.strip().split('\n')
-        # for line in lines:
-
-        current_x = 0
-        current_y = 0
-        total_steps = 0
 
         first_wire_spots = {}
+        is_first_line = True
 
-        first_line = lines[0]
-        tokens = first_line.strip().split(',')
-        for token in tokens:
-            dir = token[0].lower()
-            num_steps = aoc_util.ints(token)[0]
+        min_man_dist = 9e9
+        min_combined_steps = 9e9
 
-            for i in range(num_steps):
-                if dir == 'r':
-                    current_x += 1
-                if dir == 'l':
-                    current_x -= 1
-                if dir == 'u':
-                    current_y += 1
-                if dir == 'd':
-                    current_y -= 1
+        lines = puzzle_input.strip().split('\n')
+        for line in lines:
 
-                coord = (current_x, current_y)
-                total_steps += 1
-                first_wire_spots[coord] = total_steps
-                print('first wire: {}'.format([coord, total_steps]))
+            current_x = 0
+            current_y = 0
+            total_steps = 0
 
-        # done with first wire
+            tokens = line.strip().split(',')
+            for token in tokens:
+                dir = token[0].lower()
+                num_steps = aoc_util.ints(token)[0]
 
-        current_x = 0
-        current_y = 0
-        total_steps = 0
+                for i in range(num_steps):
+                    if dir == 'r':
+                        current_x += 1
+                    if dir == 'l':
+                        current_x -= 1
+                    if dir == 'u':
+                        current_y += 1
+                    if dir == 'd':
+                        current_y -= 1
 
-        min_combined_dist = 99999
+                    coord = (current_x, current_y)
+                    total_steps += 1
 
-        second_line = lines[1]
-        tokens = second_line.strip().split(',')
-        for token in tokens:
-            dir = token[0].lower()
-            num_steps = aoc_util.ints(token)[0]
+                    if is_first_line:
+                        first_wire_spots[coord] = total_steps
+                        # print('first wire: {}'.format([coord, total_steps]))
+                    else:
+                        if coord in first_wire_spots:
+                            # match found
+                            print('match: {}'.format([coord, total_steps]))
 
-            for i in range(num_steps):
-                if dir == 'r':
-                    current_x += 1
-                if dir == 'l':
-                    current_x -= 1
-                if dir == 'u':
-                    current_y += 1
-                if dir == 'd':
-                    current_y -= 1
+                            # part 1
+                            man_dist = aoc_util.manhatten_dist((0,0), coord)
+                            print('man_dist: {}'.format(man_dist))
+                            min_man_dist = min(min_man_dist, man_dist)
 
-                coord = (current_x, current_y)
-                total_steps += 1
+                            # part 2
+                            combo_dist = total_steps + first_wire_spots[coord]
+                            print('combo_dist: {}'.format(combo_dist))
+                            min_combined_steps = min(min_combined_steps, combo_dist)
 
-                # print('2nd wire: {}'.format(coord))
+                            pass
 
-                if coord in first_wire_spots:
-                    print('match: {}'.format([coord, total_steps]))
-                    dist = total_steps + first_wire_spots[coord]
-                    print('dist: {}'.format(dist))
+            if is_first_line:
+                print('done with first line')
+                is_first_line = False
+        # end for loop
 
-                    min_combined_dist = min(min_combined_dist, dist)
-                    pass
-
-
-        print('\npart 1 result: {}'.format(min_combined_dist))
-        return min_combined_dist
+        result = min_man_dist, min_combined_steps
+        print('\nresult: {}'.format(result))
+        return result
 
 
 
