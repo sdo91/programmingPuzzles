@@ -93,36 +93,6 @@ def run_tests(function, test_inputs, test_outputs):
     AocLogger.log('\n' * 5)
 
 
-def run_intcode(codes_list: typing.List[int]) -> typing.List[int]:
-    """
-    from 2019 day 2
-    may need to reuse...
-    """
-    i = 0
-    while True:
-        opcode = codes_list[i]
-
-        if opcode == 99:
-            break
-        elif opcode == 1:
-            # add
-            a_index = codes_list[i + 1]
-            b_index = codes_list[i + 2]
-            dest_index = codes_list[i + 3]
-            codes_list[dest_index] = codes_list[a_index] + codes_list[b_index]
-        elif opcode == 2:
-            # mult
-            a_index = codes_list[i + 1]
-            b_index = codes_list[i + 2]
-            dest_index = codes_list[i + 3]
-            codes_list[dest_index] = codes_list[a_index] * codes_list[b_index]
-        else:
-            raise RuntimeError('bad opcode')
-
-        i += 4
-    return codes_list
-
-
 def manhatten_dist(a, b):
     result = 0
     for i in range(len(a)):
@@ -133,3 +103,115 @@ def manhatten_dist(a, b):
 def re_find_all_matches(pattern, text):
     matcher = re.compile(pattern)
     return [match.group() for match in matcher.finditer(text)]
+
+
+
+
+
+
+
+
+
+
+# todo: move intcode logic to a class
+
+def get_out_idx(codes, opcode_index, offset):
+    return codes[opcode_index + offset]
+
+def get_param(codes, param_modes, opcode_index, offset):
+    try:
+        param_mode = param_modes[offset - 1]
+    except:
+        param_mode = 0
+    if param_mode == 1:
+        result = codes[opcode_index + offset]
+    else:
+        result = codes[codes[opcode_index + offset]]
+    return result
+
+def run_intcode(codes_list: typing.List[int], input_value):
+    """
+    from 2019 day 2
+    may need to reuse...
+    """
+    i = 0
+
+    while True:
+        full_opcode = str(codes_list[i])
+
+        opcode = int(full_opcode[-2:])
+        param_modes = []
+
+        for c in full_opcode[:-2]:
+            param_modes.insert(0, int(c))
+
+
+        if opcode == 99:
+            break
+
+        elif opcode == 1:
+            # add
+            a = get_param(codes_list, param_modes, i, 1)
+            b = get_param(codes_list, param_modes, i, 2)
+            out = get_out_idx(codes_list, i, 3)
+            codes_list[out] = a + b
+            i += 4
+
+        elif opcode == 2:
+            # mult
+            a = get_param(codes_list, param_modes, i, 1)
+            b = get_param(codes_list, param_modes, i, 2)
+            out = get_out_idx(codes_list, i, 3)
+            codes_list[out] = a * b
+            i += 4
+
+        elif opcode == 3:
+            out = get_out_idx(codes_list, i, 3)
+            codes_list[out] = input_value
+            i += 2
+
+        elif opcode == 4:
+            print(codes_list[codes_list[i+1]])
+            i += 2
+
+        elif opcode == 5:
+            # jump if true
+            a = get_param(codes_list, param_modes, i, 1)
+            b = get_param(codes_list, param_modes, i, 2)
+            if a:
+                i = b
+            else:
+                i += 3
+
+        elif opcode == 6:
+            # jump if false
+            a = get_param(codes_list, param_modes, i, 1)
+            b = get_param(codes_list, param_modes, i, 2)
+            if not a:
+                i = b
+            else:
+                i += 3
+
+        elif opcode == 7:
+            # less than
+            a = get_param(codes_list, param_modes, i, 1)
+            b = get_param(codes_list, param_modes, i, 2)
+            out = get_out_idx(codes_list, i, 3)
+            codes_list[out] = int(a < b)
+            i += 4
+
+        elif opcode == 8:
+            # eq
+            a = get_param(codes_list, param_modes, i, 1)
+            b = get_param(codes_list, param_modes, i, 2)
+            out = get_out_idx(codes_list, i, 3)
+            codes_list[out] = int(a == b)
+            i += 4
+
+        else:
+            raise RuntimeError('bad opcode')
+
+    return codes_list
+
+
+
