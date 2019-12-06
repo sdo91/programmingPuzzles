@@ -80,10 +80,10 @@ def solve_full_input(puzzle_input):
     #     8
     # )
 
-    computer = IntcodeComputer()
+    computer = IntcodeComputer(codes)
 
     # intcode_computer.run_intcode(codes, 1)
-    computer.run_intcode(codes, 5)
+    computer.run(5)
 
 
 
