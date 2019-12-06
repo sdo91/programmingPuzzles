@@ -8,8 +8,9 @@ import aocd
 import re
 import parse
 import typing
-import aoc_util
-from aoc_util import AocLogger
+from aoc_util import aoc_util
+from aoc_util.intcode_computer import IntcodeComputer
+from aoc_util.aoc_util import AocLogger
 
 
 
@@ -52,6 +53,11 @@ def main():
 
     solve_full_input(puzzle_input)
 
+    # aoc_util.assert_equal(
+    #     8684145,
+    #     solve_full_input(puzzle_input)
+    # )
+
 
 
 
@@ -60,7 +66,7 @@ def main():
 def solve_test_case(test_input):
     AocLogger.log('test input: {}'.format(test_input))
 
-    aoc_util.run_intcode(test_input)
+    # intcode_computer.run_intcode(test_input)
 
 
     pass
@@ -69,18 +75,20 @@ def solve_full_input(puzzle_input):
 
     codes = aoc_util.ints(puzzle_input)
 
-
-    # aoc_util.run_intcode(codes, 1)
-    aoc_util.run_intcode(codes, 5)
-
-    # aoc_util.run_intcode(
+    # intcode_computer.run_intcode(
     #     [3,9,8,9,10,9,4,9,99,-1,8],
     #     8
     # )
 
+    computer = IntcodeComputer()
+
+    # intcode_computer.run_intcode(codes, 1)
+    computer.run_intcode(codes, 5)
 
 
-    pass
+
+
+
 
 
 

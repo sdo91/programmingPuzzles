@@ -8,8 +8,8 @@ import aocd
 import re
 import parse
 import typing
-import aoc_util
-from aoc_util import AocLogger
+from aoc_util import aoc_util
+from aoc_util.aoc_util import AocLogger
 
 
 
