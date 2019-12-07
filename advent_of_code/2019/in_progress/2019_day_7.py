@@ -123,8 +123,13 @@ def solve_test_case_2(test_input):
 
     prev_out = 0
     i = 0
+    is_first_loop = True
     while True:
-        in_list = [phase_settings[i], prev_out]
+        if is_first_loop:
+            in_list = [phase_settings[i], prev_out]
+        else:
+            in_list = [prev_out]
+
         AocLogger.log('in_list: {}'.format(in_list))
         ic_out = amps[i].run(in_list)
 
@@ -136,7 +141,10 @@ def solve_test_case_2(test_input):
         AocLogger.log('prev_out: {}'.format(prev_out))
 
         i += 1
-        i %= 5
+
+        if i >= 5:
+            i = 0
+            is_first_loop = False
 
 
     return prev_out
@@ -148,6 +156,9 @@ def solve_full_input(puzzle_input):
     """
     87572
 
+    1:25 minutes
+    rank 872 (part 2)
+
     :param puzzle_input:
     :return:
     """
@@ -157,7 +168,7 @@ def solve_full_input(puzzle_input):
 
 
     # perms = list(permutations([0,1,2,3,4]))
-    perms = list(permutations([0,1,2,3,4]))
+    perms = list(permutations([5,6,7,8,9]))
 
 
 
@@ -170,10 +181,9 @@ def solve_full_input(puzzle_input):
             codes.copy()
         )
 
-        perm_result = solve_test_case(test_in)
-        #
-        # if perm_result > result:
-        #
+        # perm_result = solve_test_case(test_in)
+        perm_result = solve_test_case_2(test_in)
+
         result = max(result, perm_result)
 
     z=0
