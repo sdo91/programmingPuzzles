@@ -6,13 +6,19 @@ import typing
 class IntcodeComputer(object):
 
     def __init__(self, initial_memory: typing.List[int]):
-        self.i_ptr = 0
         self.outputs = []
         self.initial_memory = initial_memory
+
+        self.i_ptr = 0
         self.memory = []
+        self.input_ptr = 0
+
         self.reset()
 
+
     def reset(self):
+        self.i_ptr = 0
+        self.input_ptr = 0
         self.memory = self.initial_memory.copy()
 
     def get_out_idx(self, opcode_index, offset):
@@ -36,12 +42,13 @@ class IntcodeComputer(object):
 
         return self.memory[param_addr]
 
-    def run(self, input_value):
+    def run(self, inputs, output_all=False):
         """
         from 2019 day 2, 5
         may need to reuse...
         """
-        self.i_ptr = 0
+        self.input_ptr = 0
+        # self.i_ptr = 0
 
         while True:
             full_opcode = str(self.memory[self.i_ptr])
@@ -54,7 +61,7 @@ class IntcodeComputer(object):
 
 
             if opcode == 99:
-                break
+                return 'HALT'
 
             elif opcode == 1:
                 # add
@@ -74,15 +81,17 @@ class IntcodeComputer(object):
 
             elif opcode == 3:
                 # input
-                out = self.get_out_idx(self.i_ptr, 3)
-                self.memory[out] = input_value
+                out = self.get_out_idx(self.i_ptr, 1)
+                self.memory[out] = inputs[self.input_ptr]
+                self.input_ptr += 1
                 self.i_ptr += 2
 
             elif opcode == 4:
                 # output
                 self.outputs.append(self.memory[self.memory[self.i_ptr+1]])
-                print(self.outputs[-1])
+                print('out: {}'.format(self.outputs[-1]))
                 self.i_ptr += 2
+                return self.outputs[-1]
 
             elif opcode == 5:
                 # jump if true
