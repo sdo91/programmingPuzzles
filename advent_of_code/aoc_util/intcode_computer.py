@@ -8,31 +8,43 @@ class IntcodeComputer(object):
     def __init__(self, initial_memory: typing.List[int]):
         self.i_ptr = 0
         self.outputs = []
-        self.memory = initial_memory
+        self.initial_memory = initial_memory
+        self.memory = []
+        self.reset()
+
+    def reset(self):
+        self.memory = self.initial_memory.copy()
 
     def get_out_idx(self, opcode_index, offset):
         return self.memory[opcode_index + offset]
 
-    def get_param(self, param_modes, opcode_index, offset):
+    def get_param(self, param_modes, offset):
+        POSITION_MODE = 0
+        IMMEDIATE_MODE = 1
+
         try:
             param_mode = param_modes[offset - 1]
         except:
             param_mode = 0
-        if param_mode == 1:
-            param_addr = opcode_index + offset
+
+        if param_mode == POSITION_MODE:
+            param_addr = self.memory[self.i_ptr + offset]
+        elif param_mode == IMMEDIATE_MODE:
+            param_addr = self.i_ptr + offset
         else:
-            param_addr = self.memory[opcode_index + offset]
+            raise RuntimeError('invalid param_mode: {}'.format(param_mode))
+
         return self.memory[param_addr]
 
     def run(self, input_value):
         """
-        from 2019 day 2
+        from 2019 day 2, 5
         may need to reuse...
         """
-        i = 0
+        self.i_ptr = 0
 
         while True:
-            full_opcode = str(self.memory[i])
+            full_opcode = str(self.memory[self.i_ptr])
 
             opcode = int(full_opcode[-2:])
             param_modes = []
@@ -46,66 +58,68 @@ class IntcodeComputer(object):
 
             elif opcode == 1:
                 # add
-                a = self.get_param(param_modes, i, 1)
-                b = self.get_param(param_modes, i, 2)
-                out = self.get_out_idx(i, 3)
+                a = self.get_param(param_modes, 1)
+                b = self.get_param(param_modes, 2)
+                out = self.get_out_idx(self.i_ptr, 3)
                 self.memory[out] = a + b
-                i += 4
+                self.i_ptr += 4
 
             elif opcode == 2:
                 # mult
-                a = self.get_param(param_modes, i, 1)
-                b = self.get_param(param_modes, i, 2)
-                out = self.get_out_idx(i, 3)
+                a = self.get_param(param_modes, 1)
+                b = self.get_param(param_modes, 2)
+                out = self.get_out_idx(self.i_ptr, 3)
                 self.memory[out] = a * b
-                i += 4
+                self.i_ptr += 4
 
             elif opcode == 3:
-                out = self.get_out_idx(i, 3)
+                # input
+                out = self.get_out_idx(self.i_ptr, 3)
                 self.memory[out] = input_value
-                i += 2
+                self.i_ptr += 2
 
             elif opcode == 4:
-                self.outputs.append(self.memory[self.memory[i+1]])
+                # output
+                self.outputs.append(self.memory[self.memory[self.i_ptr+1]])
                 print(self.outputs[-1])
-                i += 2
+                self.i_ptr += 2
 
             elif opcode == 5:
                 # jump if true
-                a = self.get_param(param_modes, i, 1)
-                b = self.get_param(param_modes, i, 2)
+                a = self.get_param(param_modes, 1)
+                b = self.get_param(param_modes, 2)
                 if a:
-                    i = b
+                    self.i_ptr = b
                 else:
-                    i += 3
+                    self.i_ptr += 3
 
             elif opcode == 6:
                 # jump if false
-                a = self.get_param(param_modes, i, 1)
-                b = self.get_param(param_modes, i, 2)
+                a = self.get_param(param_modes, 1)
+                b = self.get_param(param_modes, 2)
                 if not a:
-                    i = b
+                    self.i_ptr = b
                 else:
-                    i += 3
+                    self.i_ptr += 3
 
             elif opcode == 7:
                 # less than
-                a = self.get_param(param_modes, i, 1)
-                b = self.get_param(param_modes, i, 2)
-                out = self.get_out_idx(i, 3)
+                a = self.get_param(param_modes, 1)
+                b = self.get_param(param_modes, 2)
+                out = self.get_out_idx(self.i_ptr, 3)
                 self.memory[out] = int(a < b)
-                i += 4
+                self.i_ptr += 4
 
             elif opcode == 8:
                 # eq
-                a = self.get_param(param_modes, i, 1)
-                b = self.get_param(param_modes, i, 2)
-                out = self.get_out_idx(i, 3)
+                a = self.get_param(param_modes, 1)
+                b = self.get_param(param_modes, 2)
+                out = self.get_out_idx(self.i_ptr, 3)
                 self.memory[out] = int(a == b)
-                i += 4
+                self.i_ptr += 4
 
             else:
-                raise RuntimeError('bad opcode')
+                raise RuntimeError('invalid opcode: {}'.format(opcode))
 
-        return self.memory
+        return self.outputs[-1]
 

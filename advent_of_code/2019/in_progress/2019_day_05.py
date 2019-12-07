@@ -51,12 +51,15 @@ def main():
 
     AocLogger.verbose = False
 
-    solve_full_input(puzzle_input)
+    aoc_util.assert_equal(
+        14155342,
+        solve_part_1(puzzle_input)
+    )
 
-    # aoc_util.assert_equal(
-    #     8684145,
-    #     solve_full_input(puzzle_input)
-    # )
+    aoc_util.assert_equal(
+        8684145,
+        solve_part_2(puzzle_input)
+    )
 
 
 
@@ -71,8 +74,12 @@ def solve_test_case(test_input):
 
     pass
 
-def solve_full_input(puzzle_input):
+def solve_part_1(puzzle_input):
+    codes = aoc_util.ints(puzzle_input)
+    computer = IntcodeComputer(codes)
+    return computer.run(1)
 
+def solve_part_2(puzzle_input):
     codes = aoc_util.ints(puzzle_input)
 
     # intcode_computer.run_intcode(
@@ -81,9 +88,7 @@ def solve_full_input(puzzle_input):
     # )
 
     computer = IntcodeComputer(codes)
-
-    # intcode_computer.run_intcode(codes, 1)
-    computer.run(5)
+    return computer.run(5)
 
 
 
