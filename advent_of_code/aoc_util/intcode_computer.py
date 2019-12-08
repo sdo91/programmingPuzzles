@@ -15,22 +15,28 @@ class IntcodeComputer(object):
 
         self.i_ptr = 0
         self.memory = []
-
         self.input_ptr = 0
         self.input_list = []
         self.output_list = []
-
         self.state = self.STATE_READY
-        self.reset()
 
+        self.reset()
 
     def reset(self):
         self.i_ptr = 0
-        self.input_ptr = 0
         self.memory = self.initial_memory.copy()
+
+        self.input_ptr = 0
+        self.input_list = []
+
+        self.output_list = []
+        self.state = self.STATE_READY
 
     def queue_input(self, value):
         self.input_list.append(value)
+
+    def get_latest_output(self):
+        return self.output_list[-1]
 
     def get_out_idx(self, opcode_index, offset):
         return self.memory[opcode_index + offset]
@@ -70,7 +76,8 @@ class IntcodeComputer(object):
 
 
             if opcode == 99:
-                return 'HALT'
+                self.state = self.STATE_HALTED
+                break
 
             elif opcode == 1:
                 # add
@@ -100,7 +107,8 @@ class IntcodeComputer(object):
                 self.output_list.append(self.memory[self.memory[self.i_ptr+1]])
                 AocLogger.log('out: {}'.format(self.output_list[-1]))
                 self.i_ptr += 2
-                return self.output_list[-1]
+                self.state = self.STATE_OUTPUT
+                break
 
             elif opcode == 5:
                 # jump if true
@@ -139,5 +147,5 @@ class IntcodeComputer(object):
             else:
                 raise RuntimeError('invalid opcode: {}'.format(opcode))
 
-        return self.output_list[-1]
+        return self.state
 

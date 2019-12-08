@@ -140,11 +140,11 @@ def solve_test_case_2(test_input):
         # ic_out = amps[i].run(in_list)
 
         amps[i].queue_input(prev_out)
-        ic_out = amps[i].run()
+        ic_state = amps[i].run()
 
-        if ic_out == 'HALT':
+        if ic_state == IntcodeComputer.STATE_HALTED:
             break
-        prev_out = ic_out
+        prev_out = amps[i].get_latest_output()
 
 
         AocLogger.log('prev_out: {}'.format(prev_out))
