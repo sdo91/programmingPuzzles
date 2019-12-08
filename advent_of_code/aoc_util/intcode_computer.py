@@ -1,18 +1,26 @@
 
 import typing
+from aoc_util.aoc_util import AocLogger
 
 
 
 class IntcodeComputer(object):
 
+    STATE_READY = 'READY'
+    STATE_HALTED = 'HALTED'
+    STATE_OUTPUT = 'OUTPUT'
+
     def __init__(self, initial_memory: typing.List[int]):
-        self.outputs = []
         self.initial_memory = initial_memory
 
         self.i_ptr = 0
         self.memory = []
-        self.input_ptr = 0
 
+        self.input_ptr = 0
+        self.input_list = []
+        self.output_list = []
+
+        self.state = self.STATE_READY
         self.reset()
 
 
@@ -20,6 +28,9 @@ class IntcodeComputer(object):
         self.i_ptr = 0
         self.input_ptr = 0
         self.memory = self.initial_memory.copy()
+
+    def queue_input(self, value):
+        self.input_list.append(value)
 
     def get_out_idx(self, opcode_index, offset):
         return self.memory[opcode_index + offset]
@@ -30,7 +41,7 @@ class IntcodeComputer(object):
 
         try:
             param_mode = param_modes[offset - 1]
-        except:
+        except IndexError:
             param_mode = 0
 
         if param_mode == POSITION_MODE:
@@ -42,13 +53,11 @@ class IntcodeComputer(object):
 
         return self.memory[param_addr]
 
-    def run(self, inputs, output_all=False):
+    def run(self):
         """
-        from 2019 day 2, 5
+        from 2019 day 2, 5, 7
         may need to reuse...
         """
-        self.input_ptr = 0
-        # self.i_ptr = 0
 
         while True:
             full_opcode = str(self.memory[self.i_ptr])
@@ -82,16 +91,16 @@ class IntcodeComputer(object):
             elif opcode == 3:
                 # input
                 out = self.get_out_idx(self.i_ptr, 1)
-                self.memory[out] = inputs[self.input_ptr]
+                self.memory[out] = self.input_list[self.input_ptr]
                 self.input_ptr += 1
                 self.i_ptr += 2
 
             elif opcode == 4:
                 # output
-                self.outputs.append(self.memory[self.memory[self.i_ptr+1]])
-                print('out: {}'.format(self.outputs[-1]))
+                self.output_list.append(self.memory[self.memory[self.i_ptr+1]])
+                AocLogger.log('out: {}'.format(self.output_list[-1]))
                 self.i_ptr += 2
-                return self.outputs[-1]
+                return self.output_list[-1]
 
             elif opcode == 5:
                 # jump if true
@@ -130,5 +139,5 @@ class IntcodeComputer(object):
             else:
                 raise RuntimeError('invalid opcode: {}'.format(opcode))
 
-        return self.outputs[-1]
+        return self.output_list[-1]
 

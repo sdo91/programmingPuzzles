@@ -76,7 +76,12 @@ def main():
 
     AocLogger.verbose = False
 
-    solve_full_input(puzzle_input)
+    # solve_full_input(puzzle_input)
+
+    aoc_util.assert_equal(
+        49810599,
+        solve_full_input(puzzle_input)
+    )
 
 
 
@@ -120,18 +125,22 @@ def solve_test_case_2(test_input):
     amps = []
     for i in range(5):
         amps.append(IntcodeComputer(init_mem))
+        amps[-1].queue_input(phase_settings[i])
 
     prev_out = 0
     i = 0
     is_first_loop = True
     while True:
-        if is_first_loop:
-            in_list = [phase_settings[i], prev_out]
-        else:
-            in_list = [prev_out]
+        # if is_first_loop:
+        #     in_list = [phase_settings[i], prev_out]
+        # else:
+        #     in_list = [prev_out]
 
-        AocLogger.log('in_list: {}'.format(in_list))
-        ic_out = amps[i].run(in_list)
+        # AocLogger.log('in_list: {}'.format(in_list))
+        # ic_out = amps[i].run(in_list)
+
+        amps[i].queue_input(prev_out)
+        ic_out = amps[i].run()
 
         if ic_out == 'HALT':
             break
@@ -190,6 +199,8 @@ def solve_full_input(puzzle_input):
     pass
 
     print(result)
+
+    return result
 
 
 

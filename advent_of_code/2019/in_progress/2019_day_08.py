@@ -114,7 +114,7 @@ def solve_test_case(test_input):
         for c in range(width):
             p = get_pixel(pixels, r, c)
             if p == 1:
-                line += 'XX'
+                line += '##'
             else:
                 line += '  '
         print(line)
