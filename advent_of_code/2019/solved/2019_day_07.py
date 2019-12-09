@@ -17,38 +17,30 @@ from itertools import permutations
 
 TEST_INPUT_1 = [
     ([4,3,2,1,0],[3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0]),
-
-    # ([0,1,2,3,4],[3,23,3,24,1002,24,10,24,1002,23,-1,23,
-# 101,5,23,23,1,24,23,23,4,23,99,0,0]),
-#
-#     ([1,0,4,3,2],[3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,
-# 1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0])
+    ([0,1,2,3,4],[3,23,3,24,1002,24,10,24,1002,23,-1,23,101,5,23,23,1,24,23,23,4,23,99,0,0]),
+    ([1,0,4,3,2],[3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0])
 ]
 
 TEST_OUTPUT_1 = [
     43210,
-    # 55555,
-    # 55555,
+    54321,
+    65210,
 ]
 
 TEST_INPUT_2 = [
     (
         [9,8,7,6,5],
-        [3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,
-27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5]
+        [3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5]
     ),
-
-    # ([0,1,2,3,4],[3,23,3,24,1002,24,10,24,1002,23,-1,23,
-# 101,5,23,23,1,24,23,23,4,23,99,0,0]),
-#
-#     ([1,0,4,3,2],[3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,
-# 1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0])
+    (
+        [9,7,8,5,6],
+        [3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54,-5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1,55,2,53,55,53,4,53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10]
+    ),
 ]
 
 TEST_OUTPUT_2 = [
     139629729,
-    # 55555,
-    # 55555,
+    18216,
 ]
 
 
@@ -74,16 +66,15 @@ def main():
 
     AocLogger.verbose = False
 
-    # solve_full_input(puzzle_input)
+    aoc_util.assert_equal(
+        437860,
+        solve_full_input_1(puzzle_input)
+    )
 
     aoc_util.assert_equal(
         49810599,
-        solve_full_input(puzzle_input)
+        solve_full_input_2(puzzle_input)
     )
-
-
-
-
 
 
 def solve_test_case_1(test_input):
@@ -140,9 +131,26 @@ def solve_test_case_2(test_input):
     return prev_out
 
 
+def solve_full_input_1(puzzle_input):
+    puzzle_input = puzzle_input.strip()
+    codes = aoc_util.ints(puzzle_input)
+    perms = list(permutations([0,1,2,3,4]))
+
+    result = 0
+    for perm in perms:
+        test_in = (
+            perm,
+            codes.copy()
+        )
+
+        perm_result = solve_test_case_1(test_in)
+        result = max(result, perm_result)
+
+    print(result)
+    return result
 
 
-def solve_full_input(puzzle_input):
+def solve_full_input_2(puzzle_input):
     """
     incorrect:
     87572
@@ -154,31 +162,20 @@ def solve_full_input(puzzle_input):
     :return:
     """
     puzzle_input = puzzle_input.strip()
-
     codes = aoc_util.ints(puzzle_input)
-
-
-    # perms = list(permutations([0,1,2,3,4]))
     perms = list(permutations([5,6,7,8,9]))
 
-
-
     result = 0
-
     for perm in perms:
-
         test_in = (
             perm,
             codes.copy()
         )
 
-        # perm_result = solve_test_case(test_in)
         perm_result = solve_test_case_2(test_in)
-
         result = max(result, perm_result)
 
     print(result)
-
     return result
 
 
