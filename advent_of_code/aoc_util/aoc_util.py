@@ -67,7 +67,7 @@ def write_input(text, file_path):
 
 
 def run_tests(function, test_inputs, test_outputs):
-    AocLogger.log('\nrunning test cases')
+    AocLogger.log('\nrunning test cases ({})'.format(str(function)))
     num_tests_passed = 0
 
     for i in range(len(test_inputs)):

@@ -34,10 +34,13 @@ class IntcodeComputer(object):
     def queue_input(self, value: int):
         self.input_list.append(value)
 
-    def get_latest_output(self):
+    def get_latest_output(self) -> int:
         return self.output_list[-1]
 
-    def get_out_idx(self, offset: int):
+    def is_halted(self) -> bool:
+        return self.state == self.STATE_HALTED
+
+    def get_out_idx(self, offset: int) -> int:
         return self.memory[self.instruction_ptr + offset]
 
     def get_param(self, param_modes: typing.List[int], offset: int):
