@@ -3,7 +3,6 @@ import typing
 from aoc_util.aoc_util import AocLogger
 
 
-
 class IntcodeComputer(object):
 
     STATE_READY = 'READY'
@@ -32,16 +31,16 @@ class IntcodeComputer(object):
         self.output_list = []
         self.state = self.STATE_READY
 
-    def queue_input(self, value):
+    def queue_input(self, value: int):
         self.input_list.append(value)
 
     def get_latest_output(self):
         return self.output_list[-1]
 
-    def get_out_idx(self, offset):
+    def get_out_idx(self, offset: int):
         return self.memory[self.instruction_ptr + offset]
 
-    def get_param(self, param_modes, offset):
+    def get_param(self, param_modes: typing.List[int], offset: int):
         POSITION_MODE = 0
         IMMEDIATE_MODE = 1
 
