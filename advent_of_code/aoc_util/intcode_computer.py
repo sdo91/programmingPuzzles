@@ -40,6 +40,13 @@ class IntcodeComputer(object):
     def is_halted(self) -> bool:
         return self.state == self.STATE_HALTED
 
+    def run_to_halt(self, input_value=None) -> int:
+        if input_value is not None:
+            self.queue_input(input_value)
+        while not self.is_halted():
+            self.run()
+        return self.get_latest_output()
+
     def run(self) -> str:
         """
         from 2019 day 2, 5, 7
