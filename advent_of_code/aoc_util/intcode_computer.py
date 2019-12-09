@@ -9,6 +9,10 @@ class IntcodeComputer(object):
     STATE_HALTED = 'HALTED'
     STATE_OUTPUT = 'OUTPUT'
 
+    POSITION_MODE = 0
+    IMMEDIATE_MODE = 1
+    RELATIVE_MODE = 2
+
     def __init__(self, initial_memory: typing.List[int]):
         self.initial_memory = initial_memory
 
@@ -30,6 +34,8 @@ class IntcodeComputer(object):
 
         self.output_list = []
         self.state = self.STATE_READY
+
+        self.rel_offset = 0
 
     def queue_input(self, value: int):
         self.input_list.append(value)
@@ -56,11 +62,17 @@ class IntcodeComputer(object):
         while True:
             full_opcode = str(self.memory[self.instruction_ptr])
 
+            if full_opcode == '203':
+                z=0
+
             opcode = int(full_opcode[-2:])
 
             param_modes = []
             for c in full_opcode[:-2]:
                 param_modes.insert(0, int(c))
+            self.param_modes = param_modes
+
+            z=0
 
             if opcode == 99:
                 self.state = self.STATE_HALTED
@@ -132,30 +144,56 @@ class IntcodeComputer(object):
                 self.memory[out] = int(a == b)
                 self.instruction_ptr += 4
 
+            elif opcode == 9:
+                # adjust rel off
+                a = self._get_param(param_modes, 1)
+                self.rel_offset += a
+                self.instruction_ptr += 2
+
             else:
                 raise RuntimeError('invalid opcode: {}'.format(opcode))
 
         return self.state
 
+    def _expand_mem(self, index):
+        while len(self.memory) <= index:
+            self.memory.append(0)
+
     def _get_out_idx(self, offset: int) -> int:
-        return self.memory[self.instruction_ptr + offset]
+        """
+        write_index is the index we will be writing to
+        """
+        try:
+            param_mode = self.param_modes[offset - 1]
+        except IndexError:
+            param_mode = 0
+
+        if param_mode == self.POSITION_MODE:
+            write_index = self.memory[self.instruction_ptr + offset]
+        elif param_mode == self.RELATIVE_MODE:
+            write_index = self.memory[self.instruction_ptr + offset] + self.rel_offset
+        else:
+            raise RuntimeError('invalid output param_mode: {}'.format(param_mode))
+
+        self._expand_mem(write_index)
+        return write_index
 
     def _get_param(self, param_modes: typing.List[int], offset: int) -> int:
-        POSITION_MODE = 0
-        IMMEDIATE_MODE = 1
-
         try:
             param_mode = param_modes[offset - 1]
         except IndexError:
             param_mode = 0
 
-        if param_mode == POSITION_MODE:
+        if param_mode == self.POSITION_MODE:
             param_addr = self.memory[self.instruction_ptr + offset]
-        elif param_mode == IMMEDIATE_MODE:
+        elif param_mode == self.IMMEDIATE_MODE:
             param_addr = self.instruction_ptr + offset
+        elif param_mode == self.RELATIVE_MODE:
+            param_addr = self.memory[self.instruction_ptr + offset] + self.rel_offset
         else:
             raise RuntimeError('invalid param_mode: {}'.format(param_mode))
 
+        self._expand_mem(param_addr)
         return self.memory[param_addr]
 
 
