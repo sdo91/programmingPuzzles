@@ -5,9 +5,7 @@
 ### IMPORTS ###
 
 import aocd
-import re
-import parse
-import typing
+
 from aoc_util import aoc_util
 from aoc_util.aoc_util import AocLogger
 from aoc_util.intcode_computer import IntcodeComputer
@@ -20,33 +18,6 @@ TEST_INPUT_1 = [
     [1102,34915192,34915192,7,4,7,99,0],
     [104,1125899906842624,99],
 ]
-
-TEST_OUTPUT_1 = [
-    0,
-]
-
-TEST_OUTPUT_2 = [
-    0,
-    0,
-    0,
-]
-
-
-
-
-
-class MyObject(object):
-
-    def __init__(self, text):
-        self.text = text
-        self.id = 0
-
-    def __str__(self):
-        return 'MyObject {}: {}'.format(
-            self.id, self.text)
-
-    def __repr__(self):
-        return str(self)
 
 
 
@@ -68,56 +39,56 @@ class AdventOfCode(object):
 
         AocLogger.verbose = True
 
-        # aoc_util.run_tests(self.solve_test_case_part_1, TEST_INPUT_1, TEST_OUTPUT_1)
-        # self.solve_test_case_part_1(TEST_INPUT_1[0])
-        # self.solve_test_case_part_1(TEST_INPUT_1[1])
-        # self.solve_test_case_part_1(TEST_INPUT_1[2])
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT_2, TEST_OUTPUT_2)
+        self.run_tests()
 
-        # AocLogger.verbose = False
+        AocLogger.verbose = False
 
-        self.solve_part_1(puzzle_input)
+        aoc_util.assert_equal(
+            3454977209,
+            self.solve_puzzle(puzzle_input, 1)
+        )
 
+        aoc_util.assert_equal(
+            50120,
+            self.solve_puzzle(puzzle_input, 2)
+        )
 
-        # self.solve_part_1(puzzle_input)
-
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_1(puzzle_input)
-        # )
-
-        # self.solve_part_2(puzzle_input)
-
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
-        # )
-
-    def solve_test_case_part_1(self, test_input):
-        AocLogger.log('test input: {}'.format(test_input))
-
-        # codes = aoc_util.ints(test_input)
-
-        ic = IntcodeComputer(test_input)
+    def run_tests(self):
+        # test 0
+        ic = IntcodeComputer(TEST_INPUT_1[0])
         ic.run_to_halt()
 
-        z=0
+        aoc_util.assert_equal(
+            TEST_INPUT_1[0],
+            ic.get_all_output()
+        )
 
-    def solve_part_1(self, puzzle_input):
+        # test 1
+        ic = IntcodeComputer(TEST_INPUT_1[1])
+
+        aoc_util.assert_equal(
+            34915192**2,
+            ic.run_to_halt()
+        )
+
+        # test 2
+        ic = IntcodeComputer(TEST_INPUT_1[2])
+
+        aoc_util.assert_equal(
+            TEST_INPUT_1[2][1],
+            ic.run_to_halt()
+        )
+
+    def solve_puzzle(self, puzzle_input, intcode_input):
         """
         0:45
         922/879
         """
         codes = aoc_util.ints(puzzle_input.strip())
         ic = IntcodeComputer(codes)
-        # ic.queue_input(1)
-        ic.queue_input(2)
+        ic.queue_input(intcode_input)
         result = ic.run_to_halt()
-
-        print('\npart 1 result: {}'.format(result))
         return result
-
-
 
 
 

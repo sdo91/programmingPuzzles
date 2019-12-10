@@ -43,6 +43,9 @@ class IntcodeComputer(object):
     def get_latest_output(self) -> int:
         return self.output_list[-1]
 
+    def get_all_output(self) -> typing.List[int]:
+        return self.output_list
+
     def is_halted(self) -> bool:
         return self.state == self.STATE_HALTED
 
@@ -105,7 +108,7 @@ class IntcodeComputer(object):
                 # output
                 a = self._get_param(param_modes, 1)
                 self.output_list.append(a)
-                AocLogger.log('intcode output: {}'.format(self.output_list[-1]))
+                print('intcode output: {}'.format(self.output_list[-1]))
                 self.state = self.STATE_OUTPUT
                 self.instruction_ptr += 2
                 break
