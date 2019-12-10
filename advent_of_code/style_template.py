@@ -4,17 +4,16 @@
 
 ### IMPORTS ###
 
+import numpy as np
 import aocd
-import re
-import parse
-import typing
+
 from aoc_util import aoc_util
 from aoc_util.aoc_util import AocLogger
-
+# from aoc_util.intcode_computer import IntcodeComputer
 
 
 ### CONSTANTS ###
-TEST_INPUT = [
+TEST_INPUT_1 = [
     """
 
     """, """
@@ -28,6 +27,16 @@ TEST_OUTPUT_1 = [
     0,
     0,
     0,
+]
+
+TEST_INPUT_2 = [
+    """
+
+    """, """
+
+    """, """
+
+    """
 ]
 
 TEST_OUTPUT_2 = [
@@ -72,62 +81,47 @@ class AdventOfCode(object):
         aoc_util.write_input(puzzle_input, __file__)
 
         AocLogger.verbose = True
-        self.run_tests()
+        aoc_util.run_tests(self.solve_part_1, TEST_INPUT_1, TEST_OUTPUT_1)
+        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT_2, TEST_OUTPUT_2)
 
         AocLogger.verbose = False
 
         # self.solve_part_1(puzzle_input)
+
+        # self.solve_part_2(puzzle_input)
 
         # aoc_util.assert_equal(
         #     0,
         #     self.solve_part_1(puzzle_input)
         # )
 
-        # self.solve_part_2(puzzle_input)
-
         # aoc_util.assert_equal(
         #     0,
         #     self.solve_part_2(puzzle_input)
         # )
 
-    def run_tests(self):
-        aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+    def solve_test_case_1(self, test_input):
+        AocLogger.log('test input: {}'.format(test_input))
+        return 0
 
-    def solve_part_1(self, puzzle_input):
-        """
-        Args:
-            puzzle_input (string): the input
+    def solve_part_1(self, puzzle_input: str):
+        puzzle_input = puzzle_input.strip()
 
-        Returns: the answer
-        """
-        lines = puzzle_input.strip().split('\n')
-        result = 1
-        for line in lines:
-            line = line.strip()
+        result = 0
 
-            # todo: process line here
-            AocLogger.log(line)
-
-        print('\npart 1 result: {}'.format(result))
+        print('part 1 result: {}'.format(result))
         return result
 
-    def solve_part_2(self, puzzle_input):
-        """
-        Args:
-            puzzle_input (string): the input
+    def solve_test_case_2(self, test_input):
+        AocLogger.log('test input: {}'.format(test_input))
+        return 0
 
-        Returns: the answer
-        """
-        lines = puzzle_input.strip().split('\n')
-        result = 2
-        for line in lines:
-            line = line.strip()
+    def solve_part_2(self, puzzle_input: str):
+        puzzle_input = puzzle_input.strip()
 
-            # todo: process line here
-            AocLogger.log(line)
+        result = 0
 
-        print('\npart 2 result: {}'.format(result))
+        print('part 2 result: {}'.format(result))
         return result
 
 
