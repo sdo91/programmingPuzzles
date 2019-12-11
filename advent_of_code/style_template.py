@@ -80,9 +80,7 @@ class AdventOfCode(object):
             puzzle_input = 'unable to get input'
         aoc_util.write_input(puzzle_input, __file__)
 
-        AocLogger.verbose = True
-        aoc_util.run_tests(self.solve_part_1, TEST_INPUT_1, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT_2, TEST_OUTPUT_2)
+        self.run_tests()
 
         AocLogger.verbose = False
 
@@ -99,6 +97,11 @@ class AdventOfCode(object):
         #     0,
         #     self.solve_part_2(puzzle_input)
         # )
+
+    def run_tests(self):
+        AocLogger.verbose = True
+        aoc_util.run_tests(self.solve_part_1, TEST_INPUT_1, TEST_OUTPUT_1)
+        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT_2, TEST_OUTPUT_2)
 
     def solve_test_case_1(self, test_input):
         AocLogger.log('test input: {}'.format(test_input))
