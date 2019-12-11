@@ -4,39 +4,16 @@
 
 ### IMPORTS ###
 
-import numpy as np
 from fractions import Fraction
 
 import aocd
 
 from aoc_util import aoc_util
 from aoc_util.aoc_util import AocLogger
-# from aoc_util.intcode_computer import IntcodeComputer
 
 
 ### CONSTANTS ###
-TEST_INPUT_1 = [
-    """
-.#..#
-.....
-#####
-....#
-...##
-    """,
-    """
-
-    """, """
-
-    """
-]
-
-TEST_OUTPUT_1 = [
-    ((3,4),8),
-    0,
-    0,
-]
-
-TEST_INPUT_2 = [
+TEST_INPUT = [
     """
 .#..#
 .....
@@ -69,17 +46,6 @@ TEST_INPUT_2 = [
     """
 ]
 
-TEST_OUTPUT_2 = [
-    0,
-    0,
-    0,
-]
-
-
-
-
-
-
 
 
 
@@ -98,89 +64,26 @@ class AdventOfCode(object):
             puzzle_input = 'unable to get input'
         aoc_util.write_input(puzzle_input, __file__)
 
-        AocLogger.verbose = True
-        # aoc_util.run_tests(self.solve_test_case_1, TEST_INPUT_1, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_test_case_2, TEST_INPUT_2, TEST_OUTPUT_2)
-
-        # self.solve_test_case_2(TEST_INPUT_2[0], 8)
+        self.run_tests()
 
         AocLogger.verbose = False
 
-        # self.solve_test_case_2(TEST_INPUT_2[1], 200)
-
-        self.solve_test_case_2(puzzle_input, 200)
-
-        # self.solve_test_case_1(puzzle_input)
-
-        # self.solve_part_2(puzzle_input)
-
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_1(puzzle_input)
-        # )
-
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
-        # )
-
-    def solve_test_case_1(self, test_input: str):
-        test_input = test_input.strip()
-        AocLogger.log('test input: {}'.format(test_input))
-        lines = test_input.split('\n')
-
-        num_rows = len(lines)
-        num_cols = len(lines[0])
-
-        self.all_asteroids = set()
-        # row = 0
-        # for line in lines:
-        #     col = 0
-        #     for c in line:
-        #         if c != '.':
-        #             all_asteroids.add((row, col))
-        #         col += 1
-        #     row += 1
-
-
-        for row in range(num_rows):
-            for col in range(num_cols):
-                if lines[row][col] != '.':
-                    self.all_asteroids.add((col, row))
-
-
-        assert not self.is_visible(
-            (1,0),
-            (3,4)
+        aoc_util.assert_equal(
+            [(20, 19), 284, (4, 4), 404],
+            self.solve_puzzle(puzzle_input, 200)
         )
 
-        assert not self.is_visible(
-            (4,0),
-            (4,4)
+    def run_tests(self):
+        AocLogger.verbose = True
+        aoc_util.assert_equal(
+            [(3, 4), 8, (2, 2), 202],
+            self.solve_puzzle(TEST_INPUT[0], 8)
         )
-
-        # self.all_asteroids = list(self.all_asteroids)
-
-        site_dict = {}
-        max_vis = 0
-        best_coords = None
-        for potential_site in self.all_asteroids:
-            AocLogger.log('\nchecking site: {}'.format(potential_site))
-            visible_asteroids = 0
-            # check which are visible
-            for a in self.all_asteroids:
-                if self.is_visible(a, potential_site):
-                    visible_asteroids += 1
-            site_dict[potential_site] = visible_asteroids
-            AocLogger.log('site result: {}'.format(visible_asteroids))
-
-            if visible_asteroids > max_vis:
-                max_vis = visible_asteroids
-                best_coords = potential_site
-
-        result = best_coords, max_vis
-        print('result: {}'.format(result))
-        return result
+        AocLogger.verbose = False
+        aoc_util.assert_equal(
+            [(11, 13), 210, (8, 2), 802],
+            self.solve_puzzle(TEST_INPUT[1], 200)
+        )
 
     def is_visible(self, a, potential_site):
         if a == potential_site:
@@ -223,12 +126,6 @@ class AdventOfCode(object):
                         AocLogger.log('{} blocks {}'.format(potential_blocker, a))
                         return False
 
-                    # print([x, y_int])
-
-        # get x mids
-
-
-
         AocLogger.log('no blockers found for {}'.format(a))
         return True
 
@@ -238,17 +135,10 @@ class AdventOfCode(object):
         """
         return m * (x - point[0]) + point[1]
 
-    def solve_part_1(self, puzzle_input: str):
-        puzzle_input = puzzle_input.strip()
-
-        result = 0
-
-        print('part 1 result: {}'.format(result))
-        return result
-
-    def solve_test_case_2(self, test_input, n):
+    def solve_puzzle(self, test_input, n):
+        print()
         test_input = test_input.strip()
-        AocLogger.log('test input: {}'.format(test_input))
+        AocLogger.log('test input:\n{}'.format(test_input))
         lines = test_input.split('\n')
 
         num_rows = len(lines)
@@ -260,8 +150,6 @@ class AdventOfCode(object):
             for col in range(num_cols):
                 if lines[row][col] != '.':
                     self.all_asteroids.add((col, row))
-
-
 
         site_dict = {}
         max_vis = 0
@@ -280,9 +168,7 @@ class AdventOfCode(object):
                 max_vis = len(visible_asteroids)
                 best_coords = potential_site
 
-        result = best_coords, max_vis, site_dict[best_coords]
-        print('result: {}'.format(result))
-
+        print('best_coords, max_vis: {}'.format([best_coords, max_vis]))
 
         best_x = best_coords[0]
         best_y = best_coords[1]
@@ -314,16 +200,11 @@ class AdventOfCode(object):
         final_idx = sorted_left_side_keys[left_side_index]
 
         final_coord = slope_dict[final_idx]
-        print('{}th: {}, {}'.format(n, final_coord, final_coord[0] * 100 + final_coord[1]))
+        result_2 = final_coord[0] * 100 + final_coord[1]
+        print('{}th: {}, {}'.format(n, final_coord, result_2))
 
-        return result
-
-    def solve_part_2(self, puzzle_input: str):
-        puzzle_input = puzzle_input.strip()
-
-        result = 0
-
-        print('part 2 result: {}'.format(result))
+        result = [best_coords, max_vis, final_coord, result_2]
+        print('result: {}'.format(result))
         return result
 
 
