@@ -5,8 +5,9 @@
 ### IMPORTS ###
 
 import aocd
-import aoc_util
-from aoc_util import AocLogger
+from aoc_util import aoc_util
+from aoc_util.aoc_util import AocLogger
+from aoc_util.intcode_computer import IntcodeComputer
 
 
 
@@ -71,6 +72,12 @@ class AdventOfCode(object):
     def run_tests(self):
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
 
+    def run_intcode(self, codes):
+        ic = IntcodeComputer(codes)
+        while not ic.is_halted():
+            ic.run()
+        return ic.get_memory()
+
     def solve_part_1(self, puzzle_input, first=None, second=None, verbose=False):
         """
         Args:
@@ -84,7 +91,7 @@ class AdventOfCode(object):
             codes[1] = first
             codes[2] = second
 
-        aoc_util.run_intcode(codes)
+        codes = self.run_intcode(codes)
 
         if verbose:
             print('\npart 1 result: {}'.format(codes[0]))

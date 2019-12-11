@@ -94,9 +94,7 @@ def solve_test_case_1(test_input):
         comp.reset()
         comp.queue_input(phase_settings[i])
         comp.queue_input(prev_out)
-        while not comp.is_halted():
-            comp.run()
-        prev_out = comp.get_latest_output()
+        prev_out = comp.run_to_halt()
 
     AocLogger.log('result 1: {}'.format(prev_out))
     return prev_out

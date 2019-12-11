@@ -49,6 +49,9 @@ class IntcodeComputer(object):
     def get_all_output(self) -> typing.List[int]:
         return self.output_list
 
+    def get_memory(self) -> typing.List[int]:
+        return self.memory
+
     def is_halted(self) -> bool:
         return self.state == self.STATE_HALTED
 
