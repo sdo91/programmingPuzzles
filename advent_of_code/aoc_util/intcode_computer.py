@@ -4,6 +4,9 @@ from aoc_util.aoc_util import AocLogger
 
 
 class IntcodeComputer(object):
+    """
+    from 2019 day 2, 5, 7, 9...
+    """
 
     STATE_READY = 'READY'
     STATE_HALTED = 'HALTED'
@@ -57,25 +60,16 @@ class IntcodeComputer(object):
         return self.get_latest_output()
 
     def run(self) -> str:
-        """
-        from 2019 day 2, 5, 7
-        may need to reuse...
-        """
-
         while True:
             full_opcode = str(self.memory[self.instruction_ptr])
 
-            if full_opcode == '203':
-                z=0
-
             opcode = int(full_opcode[-2:])
 
-            param_modes = []
+            self.param_modes = []
             for c in full_opcode[:-2]:
-                param_modes.insert(0, int(c))
-            self.param_modes = param_modes
+                self.param_modes.insert(0, int(c))
 
-            z=0
+            z=0  # debug point
 
             if opcode == 99:
                 self.state = self.STATE_HALTED
@@ -83,40 +77,40 @@ class IntcodeComputer(object):
 
             elif opcode == 1:
                 # add
-                a = self._get_value(param_modes, 1)
-                b = self._get_value(param_modes, 2)
-                out = self._get_idx(3)
-                self.memory[out] = a + b
+                a = self._get_value(1)
+                b = self._get_value(2)
+                out_idx = self._get_idx(3)
+                self.memory[out_idx] = a + b
                 self.instruction_ptr += 4
 
             elif opcode == 2:
                 # mult
-                a = self._get_value(param_modes, 1)
-                b = self._get_value(param_modes, 2)
-                out = self._get_idx(3)
-                self.memory[out] = a * b
+                a = self._get_value(1)
+                b = self._get_value(2)
+                out_idx = self._get_idx(3)
+                self.memory[out_idx] = a * b
                 self.instruction_ptr += 4
 
             elif opcode == 3:
                 # input
-                out = self._get_idx(1)
-                self.memory[out] = self.input_list[self.input_ptr]
+                out_idx = self._get_idx(1)
+                self.memory[out_idx] = self.input_list[self.input_ptr]
                 self.input_ptr += 1
                 self.instruction_ptr += 2
 
             elif opcode == 4:
                 # output
-                a = self._get_value(param_modes, 1)
+                a = self._get_value(1)
                 self.output_list.append(a)
-                print('intcode output: {}'.format(self.output_list[-1]))
+                print('intcode output: {}'.format(self.get_latest_output()))
                 self.state = self.STATE_OUTPUT
                 self.instruction_ptr += 2
                 break
 
             elif opcode == 5:
                 # jump if true
-                a = self._get_value(param_modes, 1)
-                b = self._get_value(param_modes, 2)
+                a = self._get_value(1)
+                b = self._get_value(2)
                 if a:
                     self.instruction_ptr = b
                 else:
@@ -124,8 +118,8 @@ class IntcodeComputer(object):
 
             elif opcode == 6:
                 # jump if false
-                a = self._get_value(param_modes, 1)
-                b = self._get_value(param_modes, 2)
+                a = self._get_value(1)
+                b = self._get_value(2)
                 if not a:
                     self.instruction_ptr = b
                 else:
@@ -133,23 +127,23 @@ class IntcodeComputer(object):
 
             elif opcode == 7:
                 # less than
-                a = self._get_value(param_modes, 1)
-                b = self._get_value(param_modes, 2)
-                out = self._get_idx(3)
-                self.memory[out] = int(a < b)
+                a = self._get_value(1)
+                b = self._get_value(2)
+                out_idx = self._get_idx(3)
+                self.memory[out_idx] = int(a < b)
                 self.instruction_ptr += 4
 
             elif opcode == 8:
                 # eq
-                a = self._get_value(param_modes, 1)
-                b = self._get_value(param_modes, 2)
-                out = self._get_idx(3)
-                self.memory[out] = int(a == b)
+                a = self._get_value(1)
+                b = self._get_value(2)
+                out_idx = self._get_idx(3)
+                self.memory[out_idx] = int(a == b)
                 self.instruction_ptr += 4
 
             elif opcode == 9:
                 # adjust rel off
-                a = self._get_value(param_modes, 1)
+                a = self._get_value(1)
                 self.rel_offset += a
                 self.instruction_ptr += 2
 
@@ -162,9 +156,9 @@ class IntcodeComputer(object):
         while len(self.memory) <= index:
             self.memory.append(0)
 
-    def _get_idx(self, offset: int) -> int:
+    def _get_idx(self, offset: int, immediate_valid=False) -> int:
         """
-        write_index is the index we will be writing to
+        get the index of the parameter in memory
         """
         try:
             param_mode = self.param_modes[offset - 1]
@@ -172,32 +166,19 @@ class IntcodeComputer(object):
             param_mode = 0
 
         if param_mode == self.POSITION_MODE:
-            write_index = self.memory[self.instruction_ptr + offset]
+            result_idx = self.memory[self.instruction_ptr + offset]
+        elif param_mode == self.IMMEDIATE_MODE and immediate_valid:
+            result_idx = self.instruction_ptr + offset
         elif param_mode == self.RELATIVE_MODE:
-            write_index = self.memory[self.instruction_ptr + offset] + self.rel_offset
-        else:
-            raise RuntimeError('invalid output param_mode: {}'.format(param_mode))
-
-        self._expand_mem(write_index)
-        return write_index
-
-    def _get_value(self, param_modes: typing.List[int], offset: int) -> int:
-        try:
-            param_mode = param_modes[offset - 1]
-        except IndexError:
-            param_mode = 0
-
-        if param_mode == self.POSITION_MODE:
-            param_addr = self.memory[self.instruction_ptr + offset]
-        elif param_mode == self.IMMEDIATE_MODE:
-            param_addr = self.instruction_ptr + offset
-        elif param_mode == self.RELATIVE_MODE:
-            param_addr = self.memory[self.instruction_ptr + offset] + self.rel_offset
+            result_idx = self.memory[self.instruction_ptr + offset] + self.rel_offset
         else:
             raise RuntimeError('invalid param_mode: {}'.format(param_mode))
 
-        self._expand_mem(param_addr)
-        return self.memory[param_addr]
+        self._expand_mem(result_idx)
+        return result_idx
+
+    def _get_value(self, offset: int) -> int:
+        return self.memory[self._get_idx(offset, immediate_valid=True)]
 
 
 

@@ -84,6 +84,7 @@ class AdventOfCode(object):
         0:45
         922/879
         """
+        print('\nsolving...')
         codes = aoc_util.ints(puzzle_input.strip())
         ic = IntcodeComputer(codes)
         ic.queue_input(intcode_input)
