@@ -29,24 +29,24 @@ D)I
 E)J
 J)K
 K)L
+    """, """
+COM)B
+B)C
+C)D
+D)E
+E)F
+B)G
+G)H
+D)I
+E)J
+J)K
+K)L
 K)YOU
 I)SAN
     """, """
 
-    """, """
-
     """
 ]
-
-TEST_OUTPUT = [
-    4,
-    0,
-    0,
-]
-
-
-
-
 
 
 
@@ -62,21 +62,22 @@ def main():
     aoc_util.write_input(puzzle_input, __file__)
 
     AocLogger.verbose = True
-    aoc_util.run_tests(solve_test_case, TEST_INPUT, TEST_OUTPUT)
+    # aoc_util.run_tests(solve_test_case, TEST_INPUT, TEST_OUTPUT)
+    aoc_util.assert_equal(
+        [42],
+        solve_puzzle(TEST_INPUT[0])
+    )
+    aoc_util.assert_equal(
+        [54, 4],
+        solve_puzzle(TEST_INPUT[1])
+    )
 
     AocLogger.verbose = False
 
-    print(solve_full_input(puzzle_input))
-
-
-
-
-class Node(object):
-
-    def __init__(self, id):
-        self.id
-        self.children = []
-
+    aoc_util.assert_equal(
+        [249308, 349],
+        solve_puzzle(puzzle_input)
+    )
 
 
 def get_num_orbits(key, orbits_dict, base='COM'):
@@ -86,15 +87,17 @@ def get_num_orbits(key, orbits_dict, base='COM'):
         return 1 + get_num_orbits(orbits_dict[key], orbits_dict, base)
 
 
-def solve_test_case(test_input: str):
+def solve_puzzle(test_input: str):
     """
     38 min
-    
+
     :param test_input:
     :return:
     """
+    print()
     test_input = test_input.strip()
-    AocLogger.log('test input: {}'.format(test_input))
+    AocLogger.log('test input:\n{}'.format(test_input))
+    result = []
 
     orbits_dict = {}
 
@@ -107,6 +110,18 @@ def solve_test_case(test_input: str):
 
     AocLogger.log('orbits_dict: {}'.format(orbits_dict))
 
+    # solve part 1
+    total_orbits = 0
+    for key in orbits_dict:
+        # count orbits
+        num_orbits = get_num_orbits(key, orbits_dict)
+        total_orbits += num_orbits
+    result.append(total_orbits)
+    if 'YOU' not in orbits_dict:
+        # needed for part 2
+        return result
+
+    # solve part 2
     you_path = []
     current = 'YOU'
     while True:
@@ -130,33 +145,14 @@ def solve_test_case(test_input: str):
             common = star
             break
 
-    z=0
-
+    z = 0
 
     a = get_num_orbits(orbits_dict['YOU'], orbits_dict, common)
     b = get_num_orbits(orbits_dict['SAN'], orbits_dict, common)
-    return a + b
-
-
-
-    # total_orbits = 0
-    # for key in orbits_dict:
-    #     # count orbits
-    #
-    #     num_orbits = get_num_orbits(key, orbits_dict)
-    #     total_orbits += num_orbits
-
-
-    # root_node = Node(orbits_dict)
-
-    # return total_orbits
-
-
-def solve_full_input(puzzle_input):
-
-    return solve_test_case(puzzle_input)
-
-
+    num_xfers = a + b
+    result.append(num_xfers)
+    print('result: {}'.format(result))
+    return result
 
 
 
