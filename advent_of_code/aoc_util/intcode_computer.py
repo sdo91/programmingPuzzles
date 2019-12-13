@@ -11,6 +11,7 @@ class IntcodeComputer(object):
     STATE_READY = 'READY'
     STATE_HALTED = 'HALTED'
     STATE_OUTPUT = 'OUTPUT'
+    STATE_IN_NEEDED = 'IN_NEEDED'
 
     POSITION_MODE = 0
     IMMEDIATE_MODE = 1
@@ -55,6 +56,9 @@ class IntcodeComputer(object):
     def is_halted(self) -> bool:
         return self.state == self.STATE_HALTED
 
+    def is_input_needed(self):
+        return self.input_ptr >= len(self.input_list) and self.get_opcode() == 3
+
     def run_to_halt(self, input_value=None) -> int:
         if input_value is not None:
             self.queue_input(input_value)
@@ -62,7 +66,10 @@ class IntcodeComputer(object):
             self.run()
         return self.get_latest_output()
 
-    def run(self) -> str:
+    def get_opcode(self):
+        return self.memory[self.instruction_ptr] % 100
+
+    def run(self) -> int:
         while True:
             full_opcode = str(self.memory[self.instruction_ptr])
 
@@ -76,7 +83,7 @@ class IntcodeComputer(object):
 
             if opcode == 99:
                 self.state = self.STATE_HALTED
-                break
+                return 0
 
             elif opcode == 1:
                 # add
@@ -97,8 +104,15 @@ class IntcodeComputer(object):
             elif opcode == 3:
                 # input
                 out_idx = self._get_idx(1)
-                self.memory[out_idx] = self.input_list[self.input_ptr]
+
+                if self.input_ptr >= len(self.input_list):
+                    self.state = self.STATE_IN_NEEDED
+                    return -1
+
+                in_value = self.input_list[self.input_ptr]
                 self.input_ptr += 1
+
+                self.memory[out_idx] = in_value
                 self.instruction_ptr += 2
 
             elif opcode == 4:
@@ -108,7 +122,8 @@ class IntcodeComputer(object):
                 print('intcode output: {}'.format(self.get_latest_output()))
                 self.state = self.STATE_OUTPUT
                 self.instruction_ptr += 2
-                break
+                return self.get_latest_output()
+                # break
 
             elif opcode == 5:
                 # jump if true
@@ -153,7 +168,7 @@ class IntcodeComputer(object):
             else:
                 raise RuntimeError('invalid opcode: {}'.format(opcode))
 
-        return self.state
+        # return self.state
 
     def _expand_mem(self, index):
         while len(self.memory) <= index:
