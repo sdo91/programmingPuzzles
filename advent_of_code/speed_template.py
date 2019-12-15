@@ -38,8 +38,6 @@ TEST_OUTPUT = [
 
 
 
-
-
 def main():
     print('starting {}'.format(__file__.split('/')[-1]))
 

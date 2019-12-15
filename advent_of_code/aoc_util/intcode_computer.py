@@ -18,6 +18,7 @@ class IntcodeComputer(object):
     RELATIVE_MODE = 2
 
     def __init__(self, initial_memory: typing.List[int]):
+        self.verbose = True
         self.initial_memory = initial_memory
 
         self.instruction_ptr = 0
@@ -119,7 +120,8 @@ class IntcodeComputer(object):
                 # output
                 a = self._get_value(1)
                 self.output_list.append(a)
-                print('intcode output: {}'.format(self.get_latest_output()))
+                if self.verbose:
+                    print('intcode output: {}'.format(self.get_latest_output()))
                 self.state = self.STATE_OUTPUT
                 self.instruction_ptr += 2
                 return self.get_latest_output()
