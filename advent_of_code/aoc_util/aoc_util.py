@@ -42,11 +42,11 @@ def words(s: str) -> typing.List[str]:
     return re.findall(r"[a-zA-Z]+", s)
 
 
-def split_and_strip_each(s: str, c: str) -> typing.List[str]:
+def split_and_strip_each(string: str, delim: str) -> typing.List[str]:
     """
     split the string on the char, and strip each item in the resulting list
     """
-    return lmap(str.strip, s.split(c))
+    return lmap(str.strip, string.split(delim))
 
 
 def assert_equal(expected, actual):

@@ -1,6 +1,17 @@
 #!/usr/bin/env python3
 
+def addToPath(relPath):
+    from os import path
+    import sys
+    dirOfThisFile = path.dirname(path.realpath(__file__))
+    dirToAdd = path.normpath(path.join(dirOfThisFile, relPath))
+    if dirToAdd not in sys.path:
+        print('adding to path: {}'.format(dirToAdd))
+        sys.path.insert(0, dirToAdd)
+    else:
+        print('already in path: {}'.format(dirToAdd))
 
+addToPath('../..')
 
 ### IMPORTS ###
 
@@ -172,6 +183,10 @@ class AdventOfCode(object):
             'd': 1,
         }
 
+        ball_pos = (19.14)
+        prev_ball_pos = (19,14)
+        paddle_pos = (0,0)
+
         while not ic.is_halted():
 
             out = -2
@@ -195,20 +210,37 @@ class AdventOfCode(object):
                 while ic.state == ic.STATE_IN_NEEDED:
                     d.show()
 
-                    direction = input('asd: ')
-                    # direction = 0
+                    # direction = input('asd: ')
+                    direction = 0
 
-                    ic.queue_input(directions_dict[direction])
+                    z=0
+
+                    if paddle_pos[0] > ball_pos[0]:
+                        direction = -1
+                    elif paddle_pos[0] < ball_pos[0]:
+                        direction = 1
+                    else:
+                        direction = 0
+
+                    ic.queue_input(direction)
                     ic.run()  # re run
 
             x, y, tile = ic.get_all_output()[-3:]
 
             if direction != -2:
-                d.show()
+                # d.show()
                 z=0
 
-            if tile == BLOCK:
-                num_blocks += 1
+            if x != -1 or y != 0:
+                if tile == BLOCK:
+                    num_blocks += 1
+                elif tile == BALL:
+                    prev_ball_pos = ball_pos
+                    ball_pos = (x, y)
+                elif tile == PADDLE:
+                    paddle_pos = (x, y)
+
+
 
             d.add(x, y, tile)
 
