@@ -207,7 +207,7 @@ class AdventOfCode(object):
             for _ in range(3):
                 ic.run()
 
-                while ic.state == ic.STATE_IN_NEEDED:
+                while ic.state == ic.STATE_INPUT_NEEDED:
                     d.show()
 
                     # direction = input('asd: ')
