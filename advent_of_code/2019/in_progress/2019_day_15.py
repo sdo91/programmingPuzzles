@@ -12,6 +12,8 @@ from aoc_util.intcode_computer import IntcodeComputer
 from collections import defaultdict
 import numpy as np
 
+import sys
+sys.setrecursionlimit(1500)
 
 
 
@@ -94,13 +96,6 @@ class Droid(object):
         'w': 'e',
         'e': 'w',
     }
-
-    # DIRECTION_CODES = {
-    #     'n': 1,
-    #     's': 2,
-    #     'w': 3,
-    #     'e': 4,
-    # }
 
     DX = {
         'n': 0,
@@ -247,54 +242,54 @@ class TestDroid(Droid):
             return self.STATUS_MOVED
 
 
-# class IntcodeDroid(object):
-#
-#     def __init__(self, puzzle_input):
-#         self.codes = aoc_util.ints(puzzle_input)
-#         self.ic = IntcodeComputer(self.codes)
-#         self.ic.verbose = False
-#         self.grid = Grid2D()
-#
-#         self.grid.add(0, 0, '.')
-#
-#     def move(self, input_letter=''):
-#         while input_letter not in self.directions_dict:
-#             input_letter = input('direction? ')
-#         direction = self.directions_dict[input_letter]
-#
-#         self.ic.queue_input(direction)
-#
-#         desired_x = self.x + self.dx[input_letter]
-#         desired_y = self.y + self.dy[input_letter]
-#
-#         self.ic.run()
-#
-#         assert self.ic.state == IntcodeComputer.STATE_OUTPUT
-#
-#         status = self.ic.get_latest_output()
-#         if status == 0:
-#             # wall, pos does not change
-#             self.grid.add(desired_x, desired_y, '#')
-#         elif status == 1:
-#             # empty, move
-#             self.grid.add(desired_x, desired_y, '.')
-#             self.x = desired_x
-#             self.y = desired_y
-#         else:
-#             self.grid.add(desired_x, desired_y, '2')
-#             print('found: {}'.format([desired_x, desired_y]))
-#             self.x = desired_x
-#             self.y = desired_y
-#
-#         self.grid.overlay = {
-#             (self.x, self.y): 'D'
-#         }
-#         self.grid.show()
-#         z=0
-#
-#
-#     def get_path(self, direction, path_so_far):
-#         pass
+class IntcodeDroid(Droid):
+
+    DIRECTION_CODES = {
+        'n': 1,
+        's': 2,
+        'w': 3,
+        'e': 4,
+    }
+
+    def __init__(self, puzzle_input):
+        super().__init__()
+
+        self.codes = aoc_util.ints(puzzle_input)
+        self.ic = IntcodeComputer(self.codes)
+        self.ic.verbose = False
+
+        self.explored = Grid2D()
+        self.explored.add(0, 0, 'S')
+
+    def move(self, direction):
+        dir_code = self.DIRECTION_CODES[direction]
+
+        self.ic.queue_input(dir_code)
+        self.ic.run()
+        assert self.ic.state == IntcodeComputer.STATE_OUTPUT
+
+        status = self.ic.get_latest_output()
+        if status == self.STATUS_HIT_WALL:
+            # pos does not change, just add to explored
+            self.explored.add(self.desired_x, self.desired_y, '#')
+            return status
+
+        # otherwise, the move was successful
+        self.x = self.desired_x
+        self.y = self.desired_y
+
+        if status == self.STATUS_MOVED:
+            # moved
+            self.explored.add(self.x, self.y, '.')
+        else:
+            print('found: {}'.format(self.getCurrent()))
+            self.explored.add(self.x, self.y, 'G')
+
+        self.explored.overlay = {
+            (self.x, self.y): 'D'
+        }
+        self.explored.show()
+        return status
 
 
 
@@ -314,7 +309,7 @@ def main():
 
     AocLogger.verbose = False
 
-    # solve_full_input(puzzle_input)
+    solve_full_input(puzzle_input)
 
 
 def run_tests():
@@ -338,33 +333,10 @@ def solve_test_case(test_input):
     return result
 
 
-# def solve_full_input(puzzle_input):
-#     puzzle_input = puzzle_input.strip()
-#
-#
-#     droid = Droid(puzzle_input)
-#
-#
-#
-#     # grid = Grid2D()
-#     #
-#     # grid.add(-3, -4, '5')
-#     # grid.add(6, 7, '8')
-#     #
-#     # grid.show()
-#
-#     # z=0
-#
-#
-#     while True:
-#
-#
-#         droid.move()
-#
-#
-#
-#
-#     pass
+def solve_full_input(puzzle_input):
+    puzzle_input = puzzle_input.strip()
+    droid = IntcodeDroid(puzzle_input)
+    return droid.find_min_num_moves()
 
 
 
