@@ -59,7 +59,10 @@ class Grid2D(object):
 
         self.overlay = {}
 
-    def add(self, x, y, value):
+    def setTuple(self, coord, value):
+        self.set(coord[0], coord[1], value)
+
+    def set(self, x, y, value):
         self.grid[(x, y)] = value
 
         self.min_x = min(self.min_x, x)
@@ -219,7 +222,7 @@ class TestDroid(Droid):
             for c, col in enumerate(row):
                 coord = np.array([c, r])
                 coord += offset
-                self.grid.add(coord[0], coord[1], col)
+                self.grid.setTuple(coord, col)
 
         print('test grid:')
         self.grid.show()
@@ -259,7 +262,7 @@ class IntcodeDroid(Droid):
         self.ic.verbose = False
 
         self.explored = Grid2D()
-        self.explored.add(0, 0, 'S')
+        self.explored.set(0, 0, 'S')
 
     def move(self, direction):
         dir_code = self.DIRECTION_CODES[direction]
@@ -271,7 +274,7 @@ class IntcodeDroid(Droid):
         status = self.ic.get_latest_output()
         if status == self.STATUS_HIT_WALL:
             # pos does not change, just add to explored
-            self.explored.add(self.desired_x, self.desired_y, '#')
+            self.explored.set(self.desired_x, self.desired_y, '#')
             return status
 
         # otherwise, the move was successful
@@ -280,10 +283,10 @@ class IntcodeDroid(Droid):
 
         if status == self.STATUS_MOVED:
             # moved
-            self.explored.add(self.x, self.y, '.')
+            self.explored.set(self.x, self.y, '.')
         else:
             print('found: {}'.format(self.getCurrent()))
-            self.explored.add(self.x, self.y, 'G')
+            self.explored.set(self.x, self.y, 'G')
 
         self.explored.overlay = {
             (self.x, self.y): 'D'
@@ -333,10 +336,49 @@ def solve_test_case(test_input):
     return result
 
 
+def are_adjacent(ox_coord, empty_spaces):
+    return aoc_util.manhatten_dist(ox_coord, empty_spaces) == 1
+
+
 def solve_full_input(puzzle_input):
     puzzle_input = puzzle_input.strip()
     droid = IntcodeDroid(puzzle_input)
-    return droid.find_min_num_moves()
+
+    min_moves = droid.find_min_num_moves()
+    print('min_moves: {}'.format(min_moves))
+
+    explored = droid.explored
+
+    empty_space_values = {'.', 'S'}
+    oxygen_spaces = set()
+    empty_spaces = set()
+    for coord, char in explored.grid.items():
+        if char == 'G':
+            explored.setTuple(coord, 'O')
+            oxygen_spaces.add(coord)
+        if char in empty_space_values:
+            empty_spaces.add(coord)
+
+    num_min = 0
+    while True:
+        spaces_this_loop = set()
+        for ox_coord in oxygen_spaces:
+            for em_coord in empty_spaces:
+                if are_adjacent(ox_coord, em_coord):
+                    spaces_this_loop.add(em_coord)
+
+        for coord in spaces_this_loop:
+            oxygen_spaces.add(coord)
+            empty_spaces.remove(coord)
+            explored.setTuple(coord, 'O')
+
+        num_min += 1
+        explored.show()
+
+        if len(empty_spaces) == 0:
+            break
+
+    print('num_min: {}'.format(num_min))
 
 
 
