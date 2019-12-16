@@ -10,7 +10,7 @@ from aoc_util.aoc_util import AocLogger
 from aoc_util.intcode_computer import IntcodeComputer
 
 from collections import defaultdict
-import math
+import numpy as np
 
 
 
@@ -19,12 +19,14 @@ import math
 
 TEST_INPUT = [
     """      
-##### 
-##S##
-#O.## 
-#####  
+#######
+#G...S#
+#######
     """, """
-
+#####
+##S.#
+#G.##
+#####
     """, """
 
     """
@@ -38,9 +40,14 @@ TEST_OUTPUT = [
 
 
 
+
+
 class Grid2D(object):
 
     def __init__(self):
+        """
+        NOTE: uses an inverted y-axis by default (increasing downwards)
+        """
         self.grid = defaultdict(lambda: ' ')
 
         self.min_x = 0
@@ -58,9 +65,13 @@ class Grid2D(object):
         self.min_y = min(self.min_y, y)
         self.max_y = max(self.max_y, y)
 
+    def get(self, x, y):
+        return self.grid[(x, y)]
+
     def show(self):
         print()
-        for y in range(self.max_y, self.min_y - 1, -1):
+        # for y in range(self.max_y, self.min_y - 1, -1):
+        for y in range(self.min_y, self.max_y + 1):
             line = ''
             for x in range(self.min_x, self.max_x + 1):
                 coord = (x, y)
@@ -77,86 +88,213 @@ class Grid2D(object):
 
 class Droid(object):
 
-    def __init__(self, puzzle_input):
-        self.codes = aoc_util.ints(puzzle_input)
-        self.ic = IntcodeComputer(self.codes)
-        self.ic.verbose = False
-        self.grid = Grid2D()
+    OPPOSITE_DIRECTIONS = {
+        'n': 's',
+        's': 'n',
+        'w': 'e',
+        'e': 'w',
+    }
 
-        self.directions_dict = {
-            'w': 1,
-            's': 2,
-            'a': 3,
-            'd': 4,
-        }
+    # DIRECTION_CODES = {
+    #     'n': 1,
+    #     's': 2,
+    #     'w': 3,
+    #     'e': 4,
+    # }
 
-        self.dx = {
-            'w': 0,
-            's': 0,
-            'a': -1,
-            'd': 1,
-        }
+    DX = {
+        'n': 0,
+        's': 0,
+        'w': -1,
+        'e': 1,
+    }
 
-        self.dy = {
-            'w': 1,
-            's': -1,
-            'a': 0,
-            'd': 0,
-        }
+    DY = {
+        'n': -1,
+        's': 1,
+        'w': 0,
+        'e': 0,
+    }
 
+    STATUS_HIT_WALL = 0
+    STATUS_MOVED = 1
+    STATUS_HIT_GOAL = 2
+
+    def __init__(self):
         self.x = 0
         self.y = 0
-        self.grid.add(0, 0, '.')
+        self.desired_x = 0
+        self.desired_y = 0
 
-    def move(self, input_letter=''):
-        while input_letter not in self.directions_dict:
-            input_letter = input('direction? ')
-        direction = self.directions_dict[input_letter]
+    def getCurrent(self):
+        return self.x, self.y
 
-        self.ic.queue_input(direction)
+    def getDesired(self, direction):
+        return self.x + self.DX[direction], self.y + self.DY[direction]
 
-        desired_x = self.x + self.dx[input_letter]
-        desired_y = self.y + self.dy[input_letter]
+    def updateDesired(self, direction):
+        self.desired_x, self.desired_y = self.getDesired(direction)
 
-        self.ic.run()
+    def find_min_num_moves(self):
+        path_so_far = [self.getCurrent()]
+        result_path = self.try_all_directions(path_so_far)
+        print('path found: {}'.format(result_path))
 
-        assert self.ic.state == IntcodeComputer.STATE_OUTPUT
+        result = len(result_path) - 1
+        print('fewest moves: {}'.format(result))
+        return result
 
-        status = self.ic.get_latest_output()
-        if status == 0:
-            # wall, pos does not change
-            self.grid.add(desired_x, desired_y, '#')
-        elif status == 1:
-            # empty, move
-            self.grid.add(desired_x, desired_y, '.')
-            self.x = desired_x
-            self.y = desired_y
+    def try_all_directions(self, path_so_far):
+        candidate_paths = []
+        candidate_paths.append(self.recursive_find_path('n', path_so_far))
+        candidate_paths.append(self.recursive_find_path('s', path_so_far))
+        candidate_paths.append(self.recursive_find_path('w', path_so_far))
+        candidate_paths.append(self.recursive_find_path('e', path_so_far))
+
+        # choose best path
+        min_len = 9e9
+        best_path = None  # default if no path can get to goal
+        for cand in candidate_paths:
+            if cand is None:
+                continue
+            if len(cand) < min_len:
+                min_len = len(cand)
+                best_path = cand
+
+        return best_path
+
+    def recursive_find_path(self, direction, path_so_far):
+        """
+        base case:
+            current + direction = goal
+        """
+        # assert last in path so far is current pos
+        assert path_so_far[-1] == self.getCurrent()
+
+        if self.getDesired(direction) in path_so_far:
+            return None
+
+        # first try to move from current
+        self.updateDesired(direction)
+        status_code = self.move(direction)
+
+        if status_code == self.STATUS_HIT_WALL:
+            # this is not a valid path
+            return None
+
+        # add the point to the path
+        new_path = path_so_far.copy()
+        new_path.append(self.getCurrent())
+
+        if status_code == self.STATUS_HIT_GOAL:
+            result = new_path
         else:
-            self.grid.add(desired_x, desired_y, '2')
-            print('found: {}'.format([desired_x, desired_y]))
-            self.x = desired_x
-            self.y = desired_y
+            result = self.try_all_directions(new_path)
 
+        # move back to prev point
+        opposite_direction = self.OPPOSITE_DIRECTIONS[direction]
+        self.updateDesired(opposite_direction)
+        self.move(opposite_direction)
+
+        return result
+
+    def move(self, direction):
+        raise NotImplementedError
+
+
+class TestDroid(Droid):
+
+    def __init__(self, test_input):
+        super().__init__()
+
+        lines = test_input.split('\n')
+        self.grid = Grid2D()
+
+        # find offset such that: S + offset = origin (offset = (0,0) - S)
+        offset = np.zeros(2)
+        for r, row in enumerate(lines):
+            if 'S' in row:
+                offset_y = -r
+                offset_x = -row.find('S')
+                offset = np.array([offset_x, offset_y])
+                break
+
+        # populate grid
+        for r, row in enumerate(lines):
+            for c, col in enumerate(row):
+                coord = np.array([c, r])
+                coord += offset
+                self.grid.add(coord[0], coord[1], col)
+
+        print('test grid:')
+        self.grid.show()
+
+    def move(self, direction):
+        if self.grid.get(self.desired_x, self.desired_y) == '#':
+            return self.STATUS_HIT_WALL
+
+        # do the move
+        self.x = self.desired_x
+        self.y = self.desired_y
         self.grid.overlay = {
             (self.x, self.y): 'D'
         }
         self.grid.show()
-        z=0
+
+        if self.grid.get(self.x, self.y) == 'G':
+            return self.STATUS_HIT_GOAL
+        else:
+            return self.STATUS_MOVED
 
 
-    def get_path(self, direction, path_so_far):
-        pass
-
-
-
-    # def __str__(self):
-    #     return 'Droid {}: {}'.format(
-    #         self.id, self.text)
-    #
-    # def __repr__(self):
-    #     return str(self)
-
-
+# class IntcodeDroid(object):
+#
+#     def __init__(self, puzzle_input):
+#         self.codes = aoc_util.ints(puzzle_input)
+#         self.ic = IntcodeComputer(self.codes)
+#         self.ic.verbose = False
+#         self.grid = Grid2D()
+#
+#         self.grid.add(0, 0, '.')
+#
+#     def move(self, input_letter=''):
+#         while input_letter not in self.directions_dict:
+#             input_letter = input('direction? ')
+#         direction = self.directions_dict[input_letter]
+#
+#         self.ic.queue_input(direction)
+#
+#         desired_x = self.x + self.dx[input_letter]
+#         desired_y = self.y + self.dy[input_letter]
+#
+#         self.ic.run()
+#
+#         assert self.ic.state == IntcodeComputer.STATE_OUTPUT
+#
+#         status = self.ic.get_latest_output()
+#         if status == 0:
+#             # wall, pos does not change
+#             self.grid.add(desired_x, desired_y, '#')
+#         elif status == 1:
+#             # empty, move
+#             self.grid.add(desired_x, desired_y, '.')
+#             self.x = desired_x
+#             self.y = desired_y
+#         else:
+#             self.grid.add(desired_x, desired_y, '2')
+#             print('found: {}'.format([desired_x, desired_y]))
+#             self.x = desired_x
+#             self.y = desired_y
+#
+#         self.grid.overlay = {
+#             (self.x, self.y): 'D'
+#         }
+#         self.grid.show()
+#         z=0
+#
+#
+#     def get_path(self, direction, path_so_far):
+#         pass
 
 
 
@@ -172,68 +310,61 @@ def main():
     aoc_util.write_input(puzzle_input, __file__)
 
     AocLogger.verbose = True
-    # aoc_util.run_tests(solve_test_case, TEST_INPUT, TEST_OUTPUT)
+    run_tests()
 
     AocLogger.verbose = False
 
-    solve_test_case(TEST_INPUT[0])
-    solve_full_input(puzzle_input)
+    # solve_full_input(puzzle_input)
 
 
+def run_tests():
+    aoc_util.assert_equal(
+        4,
+        solve_test_case(TEST_INPUT[0])
+    )
 
-
+    aoc_util.assert_equal(
+        2,
+        solve_test_case(TEST_INPUT[1])
+    )
 
 
 def solve_test_case(test_input):
     test_input = test_input.strip()
     AocLogger.log('test input:\n{}'.format(test_input))
 
-    lines = test_input.split('\n')
-
-    num_rows = len(lines)
-    num_cols = len(lines[0])
-
-    # find offset such that S + offset = (0,0)
-    # offset = (0,0) - S
-    for r, row in enumerate(lines):
-        if 'S' in row:
-            offset_y = -r
-            offset_x = -row.find('S')
+    td = TestDroid(test_input)
+    result = td.find_min_num_moves()
+    return result
 
 
-
-
-
-
-    z=0
-
-def solve_full_input(puzzle_input):
-    puzzle_input = puzzle_input.strip()
-
-
-    droid = Droid(puzzle_input)
-
-
-
-    # grid = Grid2D()
-    #
-    # grid.add(-3, -4, '5')
-    # grid.add(6, 7, '8')
-    #
-    # grid.show()
-
-    # z=0
-
-
-    while True:
-
-
-        droid.move()
-
-
-
-
-    pass
+# def solve_full_input(puzzle_input):
+#     puzzle_input = puzzle_input.strip()
+#
+#
+#     droid = Droid(puzzle_input)
+#
+#
+#
+#     # grid = Grid2D()
+#     #
+#     # grid.add(-3, -4, '5')
+#     # grid.add(6, 7, '8')
+#     #
+#     # grid.show()
+#
+#     # z=0
+#
+#
+#     while True:
+#
+#
+#         droid.move()
+#
+#
+#
+#
+#     pass
 
 
 
