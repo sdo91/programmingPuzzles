@@ -8,8 +8,8 @@ import aocd
 from aoc_util import aoc_util
 from aoc_util.aoc_util import AocLogger
 from aoc_util.intcode_computer import IntcodeComputer
+from aoc_util.grid_2d import Grid2D
 
-from collections import defaultdict
 import numpy as np
 
 import sys
@@ -39,53 +39,6 @@ TEST_OUTPUT = [
     0,
     0,
 ]
-
-
-
-
-
-class Grid2D(object):
-
-    def __init__(self):
-        """
-        NOTE: uses an inverted y-axis by default (increasing downwards)
-        """
-        self.grid = defaultdict(lambda: ' ')
-
-        self.min_x = 0
-        self.max_x = 0
-        self.min_y = 0
-        self.max_y = 0
-
-        self.overlay = {}
-
-    def setTuple(self, coord, value):
-        self.set(coord[0], coord[1], value)
-
-    def set(self, x, y, value):
-        self.grid[(x, y)] = value
-
-        self.min_x = min(self.min_x, x)
-        self.max_x = max(self.max_x, x)
-        self.min_y = min(self.min_y, y)
-        self.max_y = max(self.max_y, y)
-
-    def get(self, x, y):
-        return self.grid[(x, y)]
-
-    def show(self):
-        print()
-        # for y in range(self.max_y, self.min_y - 1, -1):
-        for y in range(self.min_y, self.max_y + 1):
-            line = ''
-            for x in range(self.min_x, self.max_x + 1):
-                coord = (x, y)
-                if coord in self.overlay:
-                    line += self.overlay[coord]
-                else:
-                    line += self.grid[coord]
-            print(line)
-        print()
 
 
 
@@ -222,7 +175,7 @@ class TestDroid(Droid):
             for c, col in enumerate(row):
                 coord = np.array([c, r])
                 coord += offset
-                self.grid.setTuple(coord, col)
+                self.grid.set_tuple(coord, col)
 
         print('test grid:')
         self.grid.show()
@@ -354,7 +307,7 @@ def solve_full_input(puzzle_input):
     empty_spaces = set()
     for coord, char in explored.grid.items():
         if char == 'G':
-            explored.setTuple(coord, 'O')
+            explored.set_tuple(coord, 'O')
             oxygen_spaces.add(coord)
         if char in empty_space_values:
             empty_spaces.add(coord)
@@ -370,7 +323,7 @@ def solve_full_input(puzzle_input):
         for coord in spaces_this_loop:
             oxygen_spaces.add(coord)
             empty_spaces.remove(coord)
-            explored.setTuple(coord, 'O')
+            explored.set_tuple(coord, 'O')
 
         num_min += 1
         explored.show()
