@@ -4,12 +4,14 @@
 
 ### IMPORTS ###
 
+import numpy as np
+
 import aocd
-import re
-import parse
-import typing
+
 from aoc_util import aoc_util
 from aoc_util.aoc_util import AocLogger
+from aoc_util.intcode_computer import IntcodeComputer
+
 
 
 
@@ -26,14 +28,6 @@ TEST_INPUT = [
     """
 ]
 
-TEST_OUTPUT = [
-    0,
-    0,
-    0,
-]
-
-
-
 
 
 
@@ -48,30 +42,31 @@ def main():
     aoc_util.write_input(puzzle_input, __file__)
 
     AocLogger.verbose = True
-    aoc_util.run_tests(solve_test_case, TEST_INPUT, TEST_OUTPUT)
+    run_tests()
 
     AocLogger.verbose = False
-
     solve_full_input(puzzle_input)
 
 
-
-
+def run_tests():
+    aoc_util.assert_equal(
+        42,
+        solve_test_case(TEST_INPUT[0])
+    )
 
 
 def solve_test_case(test_input):
-    AocLogger.log('test input: {}'.format(test_input))
+    test_input = test_input.strip()
+    AocLogger.log('test input:\n{}'.format(test_input))
 
+    result = 0
 
+    print('result: {}'.format(result))
+    return result
 
-    pass
 
 def solve_full_input(puzzle_input):
-
-
-
-
-    pass
+    return 0
 
 
 

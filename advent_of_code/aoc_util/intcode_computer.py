@@ -1,6 +1,6 @@
 
 import typing
-from aoc_util.aoc_util import AocLogger
+from aoc_util import aoc_util
 
 
 class IntcodeComputer(object):
@@ -17,9 +17,12 @@ class IntcodeComputer(object):
     IMMEDIATE_MODE = 1
     RELATIVE_MODE = 2
 
-    def __init__(self, initial_memory: typing.List[int]):
+    def __init__(self, initial_memory):
         self.verbose = True
-        self.initial_memory = initial_memory
+        if isinstance(initial_memory, str):
+            self.initial_memory = aoc_util.ints(initial_memory)
+        else:
+            self.initial_memory = initial_memory
 
         self.instruction_ptr = 0
         self.memory = []

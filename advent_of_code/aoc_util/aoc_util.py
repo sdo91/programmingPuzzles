@@ -105,6 +105,8 @@ def re_find_all_matches(pattern, text):
     return [match.group() for match in matcher.finditer(text)]
 
 
+def tuple_add(a, b):
+    return tuple(i + j for i, j in zip(a, b))
 
 
 

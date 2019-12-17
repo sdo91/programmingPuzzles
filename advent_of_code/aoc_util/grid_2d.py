@@ -6,7 +6,7 @@ from aoc_util.aoc_util import AocLogger
 
 class Grid2D(object):
 
-    def __init__(self):
+    def __init__(self, text: str = ''):
         """
         NOTE: uses an inverted y-axis by default (increasing downwards)
         """
@@ -19,6 +19,13 @@ class Grid2D(object):
 
         self.overlay = {}
 
+        if text:
+            text = text.strip()
+            lines = text.split('\n')
+            for r, row in enumerate(lines):
+                for c, col in enumerate(row):
+                    self.set(c, r, col)
+
     def set_tuple(self, coord, value):
         self.set(coord[0], coord[1], value)
 
@@ -30,8 +37,18 @@ class Grid2D(object):
         self.min_y = min(self.min_y, y)
         self.max_y = max(self.max_y, y)
 
+    def is_value(self, coord, value):
+        return self.grid[coord] == value
+
     def get(self, x, y):
         return self.grid[(x, y)]
+
+    def find(self, char):
+        result = []
+        for coord, value in self.grid.items():
+            if value == char:
+                result.append(coord)
+        return result
 
     def show(self):
         print()
