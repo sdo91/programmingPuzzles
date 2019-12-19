@@ -44,6 +44,7 @@ class Grid2D(object):
         return self.grid[(x, y)]
 
     def find(self, char):
+        # todo: rename to find_all
         result = []
         for coord, value in self.grid.items():
             if value == char:
