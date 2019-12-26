@@ -73,7 +73,7 @@ class IntcodeComputer(object):
     def get_opcode(self):
         return self.memory[self.instruction_ptr] % 100
 
-    def run(self) -> int:
+    def run(self) -> str:
         while True:
             full_opcode = str(self.memory[self.instruction_ptr])
 

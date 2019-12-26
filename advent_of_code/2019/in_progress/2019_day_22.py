@@ -1,0 +1,381 @@
+#!/usr/bin/env python3
+
+
+
+### IMPORTS ###
+
+import numpy as np
+import math
+import time
+
+import aocd
+
+from aoc_util import aoc_util
+from aoc_util.aoc_util import AocLogger
+
+
+
+
+
+### CONSTANTS ###
+
+TEST_INPUT = [
+    """
+deal with increment 7
+deal into new stack
+deal into new stack
+Result: 0 3 6 9 2 5 8 1 4 7
+    """, """
+cut 6
+deal with increment 7
+deal into new stack
+Result: 3 0 7 4 1 8 5 2 9 6
+    """, """
+deal with increment 7
+deal with increment 9
+cut -2
+Result: 6 3 0 7 4 1 8 5 2 9
+    ""","""
+deal into new stack
+cut -2
+deal with increment 7
+cut 8
+cut -4
+deal with increment 7
+cut 3
+deal with increment 9
+deal with increment 3
+cut -1
+Result: 9 2 5 8 1 4 7 0 3 6
+"""
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Deck(object):
+
+    def __init__(self, size):
+        self.size = size
+        self.cards = list(range(size))
+
+    def do(self, text):
+        # techniques
+
+        if 'stack' in text:
+            self.do_stack()
+        elif 'cut' in text:
+            self.do_cut(aoc_util.ints(text)[0])
+        elif 'increment' in text:
+            self.do_increment(aoc_util.ints(text)[0])
+        else:
+            raise RuntimeError(text)
+
+
+    def do_stack(self):
+        self.cards = list(reversed(self.cards))
+
+    def do_cut(self, n):
+        if n < 0:
+            n = self.size + n
+        self.cards = self.cards[n:] + self.cards[:n]
+        z=0
+
+    def do_increment(self, n):
+        new_cards = [0] * self.size
+        new_index = 0
+        for old_index in range(self.size):
+            new_cards[new_index] = self.cards[old_index]
+            new_index += n
+            new_index %= self.size
+        self.cards = new_cards
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class HugeDeck(object):
+
+    DEAL_STACK = 1
+    CUT_N = 2
+    DEAL_INC_N = 3
+
+    def __init__(self, text, size, final_position):
+        self.size = size
+        self.position = final_position
+        # self.technique_idx = 0
+
+        # parse text
+        self.shuffle_steps = []
+        for line in reversed(aoc_util.lines(text)):
+            if 'Result' in line:
+                continue
+            elif 'stack' in line:
+                step = (line, self.DEAL_STACK)
+            elif 'cut' in line:
+                step = (line, self.CUT_N, aoc_util.ints(line)[0])
+            elif 'increment' in line:
+                step = (line, self.DEAL_INC_N, aoc_util.ints(line)[0])
+            else:
+                raise RuntimeError(line)
+            # print('{} -> {}'.format(line, step))
+            self.shuffle_steps.append(step)
+
+    def deal_stack(self):
+        """
+        let size = 10
+
+        0->9 = 9-0
+        4->5 = 0-4
+        5->4 = 9-5
+        9->0 = 9-9
+        """
+        self.position = (self.size - 1) - self.position
+
+    def cut_n(self, n):
+        """
+        let s=10, n=3
+
+        0->3 = (p + n) % s
+        6->9
+        7->0
+        9->2
+        """
+        self.position = (self.position + n) % self.size
+
+    @staticmethod
+    def mod_inverse(a, m):
+        """
+        NOTE: a and m must be coprime (GCD == 1)
+        """
+        if m < 100:
+            for x in range(1, m):
+                if (a * x) % m == 1:
+                    return x
+        if math.gcd(a, m) != 1:
+            raise RuntimeError('can\'t mod divide: {}'.format([a, m]))
+        return pow(a, m - 2, m)
+
+    @staticmethod
+    def mod_divide(num, denom, m):
+        num %= m
+        inv = HugeDeck.mod_inverse(denom, m)
+        return (inv * num) % m
+
+    def deal_inc_n(self, n):
+        """
+        let s=10, n=3
+        forward:
+
+        0->0
+        1->3
+        4->2: 0 + (4 * 3) = 2 (mod 10)
+        5->5: (5 * 3) = 5
+        6->8: (6 * 3) = 18
+
+        modular division:
+
+        reverse:
+        if it ends at 8, where did it start? (6)
+        8->6: 8 / 3 = 6 (mod 10)
+
+        """
+        self.position = self.mod_divide(self.position, n, self.size)
+
+    def shuffle(self):
+
+        for step in self.shuffle_steps:
+            # print()
+            # print(step)
+            # print(self.position)
+
+            if step[1] == self.DEAL_STACK:
+                self.deal_stack()
+            elif step[1] == self.CUT_N:
+                self.cut_n(step[2])
+            elif step[1] == self.DEAL_INC_N:
+                self.deal_inc_n(step[2])
+            else:
+                raise RuntimeError('koaiuweoj')
+
+            z=0
+
+            # print(self.position)
+
+        # pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def main():
+    print('starting {}'.format(__file__.split('/')[-1]))
+
+    try:
+        puzzle_input = aocd.data
+    except aocd.exceptions.AocdError:
+        puzzle_input = 'unable to get input'
+    aoc_util.write_input(puzzle_input, __file__)
+
+    AocLogger.verbose = True
+    run_tests(puzzle_input)
+
+    AocLogger.verbose = False
+    # solve_full_input(puzzle_input)
+
+    # time_test()
+
+    # solve_2(puzzle_input, size=119315717514047,
+    #         final_position=2020, num_times=101741582076661)
+
+
+def time_test():
+    start_time = time.time()
+    x = 101741582076661
+    while x > 0:
+        if x % 1000 == 9:
+            print(x)
+        x -= 1
+    print(time.time() - start_time)
+
+
+
+def run_tests(puzzle_input):
+    # aoc_util.assert_equal(
+    #     '0 3 6 9 2 5 8 1 4 7',
+    #     solve_test_case(TEST_INPUT[0])
+    # )
+    #
+    # aoc_util.assert_equal(
+    #     '3 0 7 4 1 8 5 2 9 6',
+    #     solve_test_case(TEST_INPUT[1])
+    # )
+    #
+    # aoc_util.assert_equal(
+    #     '6 3 0 7 4 1 8 5 2 9',
+    #     solve_test_case(TEST_INPUT[2])
+    # )
+    #
+    # aoc_util.assert_equal(
+    #     '9 2 5 8 1 4 7 0 3 6',
+    #     solve_test_case(TEST_INPUT[3])
+    # )
+
+    aoc_util.assert_equal(2, HugeDeck.mod_divide(8, 4, 5))
+    aoc_util.assert_equal(1, HugeDeck.mod_divide(8, 3, 5))
+    aoc_util.assert_equal(4, HugeDeck.mod_divide(11, 4, 5))
+
+    aoc_util.assert_equal(7, HugeDeck.mod_inverse(3, 10))
+    aoc_util.assert_equal(6, HugeDeck.mod_divide(8, 3, 10))
+
+    aoc_util.assert_equal(
+        5,
+        solve_2(TEST_INPUT[3], 10, 2)
+    )
+
+    aoc_util.assert_equal(
+        2019,
+        solve_2(puzzle_input, size=10007, final_position=2519, num_times=1)
+    )
+
+
+def solve_2(text, size, final_position, num_times=1):
+    hd = HugeDeck(text, size, final_position)
+
+    seen_positions = set()
+    seen_diffs = set()
+
+    for x in range(num_times):
+        start_pos = hd.position
+        if start_pos in seen_positions:
+            raise RuntimeError('seen pos: {}'.format(start_pos))
+        seen_positions.add(start_pos)
+
+        # if x % 1000 == 0:
+        #     print(x)
+        hd.shuffle()
+        diff = hd.position - start_pos
+        if diff in seen_diffs:
+            raise RuntimeError('seen diff: {}'.format(diff))
+        seen_diffs.add(diff)
+        # print('{}: {} -> {} (+{})'.format(x, start_pos, hd.position, diff))
+
+
+    return hd.position
+
+
+def solve_test_case(test_input, size=10):
+    test_input = test_input.strip()
+    # AocLogger.log('test input:\n{}'.format(test_input))
+
+    d = Deck(size)
+
+    for line in aoc_util.lines(test_input):
+        if 'Result' in line:
+            continue
+        d.do(line)
+
+    if size > 3000:
+        print(d.cards.index(2019))
+
+    result = ' '.join([str(x) for x in d.cards])
+    print('result: {}'.format(result))
+    return result
+
+
+def solve_full_input(puzzle_input):
+    """
+    8611 high
+    Args:
+        puzzle_input:
+
+    Returns:
+
+    """
+    solve_test_case(puzzle_input, 10007)
+
+
+
+
+
+if __name__ == '__main__':
+    main()
+
+
+
+

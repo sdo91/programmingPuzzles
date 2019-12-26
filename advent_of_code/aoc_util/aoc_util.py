@@ -42,6 +42,10 @@ def words(s: str) -> typing.List[str]:
     return re.findall(r"[a-zA-Z]+", s)
 
 
+def lines(s: str) -> typing.List[str]:
+    return s.strip().split('\n')
+
+
 def split_and_strip_each(string: str, delim: str) -> typing.List[str]:
     """
     split the string on the char, and strip each item in the resulting list
