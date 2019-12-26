@@ -47,6 +47,13 @@ class IntcodeComputer(object):
 
     def queue_input(self, value: int):
         self.input_list.append(value)
+        if not self.is_input_needed():
+            self.state = self.STATE_READY
+
+    def queue_input_string(self, string: str):
+        for c in string:
+            self.queue_input(ord(c))
+        self.queue_input(ord('\n'))
 
     def get_latest_output(self) -> int:
         return self.output_list[-1]
@@ -54,14 +61,26 @@ class IntcodeComputer(object):
     def get_all_output(self) -> typing.List[int]:
         return self.output_list
 
+    def get_output_string(self) -> str:
+        return ''.join([chr(x) for x in self.output_list])
+
+    def clear_output(self):
+        self.output_list.clear()
+
     def get_memory(self) -> typing.List[int]:
         return self.memory
 
+    def is_state(self, desired_state: str) -> bool:
+        return self.state == desired_state
+
     def is_halted(self) -> bool:
-        return self.state == self.STATE_HALTED
+        return self.is_state(self.STATE_HALTED)
 
     def is_input_needed(self):
         return self.input_ptr >= len(self.input_list) and self.get_opcode() == 3
+
+    def get_opcode(self):
+        return self.memory[self.instruction_ptr] % 100
 
     def run_to_halt(self, input_value=None) -> int:
         if input_value is not None:
@@ -70,8 +89,9 @@ class IntcodeComputer(object):
             self.run()
         return self.get_latest_output()
 
-    def get_opcode(self):
-        return self.memory[self.instruction_ptr] % 100
+    def run_to_input_needed(self):
+        while not self.is_input_needed():
+            self.run()
 
     def run(self) -> str:
         while True:

@@ -67,18 +67,21 @@ def main():
     run_tests()
 
     AocLogger.verbose = False
-    solve_full_input(puzzle_input)
+    aoc_util.assert_equal(
+        (5740, 1022165),
+        solve_full_input(puzzle_input)
+    )
 
 
 def run_tests():
     aoc_util.assert_equal(
         76,
-        solve_test_case(TEST_INPUT[0])
+        calc_ap_sum(TEST_INPUT[0])
     )
 
     aoc_util.assert_equal(
         'R,8,R,8,R,4,R,4,R,8,L,6,L,2,R,4,R,4,R,8,R,8,R,8,L,6,L,2',
-        solve_test_case_2(TEST_INPUT[1])
+        find_full_path(TEST_INPUT[1])
     )
 
 
@@ -91,13 +94,13 @@ def is_intersection(grid: Grid2D, x, y):
         and grid.get(x, y - 1) in matches
 
 
-def solve_test_case(test_input):
+def calc_ap_sum(test_input):
     test_input = test_input.strip()
     AocLogger.log('test input:\n{}'.format(test_input))
 
     grid = Grid2D(test_input)
 
-    grid.show()
+    # grid.show()
 
     result = 0
     for y in range(grid.min_y+1, grid.max_y):
@@ -106,16 +109,16 @@ def solve_test_case(test_input):
                 ap = x * y
                 result += ap
 
-    print('result: {}'.format(result))
+    # print('result: {}'.format(result))
     return result
 
 
-def solve_test_case_2(test_input):
+def find_full_path(test_input):
     test_input = test_input.strip()
     AocLogger.log('test input:\n{}'.format(test_input))
 
     grid = Grid2D(test_input)
-    grid.show()
+    # grid.show()
 
     start_coord = grid.find('^')[0]
 
@@ -170,7 +173,7 @@ def solve_test_case_2(test_input):
                 num_steps += 1
 
     result = ','.join(path)
-    print('result: {}'.format(result))
+    print('full path: {}'.format(result))
     return result
 
 
@@ -179,20 +182,22 @@ def solve_full_input(puzzle_input):
     AocLogger.log('puzzle_input input:\n{}'.format(puzzle_input))
 
     ic = IntcodeComputer(puzzle_input)
+    ic.verbose = False
     ic.run_to_halt()
 
-    output = ic.get_all_output()
+    string = ic.get_output_string()
+    # print(string)
 
-    string = ''.join([chr(x) for x in output])
-    print(string)
+    ap_sum = calc_ap_sum(string)
+    print('ap_sum: {}'.format(ap_sum))
 
-    result = solve_test_case(string)
-    print('result 1: {}'.format(result))
-
-    solve_test_case_2(string)
+    ### part 2 ###
+    path = find_full_path(string)
     """
+    full path:
     R,6,R,6,R,8,L,10,L,4,R,6,L,10,R,8,R,6,L,10,R,8,R,6,R,6,R,8,L,10,L,4,L,4,L,12,R,6,L,10,R,6,R,6,R,8,L,10,L,4,L,4,L,12,R,6,L,10,R,6,R,6,R,8,L,10,L,4,L,4,L,12,R,6,L,10,R,6,L,10,R,8
 
+    parts:
     R,6,R,6,R,8,L,10,L,4
     R,6,L,10,R,8
     L,4,L,12,R,6,L,10
@@ -201,11 +206,28 @@ def solve_full_input(puzzle_input):
     B = 'R,6,L,10,R,8'
     C = 'L,4,L,12,R,6,L,10'
 
+    path = path.replace(A, 'A')
+    path = path.replace(B, 'B')
+    path = path.replace(C, 'C')
+    print(path)
 
+    assert ic.initial_memory[0] == 1
+    ic.initial_memory[0] = 2
+    ic.reset()
+    assert ic.memory[0] == 2
 
+    input_strings = [path, A, B, C, 'n']
+    for s in input_strings:
+        ic.run_to_input_needed()
+        string = ic.get_output_string().strip().split('\n')[-1]
+        print(string)
+        ic.clear_output()
+        ic.queue_input_string(s)
 
-
-    return result
+    ic.run_to_halt()
+    dust_collected = ic.get_latest_output()
+    print('dust_collected: {}'.format(dust_collected))
+    return ap_sum, dust_collected
 
 
 
