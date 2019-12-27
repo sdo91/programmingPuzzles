@@ -67,6 +67,12 @@ class IntcodeComputer(object):
     def clear_output(self):
         self.output_list.clear()
 
+    def print_output_string(self):
+        output = self.get_output_string()
+        if output:
+            print(output)
+            self.clear_output()
+
     def get_memory(self) -> typing.List[int]:
         return self.memory
 

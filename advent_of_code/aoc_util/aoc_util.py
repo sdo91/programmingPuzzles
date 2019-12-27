@@ -46,6 +46,10 @@ def lines(s: str) -> typing.List[str]:
     return s.strip().split('\n')
 
 
+def stripped_lines(s: str) -> typing.List[str]:
+    return split_and_strip_each(s.strip(), '\n')
+
+
 def split_and_strip_each(string: str, delim: str) -> typing.List[str]:
     """
     split the string on the char, and strip each item in the resulting list
