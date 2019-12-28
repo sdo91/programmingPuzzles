@@ -61,6 +61,9 @@ class IntcodeComputer(object):
     def get_all_output(self) -> typing.List[int]:
         return self.output_list
 
+    def get_output_size(self) -> int:
+        return len(self.output_list)
+
     def get_output_string(self) -> str:
         return ''.join([chr(x) for x in self.output_list])
 
