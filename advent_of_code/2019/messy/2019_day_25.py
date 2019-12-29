@@ -15,6 +15,8 @@ addToPath('../..')
 
 ### IMPORTS ###
 
+from itertools import combinations
+
 import aocd
 
 from aoc_util import aoc_util
@@ -99,16 +101,88 @@ class Droid(IntcodeComputer):
                     print('{} -> {}'.format(cmd, self.directions[cmd]))
                     cmd = self.directions[cmd]
 
-                # if cmd == 't':
-                #     self.take()
+                if cmd == '1':
+                    self.try_combos()
 
             self.queue_input_string(cmd)
 
             if cmd.startswith('take'):
                 self.queue_input_string('inv')
 
+    def get_inv_list(self):
+        self.queue_input_string('inv')
+        self.clear_output()
+        self.run_to_input_needed()
+        text = self.get_output_string()
+        items = self.parse_items(text)
+        print('INV LIST: {}'.format(items))
+        return items
+
+    def drop_items(self, items):
+        for item in items:
+            cmd = 'drop {}'.format(item)
+            self.queue_input_string(cmd)
+
+        self.queue_input_string('inv')
+        # self.queue_input_string('west')
+        self.run_to_input_needed()
+
     def try_combos(self):
-        pass
+        """
+        first take all
+        then call this
+
+        get list of all
+        drop all
+
+        get all combos
+
+        for each combo
+            take all items
+            go dir
+            assert failed
+            drop items
+        """
+        CHECKPOINT = '== Security Checkpoint =='
+
+        # get list of items, drop all
+        items = self.get_inv_list()
+        self.drop_items(items)
+
+        # generate all combos
+        combos = []
+        for x in range(1, len(items)):
+            combos += combinations(items, x)
+        print('ALL COMBOS:')
+        for c in combos:
+            print('\t{}'.format(c))
+
+        # try each combo
+        for combo in combos:
+            print('TRYING COMBO: {}'.format(combo))
+
+            # get correct items
+            for item in combo:
+                cmd = 'take {}'.format(item)
+                self.queue_input_string(cmd)
+
+            # try the room
+            self.queue_input_string('inv')
+            self.run_to_input_needed()
+            self.clear_output()
+            self.queue_input_string('west')
+            self.run_to_input_needed()
+            text = self.get_output_string()
+
+            # check for success
+            assert CHECKPOINT in text
+
+            # drop items
+            self.drop_items(combo)
+
+        raise RuntimeError('no combo found')
+
+
 
     def auto_take(self):
         ITEMS_HERE = 'Items here:'
@@ -123,7 +197,7 @@ class Droid(IntcodeComputer):
 
         # get list of items
         text = text.split(ITEMS_HERE)[-1]
-        items = [x[2:] for x in aoc_util.stripped_lines(text) if x.startswith('- ')]
+        items = self.parse_items(text)
         safe_items = [x for x in items if x not in self.dont_take]
 
         if len(safe_items) == 1:
@@ -136,6 +210,10 @@ class Droid(IntcodeComputer):
         #         break
 
         return cmd
+
+    def parse_items(self, text):
+        result = [x[2:] for x in aoc_util.stripped_lines(text) if x.startswith('- ')]
+        return result
 
 
 
