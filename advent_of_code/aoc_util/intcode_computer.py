@@ -19,6 +19,8 @@ class IntcodeComputer(object):
 
     def __init__(self, initial_memory):
         self.verbose = True
+        self.ascii_mode = True
+
         if isinstance(initial_memory, str):
             self.initial_memory = aoc_util.ints(initial_memory)
         else:
@@ -100,6 +102,8 @@ class IntcodeComputer(object):
 
     def run_to_input_needed(self):
         while not self.is_input_needed():
+            if self.is_halted():
+                raise RuntimeError('halted')
             self.run()
 
     def run(self) -> str:
@@ -150,7 +154,10 @@ class IntcodeComputer(object):
                 a = self._get_value(1)
                 self.output_list.append(a)
                 if self.verbose:
-                    print('intcode output: {}'.format(self.get_latest_output()))
+                    if self.ascii_mode:
+                        print(chr(a), end='')
+                    else:
+                        print('intcode output: {}'.format(self.get_latest_output()))
                 self.state = self.STATE_OUTPUT
                 self.instruction_ptr += 2
                 break
