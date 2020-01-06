@@ -7,7 +7,7 @@ https://gist.github.com/mcpower/87427528b9ba5cac6f0c679370789661
 https://github.com/wimglenn/advent-of-code-data
 
 # PyCharm setup
-* mark `aoc_util` dir as 'Sources Root'
+* mark `advent_of_code` dir as 'Sources Root'
 
 # Other setup
 * `sudo pip3 install advent-of-code-data`

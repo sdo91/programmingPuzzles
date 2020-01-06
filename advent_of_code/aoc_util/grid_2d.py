@@ -65,6 +65,16 @@ class Grid2D(object):
             print(line)
         print()
 
+    def count_adjacent(self, x, y, value):
+        adj_coords = [
+            (x-1, y),
+            (x+1, y),
+            (x, y-1),
+            (x, y+1),
+        ]
+        return sum([1 for c in adj_coords if self.is_value(c, value)])
+
+
 
 
 
