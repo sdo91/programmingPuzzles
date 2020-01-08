@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
 
+def addToPath(relPath):
+    from os import path
+    import sys
+    dirOfThisFile = path.dirname(path.realpath(__file__))
+    dirToAdd = path.normpath(path.join(dirOfThisFile, relPath))
+    if dirToAdd not in sys.path:
+        print('adding to path: {}'.format(dirToAdd))
+        sys.path.insert(0, dirToAdd)
+    else:
+        print('already in path: {}'.format(dirToAdd))
+
+addToPath('../..')
 
 
 ### IMPORTS ###
@@ -56,6 +68,9 @@ class RecursiveBugTower(object):
     note y increases downwards
     """
 
+    BUG = '#'
+    EMPTY = '.'
+
     MIDDLE = 2
 
     TOP = 0
@@ -73,6 +88,7 @@ class RecursiveBugTower(object):
         self.tower_dict[0] = Grid2D(text)
         self.generations = 0
         self.prev = None
+        self.total_bugs = 0
 
         z=0
 
@@ -84,11 +100,14 @@ class RecursiveBugTower(object):
         Returns:
 
         """
-        result = ['\ntower:']
+        info = 'tower ({} generations, {} bugs):\n'.format(
+            self.generations, self.total_bugs)
+        result = ['\n\n\n\n\n', info]
         magnitude = len(self.tower_dict) // 2
         for level in range(-magnitude, magnitude+1):
-            result.append('\nlevel {}:\n{}'.format(level, self.tower_dict[level]))
-        return ''.join(result)
+            result.append('level {}:\n{}\n'.format(level, self.tower_dict[level]))
+        result.append(info)
+        return '\n'.join(result)
 
     def inc(self):
         """
@@ -103,20 +122,73 @@ class RecursiveBugTower(object):
 
 
         """
-        print(self)
-
         self.prev = deepcopy(self.tower_dict)
+        self.total_bugs = 0
 
         magnitude = 1 + (self.generations // 2)
+        self.generations += 1
+
         for level in range(-magnitude, magnitude + 1):
-            print(level)
+            # print('debug: gen={}, level={}'.format(self.generations, level))
+            z=0
             for y in range(5):
                 for x in range(5):
                     self.resolve_coord(x, y, level)
 
-        self.generations += 1
+        AocLogger.log(self)
 
-        z=0
+
+    def resolve_coord(self, x, y, level):
+        """
+        (2,2) -> ?
+
+        algo:
+            get adjacent spots
+            count bugs
+
+        get up:
+            special cases:
+                18: uvwxy
+                ABCDE: 8
+
+
+
+        """
+        # middle is always ?
+        if x == 2 and y == 2:
+            self.tower_dict[level].set(x, y, '?')
+            return
+
+        # gat all adjacent
+        adjacent_spots = []
+        adjacent_spots += self.get_spots_up(x, y, level)
+        adjacent_spots += self.get_spots_right(x, y, level)
+        adjacent_spots += self.get_spots_down(x, y, level)
+        adjacent_spots += self.get_spots_left(x, y, level)
+
+        # count bugs
+        adjacent_bugs = 0
+        for coord in adjacent_spots:
+            value = self.prev[coord[2]].get(coord[0], coord[1])
+            if value == '#':
+                adjacent_bugs += 1
+        coord = None
+
+        # apply rules
+        new_value = self.EMPTY
+        if self.prev[level].is_value((x, y), self.BUG):
+            if adjacent_bugs == 1:
+                new_value = self.BUG
+        else:  # was empty
+            if 1 <= adjacent_bugs <= 2:
+                new_value = self.BUG
+
+        if new_value == self.BUG:
+            self.total_bugs += 1
+        self.tower_dict[level].set(x, y, new_value)
+
+        if self.generations == 2 and level == 0:
+            z = 0
 
     @classmethod
     def get_spots_up(cls, col, row, level):
@@ -143,32 +215,57 @@ class RecursiveBugTower(object):
             result.append((col, row - 1, level))
         return result
 
-    
+    @classmethod
+    def get_spots_down(cls, col, row, level):
+        result = []
+        if col == cls.MIDDLE and row == cls.SECOND_FROM_TOP:
+            # 8 -> ABCDE
+            result_row = cls.TOP
+            for result_col in range(5):
+                result.append((result_col, result_row, level + 1))
+        elif row == cls.BOTTOM:
+            # UVWXY -> 18
+            result_row = cls.SECOND_FROM_BOTTOM
+            result_col = cls.MIDDLE
+            result.append((result_col, result_row, level - 1))
+        else:
+            result.append((col, row + 1, level))
+        return result
 
+    @classmethod
+    def get_spots_left(cls, col, row, level):
+        result = []
+        if row == cls.MIDDLE and col == cls.SECOND_FROM_RIGHT:
+            # 14 -> E-Y
+            result_col = cls.RIGHT
+            for result_row in range(5):
+                result.append((result_col, result_row, level + 1))
+        elif col == cls.LEFT:
+            # A-U -> 12
+            result_col = cls.SECOND_FROM_LEFT
+            result_row = cls.MIDDLE
+            result.append((result_col, result_row, level - 1))
+        else:
+            result.append((col - 1, row, level))
+        return result
 
+    @classmethod
+    def get_spots_right(cls, col, row, level):
+        result = []
+        if row == cls.MIDDLE and col == cls.SECOND_FROM_LEFT:
+            # 12 -> A-U
+            result_col = cls.LEFT
+            for result_row in range(5):
+                result.append((result_col, result_row, level + 1))
+        elif col == cls.RIGHT:
+            # E-Y -> 14
+            result_col = cls.SECOND_FROM_RIGHT
+            result_row = cls.MIDDLE
+            result.append((result_col, result_row, level - 1))
+        else:
+            result.append((col + 1, row, level))
+        return result
 
-
-    def resolve_coord(self, x, y, level):
-        """
-        (2,2) -> ?
-
-        algo:
-            get adjacent spots
-            count bugs
-
-        get up:
-            special cases:
-                18: uvwxy
-                ABCDE: 8
-
-
-
-        """
-        if x == 2 and y == 2:
-            self.tower_dict[level].set(x, y, '?')
-            return
-
-        z=0
 
 
 
@@ -248,7 +345,10 @@ class AdventOfCode(object):
             self.solve_part_1(puzzle_input)
         )
 
-        # self.solve_part_2()
+        aoc_util.assert_equal(
+            2120,
+            self.solve_test_case_2(puzzle_input, 200)
+        )
 
     def run_tests(self):
         AocLogger.verbose = True
@@ -262,12 +362,13 @@ class AdventOfCode(object):
 
         AocLogger.verbose = True
 
-        # for row in [0, 1, 3, 4]:
-        #     coord = (RecursiveBugTower.MIDDLE, row, 0)
-        #     print('{} -> {}'.format(
-        #         coord, RecursiveBugTower.get_spots_up(*coord)))
+        for row in [0, 1, 3, 4]:
+            coord = (RecursiveBugTower.MIDDLE, row, 0)
+            print('{} -> {}'.format(
+                coord, RecursiveBugTower.get_spots_up(*coord)))
 
-        self.solve_test_case_2(TEST_INPUT_1[0])
+        # self.solve_test_case_2(TEST_INPUT_1[1], 5)
+        self.solve_test_case_2(TEST_INPUT_1[0], 10)
 
     def solve_part_1(self, test_input):
         test_input = test_input.strip()
@@ -299,15 +400,19 @@ class AdventOfCode(object):
 
         return biodiversity
 
-    def solve_test_case_2(self, test_input):
+    def solve_test_case_2(self, test_input, num_gens):
         test_input = test_input.strip()
         AocLogger.log('solve_test_case_2 test input:\n{}'.format(test_input))
 
         tower = RecursiveBugTower(test_input)
 
-        tower.inc()
+        AocLogger.log(tower)
 
-        return 0
+        for i in range(num_gens):
+            tower.inc()
+
+        print('total_bugs: {}'.format(tower.total_bugs))
+        return tower.total_bugs
 
     def solve_part_2(self, puzzle_input: str):
         puzzle_input = puzzle_input.strip()
