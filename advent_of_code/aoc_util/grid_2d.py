@@ -51,9 +51,8 @@ class Grid2D(object):
                 result.append(coord)
         return result
 
-    def show(self):
-        print()
-        # for y in range(self.max_y, self.min_y - 1, -1):
+    def __str__(self):
+        lines = []
         for y in range(self.min_y, self.max_y + 1):
             line = ''
             for x in range(self.min_x, self.max_x + 1):
@@ -62,7 +61,15 @@ class Grid2D(object):
                     line += self.overlay[coord]
                 else:
                     line += self.grid[coord]
-            print(line)
+            lines.append(line)
+        return '\n'.join(lines)
+
+    def __repr__(self):
+        return str(self)
+
+    def show(self):
+        print()
+        print(self)
         print()
 
     def count_adjacent(self, x, y, value):
