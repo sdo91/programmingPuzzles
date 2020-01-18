@@ -1,6 +1,17 @@
 #!/usr/bin/env python3
 
+def addToPath(relPath):
+    from os import path
+    import sys
+    dirOfThisFile = path.dirname(path.realpath(__file__))
+    dirToAdd = path.normpath(path.join(dirOfThisFile, relPath))
+    if dirToAdd not in sys.path:
+        print('adding to path: {}'.format(dirToAdd))
+        sys.path.insert(0, dirToAdd)
+    else:
+        print('already in path: {}'.format(dirToAdd))
 
+addToPath('../..')
 
 ### IMPORTS ###
 

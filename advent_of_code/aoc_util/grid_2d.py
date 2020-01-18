@@ -20,7 +20,7 @@ class Grid2D(object):
         self.overlay = {}
 
         if text:
-            text = text.strip()
+            # text = text.strip()
             lines = text.split('\n')
             for r, row in enumerate(lines):
                 for c, col in enumerate(row):
@@ -80,6 +80,31 @@ class Grid2D(object):
             (x, y+1),
         ]
         return sum([1 for c in adj_coords if self.is_value(c, value)])
+
+    @staticmethod
+    def get_adjacent_coords(coord):
+        return [
+            (coord[0] - 1, coord[1]),
+            (coord[0] + 1, coord[1]),
+            (coord[0], coord[1] - 1),
+            (coord[0], coord[1] + 1),
+        ]
+
+    @staticmethod
+    def get_coord_north(coord: typing.Tuple[int]):
+        return coord[0], coord[1] - 1
+
+    @staticmethod
+    def get_coord_east(coord: typing.Tuple[int]):
+        return coord[0] + 1, coord[1]
+
+    @staticmethod
+    def get_coord_south(coord: typing.Tuple[int]):
+        return coord[0], coord[1] + 1
+
+    @staticmethod
+    def get_coord_west(coord: typing.Tuple[int]):
+        return coord[0] - 1, coord[1]
 
 
 
