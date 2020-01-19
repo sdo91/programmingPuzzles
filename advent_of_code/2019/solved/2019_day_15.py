@@ -161,6 +161,12 @@ class Droid(object):
         return result
 
     def move(self, direction):
+        """
+        move in the given direction
+        (unless impossible, eg wall)
+
+        return a status code
+        """
         raise NotImplementedError
 
 
@@ -276,7 +282,11 @@ def main():
 
     AocLogger.verbose = False
 
-    solve_full_input(puzzle_input)
+    p1, p2 = solve_full_input(puzzle_input)
+    print('part 1: {}'.format(p1))
+    print('part 2: {}'.format(p2))
+    aoc_util.assert_equal(238, p1)
+    aoc_util.assert_equal(392, p2)
 
 
 def run_tests():
@@ -305,12 +315,14 @@ def are_adjacent(ox_coord, empty_spaces):
 
 
 def solve_full_input(puzzle_input):
+    ### part 1 ###
     puzzle_input = puzzle_input.strip()
     droid = IntcodeDroid(puzzle_input)
 
     min_moves = droid.find_min_num_moves()
     print('min_moves: {}'.format(min_moves))
 
+    ### part 2 ###
     explored = droid.explored
 
     empty_space_values = {'.', 'S'}
@@ -342,7 +354,10 @@ def solve_full_input(puzzle_input):
         if len(empty_spaces) == 0:
             break
 
-    print('num_min: {}'.format(num_min))
+    print('num_min: {}\n'.format(num_min))
+
+    ### return answers ###
+    return min_moves, num_min
 
 
 
