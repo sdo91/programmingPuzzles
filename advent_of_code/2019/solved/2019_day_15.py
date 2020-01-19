@@ -325,34 +325,38 @@ def solve_full_input(puzzle_input):
     ### part 2 ###
     explored = droid.explored
 
-    empty_space_values = {'.', 'S'}
-    oxygen_spaces = set()
+    # setup initial state (one filled, all others empty)
+    EMPTY_SPACE_VALUES = {'.', 'S'}
+    spaces_filled_this_loop = set()
     empty_spaces = set()
     for coord, char in explored.grid.items():
         if char == 'G':
             explored.set_tuple(coord, 'O')
-            oxygen_spaces.add(coord)
-        if char in empty_space_values:
+            spaces_filled_this_loop.add(coord)
+        if char in EMPTY_SPACE_VALUES:
             empty_spaces.add(coord)
 
+    # loop til all spaces filled
     num_min = 0
-    while True:
-        spaces_this_loop = set()
-        for ox_coord in oxygen_spaces:
+    while empty_spaces:
+        # swap spaces
+        spaces_filled_prev_loop = spaces_filled_this_loop
+        spaces_filled_this_loop = set()
+
+        # get spaces that will be filled this loop
+        for ox_coord in spaces_filled_prev_loop:
             for em_coord in empty_spaces:
                 if are_adjacent(ox_coord, em_coord):
-                    spaces_this_loop.add(em_coord)
+                    spaces_filled_this_loop.add(em_coord)
 
-        for coord in spaces_this_loop:
-            oxygen_spaces.add(coord)
+        # fill the spaces
+        for coord in spaces_filled_this_loop:
             empty_spaces.remove(coord)
             explored.set_tuple(coord, 'O')
 
+        # finish up
         num_min += 1
         explored.show()
-
-        if len(empty_spaces) == 0:
-            break
 
     print('num_min: {}\n'.format(num_min))
 
