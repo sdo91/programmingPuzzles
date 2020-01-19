@@ -55,7 +55,19 @@ TEST_OUTPUT = [
 
 
 
-class Droid(object):
+
+
+
+
+
+
+
+
+
+
+
+
+class RecursivePathfinderDroid(object):
 
     OPPOSITE_DIRECTIONS = {
         'n': 's',
@@ -88,30 +100,30 @@ class Droid(object):
         self.desired_x = 0
         self.desired_y = 0
 
-    def getCurrent(self):
+    def get_current(self):
         return self.x, self.y
 
-    def getDesired(self, direction):
+    def _get_desired(self, direction):
         return self.x + self.DX[direction], self.y + self.DY[direction]
 
-    def updateDesired(self, direction):
-        self.desired_x, self.desired_y = self.getDesired(direction)
+    def _update_desired(self, direction):
+        self.desired_x, self.desired_y = self._get_desired(direction)
 
     def find_min_num_moves(self):
-        path_so_far = [self.getCurrent()]
-        result_path = self.try_all_directions(path_so_far)
+        path_so_far = [self.get_current()]
+        result_path = self._try_all_directions(path_so_far)
         print('path found: {}'.format(result_path))
 
         result = len(result_path) - 1
         print('fewest moves: {}'.format(result))
         return result
 
-    def try_all_directions(self, path_so_far):
+    def _try_all_directions(self, path_so_far):
         candidate_paths = []
-        candidate_paths.append(self.recursive_find_path('n', path_so_far))
-        candidate_paths.append(self.recursive_find_path('s', path_so_far))
-        candidate_paths.append(self.recursive_find_path('w', path_so_far))
-        candidate_paths.append(self.recursive_find_path('e', path_so_far))
+        candidate_paths.append(self._recursive_find_path('n', path_so_far))
+        candidate_paths.append(self._recursive_find_path('s', path_so_far))
+        candidate_paths.append(self._recursive_find_path('w', path_so_far))
+        candidate_paths.append(self._recursive_find_path('e', path_so_far))
 
         # choose best path
         min_len = 9e9
@@ -125,19 +137,19 @@ class Droid(object):
 
         return best_path
 
-    def recursive_find_path(self, direction, path_so_far):
+    def _recursive_find_path(self, direction, path_so_far):
         """
         base case:
             current + direction = goal
         """
         # assert last in path so far is current pos
-        assert path_so_far[-1] == self.getCurrent()
+        assert path_so_far[-1] == self.get_current()
 
-        if self.getDesired(direction) in path_so_far:
+        if self._get_desired(direction) in path_so_far:
             return None
 
         # first try to move from current
-        self.updateDesired(direction)
+        self._update_desired(direction)
         status_code = self.move(direction)
 
         if status_code == self.STATUS_HIT_WALL:
@@ -146,16 +158,16 @@ class Droid(object):
 
         # add the point to the path
         new_path = path_so_far.copy()
-        new_path.append(self.getCurrent())
+        new_path.append(self.get_current())
 
         if status_code == self.STATUS_HIT_GOAL:
             result = new_path
         else:
-            result = self.try_all_directions(new_path)
+            result = self._try_all_directions(new_path)
 
         # move back to prev point
         opposite_direction = self.OPPOSITE_DIRECTIONS[direction]
-        self.updateDesired(opposite_direction)
+        self._update_desired(opposite_direction)
         self.move(opposite_direction)
 
         return result
@@ -170,7 +182,16 @@ class Droid(object):
         raise NotImplementedError
 
 
-class TestDroid(Droid):
+
+
+
+
+
+
+
+
+
+class TestDroid(RecursivePathfinderDroid):
 
     def __init__(self, test_input):
         super().__init__()
@@ -215,7 +236,17 @@ class TestDroid(Droid):
             return self.STATUS_MOVED
 
 
-class IntcodeDroid(Droid):
+
+
+
+
+
+
+
+
+
+
+class IntcodeDroid(RecursivePathfinderDroid):
 
     DIRECTION_CODES = {
         'n': 1,
@@ -255,7 +286,7 @@ class IntcodeDroid(Droid):
             # moved
             self.explored.set(self.x, self.y, '.')
         else:
-            print('found: {}'.format(self.getCurrent()))
+            print('found: {}'.format(self.get_current()))
             self.explored.set(self.x, self.y, 'G')
 
         self.explored.overlay = {
@@ -263,6 +294,14 @@ class IntcodeDroid(Droid):
         }
         self.explored.show()
         return status
+
+
+
+
+
+
+
+
 
 
 
