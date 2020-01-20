@@ -374,6 +374,7 @@ def solve_full_input(puzzle_input):
             spaces_filled_this_loop.add(coord)
         if char in EMPTY_SPACE_VALUES:
             empty_spaces.add(coord)
+    print('num empty_spaces: {}'.format(len(empty_spaces)))
 
     # loop til all spaces filled
     num_min = 0
@@ -395,7 +396,7 @@ def solve_full_input(puzzle_input):
 
         # finish up
         num_min += 1
-        explored.show()
+        # explored.show()
 
     print('num_min: {}\n'.format(num_min))
 
