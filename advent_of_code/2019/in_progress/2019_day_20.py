@@ -236,7 +236,7 @@ class DonutDroid(RecursivePathfinderDroid):
         self._try_all_directions(path_so_far)
 
         # add other side of portal
-        if start_portal.endswith('side'):
+        if start_portal.endswith('in') or start_portal.endswith('out'):
             linked_portal = self.flip_side(start_portal)
             self.reachable_by_start[self.current_start][linked_portal] = 1
 
@@ -249,7 +249,7 @@ class DonutDroid(RecursivePathfinderDroid):
         Returns:
             str
         """
-        if 'inside' in name:
+        if name.endswith('in'):
             return name.replace('in', 'out')
         else:
             return name.replace('out', 'in')
@@ -352,37 +352,52 @@ class DonutMaze(Grid2D):
                 select the node N at the shortest dist
                 update dist to all nodes reachable from N
         """
-        unvisited_nodes = set(self.reachable_dict.keys())
-        dist_to_nodes = {}
         INF = 9e9
 
+        class Node(object):
+            def __init__(self):
+                self.dist = INF
+                self.path = []
+            def __repr__(self):
+                return 'dist={}, path={}'.format(self.dist, self.path)
+
+        unvisited_nodes = set(self.reachable_dict.keys())
+        all_nodes_dict = {}
+
         for key in self.reachable_dict:
+            all_nodes_dict[key] = Node()
             if key == 'AA':
-                dist_to_nodes[key] = 0
-            else:
-                dist_to_nodes[key] = INF
+                all_nodes_dict[key].dist = 0
+                all_nodes_dict[key].path.append(key)
 
         while unvisited_nodes:
             # select node at shortest distance
-            min_dist, selected_node = INF, ''
+            min_dist = INF
+            selected_node = ''
             for node_name in unvisited_nodes:
-                if dist_to_nodes[node_name] < min_dist:
-                    min_dist = dist_to_nodes[node_name]
+                if all_nodes_dict[node_name].dist < min_dist:
+                    min_dist = all_nodes_dict[node_name].dist
                     selected_node = node_name
 
             # check if done
             if selected_node == 'ZZ':
-                return dist_to_nodes['ZZ']
+                print('shortest path found: {}'.format(all_nodes_dict[selected_node]))
+                return all_nodes_dict[selected_node].dist
 
             # mark as visited
             unvisited_nodes.remove(selected_node)
 
             # update dist to all nodes reachable
             for reachable_node in self.reachable_dict[selected_node]:
-                dist_to_nodes[reachable_node] = min(
-                    dist_to_nodes[reachable_node],
-                    dist_to_nodes[selected_node] + self.reachable_dict[selected_node][reachable_node]
+                dist_via_selected = (
+                        all_nodes_dict[selected_node].dist
+                        + self.reachable_dict[selected_node][reachable_node]
                 )
+                if dist_via_selected < all_nodes_dict[reachable_node].dist:
+                    # update shortest path to node
+                    all_nodes_dict[reachable_node].dist = dist_via_selected
+                    all_nodes_dict[reachable_node].path = all_nodes_dict[selected_node].path.copy()
+                    all_nodes_dict[reachable_node].path.append(reachable_node)
 
         raise RuntimeError('unreachable')
 
@@ -425,9 +440,9 @@ class DonutMaze(Grid2D):
 
         if result_str not in {'', 'AA', 'ZZ'}:
             if self.is_outside(x, y):
-                result_str += '_outside'
+                result_str += '_out'
             else:
-                result_str += '_inside'
+                result_str += '_in'
 
         if result_str:
             result_portal = Portal()
