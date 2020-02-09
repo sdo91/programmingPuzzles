@@ -1,6 +1,17 @@
 #!/usr/bin/env python3
 
+def addToPath(relPath):
+    from os import path
+    import sys
+    dirOfThisFile = path.dirname(path.realpath(__file__))
+    dirToAdd = path.normpath(path.join(dirOfThisFile, relPath))
+    if dirToAdd not in sys.path:
+        print('adding to path: {}'.format(dirToAdd))
+        sys.path.insert(0, dirToAdd)
+    else:
+        print('already in path: {}'.format(dirToAdd))
 
+addToPath('../..')
 
 ### IMPORTS ###
 
@@ -166,8 +177,9 @@ class DonutDroid(RecursivePathfinderDroid):
 
     def process_new_path(self, new_path):
         if self.get_current() in self.maze.portals_by_coord:
-            print('hit a portal: (path={})'.format(new_path))
-            self.maze.show()
+            AocLogger.log('hit a portal: (path={})'.format(new_path))
+            if AocLogger.verbose:
+                self.maze.show()
 
             portal = self.maze.portals_by_coord[self.get_current()]
             reachable_dict = self.reachable_by_start[self.current_start]
@@ -202,6 +214,8 @@ class DonutMaze(Grid2D):
         # read into grid
         super().__init__(text)
 
+        print('\n' * 5)
+        print('loaded maze:')
         self.show()
 
         # find all portals
@@ -217,14 +231,19 @@ class DonutMaze(Grid2D):
                         self.portals_by_id[adj_portal.id] = adj_portal
                         self.portals_by_coord[adj_portal.coord] = adj_portal
 
+        print()
         print('portals_by_id: {}'.format(self.portals_by_id))
+        print()
         print('portals_by_coord: {}'.format(self.portals_by_coord))
+        print()
 
         # find reachable portals
         dd = DonutDroid(self)
         self.reachable_dict = dd.find_all_reachable()
+        aoc_util.print_dict(self.reachable_dict, 'reachable_dict')
 
         print('DonutMaze ready')
+        print()
 
 
     def find_shortest_path(self):
@@ -240,10 +259,7 @@ class DonutMaze(Grid2D):
             while there are unvisited nodes:
                 select the node N at the shortest dist
                 update dist to all nodes reachable from N
-
         """
-        aoc_util.print_dict(self.reachable_dict, 'reachable_dict')
-
         visited_nodes = set()
         unvisited_nodes = set(self.reachable_dict.keys())
         dist_to_nodes = {}
@@ -357,7 +373,11 @@ def main():
     run_tests()
 
     AocLogger.verbose = False
-    solve_full_input(puzzle_input)
+
+    aoc_util.assert_equal(
+        644,
+        solve_part_1(puzzle_input)
+    )
 
 
 def run_tests():
@@ -373,12 +393,15 @@ def solve_test_case(test_input):
     dm = DonutMaze(test_input)
     result = dm.find_shortest_path()
 
-    print('result: {}'.format(result))
+    AocLogger.log('result: {}'.format(result))
     return result
 
 
-def solve_full_input(puzzle_input):
-    return solve_test_case(puzzle_input)
+def solve_part_1(puzzle_input):
+    part_1_result = solve_test_case(puzzle_input)
+    print('part_1_result: {}'.format(part_1_result))
+    return part_1_result
+
 
 
 
