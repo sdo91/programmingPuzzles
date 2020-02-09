@@ -92,7 +92,25 @@ YN......#               VT..#....QG
            B   J   C
            U   P   P
     """, """
-
+         A
+         A
+  #######.#########
+  #######........##
+  #######.#######.#
+  #######.#######.#
+  #######.#######.#
+  #####  B    ###.#
+BC...##  C  HI....#
+  ##.##       ###.#
+  ##...DE  F  ###..HI
+  #####    G  ###.#
+  #########.#####.#
+DE..#######...###.#
+  #.#########.###.#
+FG..#########.....#
+  ###########.#####
+             Z
+             Z
     """, """
              Z L X W       C
              Z P Q B       K
@@ -453,33 +471,37 @@ def main():
 
 
 def run_tests():
+    ### part 1 ###
     aoc_util.assert_equal(
         23,
-        solve_test_case(TEST_INPUT[0])
+        solve_part_1(TEST_INPUT[0])
     )
     AocLogger.verbose = False
     aoc_util.assert_equal(
         58,
-        solve_test_case(TEST_INPUT[1])
+        solve_part_1(TEST_INPUT[1])
+    )
+    aoc_util.assert_equal(
+        23,
+        solve_part_1(TEST_INPUT[2])
     )
     aoc_util.assert_equal(
         77,
-        solve_test_case(TEST_INPUT[3])
+        solve_part_1(TEST_INPUT[3])
     )
 
+    ### part 2 ###
+    # aoc_util.assert_equal(
+    #     0,
+    #     solve_part_1(TEST_INPUT[2])
+    # )
 
-def solve_test_case(test_input):
-    AocLogger.log('test input:\n{}'.format(test_input))
+def solve_part_1(text):
+    AocLogger.log('input text:\n{}'.format(text))
 
-    dm = DonutMaze(test_input)
-    result = dm.find_shortest_path()
+    dm = DonutMaze(text)
+    part_1_result = dm.find_shortest_path()
 
-    print('result: {}'.format(result))
-    return result
-
-
-def solve_part_1(puzzle_input):
-    part_1_result = solve_test_case(puzzle_input)
     print('part_1_result: {}'.format(part_1_result))
     return part_1_result
 
