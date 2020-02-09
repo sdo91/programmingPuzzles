@@ -100,6 +100,12 @@ class DonutDroid(RecursivePathfinderDroid):
         self.current_start = None
 
 
+    def find_all_reachable(self):
+        for id in self.maze.portals_by_id:
+            self.find_reachable(id)
+        return self.reachable_by_start
+
+
     def find_reachable(self, start_portal):
         """
         find the shortest distance to all portals reachable from the start portal
@@ -123,6 +129,25 @@ class DonutDroid(RecursivePathfinderDroid):
 
         path_so_far = [start_coord]
         self._try_all_directions(path_so_far)
+
+        # add other side of portal
+        if start_portal.endswith('side'):
+            linked_portal = self.flip_side(start_portal)
+            self.reachable_by_start[self.current_start][linked_portal] = 1
+
+
+    def flip_side(self, name):
+        """
+        Args:
+            name (str):
+
+        Returns:
+            str
+        """
+        if 'inside' in name:
+            return name.replace('in', 'out')
+        else:
+            return name.replace('out', 'in')
 
 
     def move(self, direction):
@@ -194,19 +219,66 @@ class DonutMaze(Grid2D):
 
         print('portals_by_id: {}'.format(self.portals_by_id))
         print('portals_by_coord: {}'.format(self.portals_by_coord))
-        z = 0
 
         # find reachable portals
         dd = DonutDroid(self)
-        for id in self.portals_by_id:
-            dd.find_reachable(id)
+        self.reachable_dict = dd.find_all_reachable()
 
-        # todo: use dijkstra's algo to find shortest path
-        z=0
+        print('DonutMaze ready')
 
 
-    def calc_num_steps(self):
-        return 0
+    def find_shortest_path(self):
+        """
+        find shortest path from AA to ZZ using dijkstra's algo
+
+        Args:
+            reachable_dict (dict):
+
+        Returns:
+
+        algo:
+            while there are unvisited nodes:
+                select the node N at the shortest dist
+                update dist to all nodes reachable from N
+
+        """
+        aoc_util.print_dict(self.reachable_dict, 'reachable_dict')
+
+        visited_nodes = set()
+        unvisited_nodes = set(self.reachable_dict.keys())
+        dist_to_nodes = {}
+        INF = 9e9
+
+        for key in self.reachable_dict:
+            if key == 'AA':
+                dist_to_nodes[key] = 0
+            else:
+                dist_to_nodes[key] = INF
+
+        while unvisited_nodes:
+            # select node at shortest distance
+            min_dist, selected_node = INF, ''
+            for node_name in unvisited_nodes:
+                if dist_to_nodes[node_name] < min_dist:
+                    min_dist = dist_to_nodes[node_name]
+                    selected_node = node_name
+
+            # check if done
+            if selected_node == 'ZZ':
+                return dist_to_nodes['ZZ']
+
+            # mark as visited
+            visited_nodes.add(selected_node)
+            unvisited_nodes.remove(selected_node)
+
+            # update dist to all nodes reachable
+            for reachable_node in self.reachable_dict[selected_node]:
+                dist_to_nodes[reachable_node] = min(
+                    dist_to_nodes[reachable_node],
+                    dist_to_nodes[selected_node] + self.reachable_dict[selected_node][reachable_node]
+                )
+
+        raise RuntimeError('unreachable')
 
 
     def is_outside(self, x, y):
@@ -299,7 +371,7 @@ def solve_test_case(test_input):
     AocLogger.log('test input:\n{}'.format(test_input))
 
     dm = DonutMaze(test_input)
-    result = dm.calc_num_steps()
+    result = dm.find_shortest_path()
 
     print('result: {}'.format(result))
     return result

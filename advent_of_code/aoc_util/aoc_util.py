@@ -3,6 +3,11 @@ import re
 import typing
 from os import path
 import time
+import pprint
+import json
+
+
+
 
 
 class AocLogger(object):
@@ -16,6 +21,9 @@ class AocLogger(object):
                 print()
             else:
                 print(msg)
+
+
+
 
 
 def lmap(func, *iterables):
@@ -115,6 +123,13 @@ def re_find_all_matches(pattern, text):
 
 def tuple_add(a, b):
     return tuple(i + j for i, j in zip(a, b))
+
+
+def print_dict(d, name=''):
+    if name:
+        print('{}:'.format(name))
+    pprint.pprint(d)
+    # print(json.dumps(d, indent=2))
 
 
 
