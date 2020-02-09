@@ -163,6 +163,7 @@ class RecursivePathfinderDroid(object):
         if status_code == self.STATUS_HIT_GOAL:
             result = new_path
         else:
+            self.process_new_path(new_path)
             result = self._try_all_directions(new_path)
 
         # move back to prev point
@@ -181,6 +182,8 @@ class RecursivePathfinderDroid(object):
         """
         raise NotImplementedError
 
+    def process_new_path(self, new_path):
+        pass
 
 
 

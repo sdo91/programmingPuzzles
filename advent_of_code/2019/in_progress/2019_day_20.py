@@ -51,6 +51,33 @@ FG..#########.....#
 
 
 
+
+
+
+
+
+
+
+class Portal(object):
+    def __init__(self):
+        self.id = ''
+        self.coord = (0, 0)
+
+    def __str__(self):
+        return '{} @ {}'.format(self.id, self.coord)
+
+    def __repr__(self):
+        return str(self)
+
+
+
+
+
+
+
+
+
+
 class DonutDroid(RecursivePathfinderDroid):
     """
     given:
@@ -69,19 +96,34 @@ class DonutDroid(RecursivePathfinderDroid):
 
         self.maze = maze
 
+        self.reachable_by_start = {}
+        self.current_start = None
+
+
     def find_reachable(self, start_portal):
         """
-        given:
-            AA
+        find the shortest distance to all portals reachable from the start portal
 
+        example:
+            given:
+                AA
 
+            find:
+                BC: 4
+                ZZ: 26
+                FG: 30
         """
-        start_coord = self.maze.portals_dict[start_portal]
+        self.current_start = start_portal
+        self.reachable_by_start[self.current_start] = {}
+
+        start_coord = self.maze.portals_by_id[start_portal].coord
 
         self.x, self.y = start_coord
         self.desired_x, self.desired_y = start_coord
 
-        pass
+        path_so_far = [start_coord]
+        self._try_all_directions(path_so_far)
+
 
     def move(self, direction):
         if self.maze.get(self.desired_x, self.desired_y) != '.':
@@ -91,14 +133,32 @@ class DonutDroid(RecursivePathfinderDroid):
         self.x = self.desired_x
         self.y = self.desired_y
         self.maze.overlay = {
-            (self.x, self.y): 'D'
+            (self.x, self.y): '@'
         }
-        self.maze.show()
 
-        if self.maze.get(self.x, self.y) == 'G':
-            return self.STATUS_HIT_GOAL
-        else:
-            return self.STATUS_MOVED
+        return self.STATUS_MOVED
+
+
+    def process_new_path(self, new_path):
+        if self.get_current() in self.maze.portals_by_coord:
+            print('hit a portal: (path={})'.format(new_path))
+            self.maze.show()
+
+            portal = self.maze.portals_by_coord[self.get_current()]
+            reachable_dict = self.reachable_by_start[self.current_start]
+            if portal.id in reachable_dict:
+                raise RuntimeError
+
+            reachable_dict[portal.id] = len(new_path) - 1
+
+
+
+
+
+
+
+
+
 
 
 class DonutMaze(Grid2D):
@@ -120,30 +180,34 @@ class DonutMaze(Grid2D):
         self.show()
 
         # find all portals
-        self.portals_dict = {}
+        self.portals_by_id = {}
+        self.portals_by_coord = {}
         for y in range(self.max_y):
             for x in range(self.max_x):
                 if self.is_value((x, y), '.'):
                     # check if there is an adj letter
                     adj_portal = self.get_portal(x, y)
                     if adj_portal:
-                        print('{}: {}'.format((x, y), adj_portal))
-                        self.portals_dict[adj_portal] = (x, y)
+                        print('portal found: {}'.format(adj_portal))
+                        self.portals_by_id[adj_portal.id] = adj_portal
+                        self.portals_by_coord[adj_portal.coord] = adj_portal
 
-        print('portals_dict: {}'.format(self.portals_dict))
+        print('portals_by_id: {}'.format(self.portals_by_id))
+        print('portals_by_coord: {}'.format(self.portals_by_coord))
         z = 0
 
-        # find portals reachable from AA
-        portal = 'AA'
-
+        # find reachable portals
         dd = DonutDroid(self)
+        for id in self.portals_by_id:
+            dd.find_reachable(id)
 
-        dd.find_reachable(portal)
-
+        # todo: use dijkstra's algo to find shortest path
+        z=0
 
 
     def calc_num_steps(self):
         return 0
+
 
     def is_outside(self, x, y):
         THRESHOLD = 5
@@ -153,8 +217,9 @@ class DonutMaze(Grid2D):
             return True
         return False
 
+
     def get_portal(self, x, y):
-        result = ''
+        result_str = ''
         adj_coords = self.get_adjacent_coords((x, y))
         for c in adj_coords:
             if self.get(*c).isalpha():
@@ -162,30 +227,46 @@ class DonutMaze(Grid2D):
 
                 n = self.get_coord_north(c)
                 if self.get(*n).isalpha():
-                    result = self.get(*n) + self.get(*c)
+                    result_str = self.get(*n) + self.get(*c)
                     break
 
                 w = self.get_coord_west(c)
                 if self.get(*w).isalpha():
-                    result = self.get(*w) + self.get(*c)
+                    result_str = self.get(*w) + self.get(*c)
                     break
 
                 s = self.get_coord_south(c)
                 if self.get(*s).isalpha():
-                    result = self.get(*c) + self.get(*s)
+                    result_str = self.get(*c) + self.get(*s)
                     break
 
                 e = self.get_coord_east(c)
                 if self.get(*e).isalpha():
-                    result = self.get(*c) + self.get(*e)
+                    result_str = self.get(*c) + self.get(*e)
                     break
 
-        if result not in {'', 'AA', 'ZZ'}:
+        if result_str not in {'', 'AA', 'ZZ'}:
             if self.is_outside(x, y):
-                result += '_outside'
+                result_str += '_outside'
             else:
-                result += '_inside'
-        return result
+                result_str += '_inside'
+
+        if result_str:
+            result_portal = Portal()
+            result_portal.id = result_str
+            result_portal.coord = (x, y)
+            return result_portal
+        else:
+            return None
+
+
+
+
+
+
+
+
+
 
 
 
