@@ -22,6 +22,15 @@ class AocLogger(object):
             else:
                 print(msg)
 
+    @classmethod
+    def log_dict(cls, my_dict, name=''):
+        if cls.verbose:
+            if name:
+                print('{}:'.format(name))
+            pprint.pprint(my_dict)
+            # print(json.dumps(my_dict, indent=2))
+            print()
+
 
 
 
@@ -125,12 +134,6 @@ def tuple_add(a, b):
     return tuple(i + j for i, j in zip(a, b))
 
 
-def print_dict(d, name=''):
-    if name:
-        print('{}:'.format(name))
-    pprint.pprint(d)
-    # print(json.dumps(d, indent=2))
-    print()
 
 
 

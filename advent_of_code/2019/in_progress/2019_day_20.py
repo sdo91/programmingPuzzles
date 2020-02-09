@@ -297,20 +297,18 @@ class DonutMaze(Grid2D):
                     # check if there is an adj letter
                     adj_portal = self.get_portal(x, y)
                     if adj_portal:
-                        print('portal found: {}'.format(adj_portal))
+                        AocLogger.log('portal found: {}'.format(adj_portal))
                         self.portals_by_id[adj_portal.id] = adj_portal
                         self.portals_by_coord[adj_portal.coord] = adj_portal
 
         print()
-        print('portals_by_id: {}'.format(self.portals_by_id))
-        print()
-        print('portals_by_coord: {}'.format(self.portals_by_coord))
-        print()
+        AocLogger.log_dict(self.portals_by_id, 'portals_by_id')
+        AocLogger.log_dict(self.portals_by_coord, 'portals_by_coord')
 
         # find reachable portals
         dd = DonutDroid(self)
         self.reachable_dict = dd.find_all_reachable()
-        aoc_util.print_dict(self.reachable_dict, 'reachable_dict')
+        AocLogger.log_dict(self.reachable_dict, 'reachable_dict')
 
         print('DonutMaze ready')
         print()
