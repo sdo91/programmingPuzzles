@@ -177,13 +177,18 @@ class Portal(object):
 
 
 class Node(object):
-    def __init__(self):
+    def __init__(self, id):
+        """
+        Args:
+            id (str):
+        """
+        self.id = id
         self.dist = INF
         self.path = []
         self.level = 0
 
     def __repr__(self):
-        return 'dist={}, path={}'.format(self.dist, self.path)
+        return 'id={}, dist={}, path={}'.format(self.id, self.dist, self.path)
 
 
 
@@ -375,7 +380,7 @@ class DonutMaze(Grid2D):
                     continue
                 key = '0_' + key
 
-            all_nodes_dict[key] = Node()
+            all_nodes_dict[key] = Node(key)
             if AA in key:
                 all_nodes_dict[key].dist = 0
                 all_nodes_dict[key].path.append(key)
@@ -393,8 +398,10 @@ class DonutMaze(Grid2D):
                     min_dist = all_nodes_dict[node_name].dist
                     selected_node = node_name
 
+            AocLogger.log('selected: {}'.format(all_nodes_dict[selected_node]))
+
             # check if done
-            if selected_node == ZZ:
+            if ZZ in selected_node:
                 print('shortest path found: {}'.format(all_nodes_dict[selected_node]))
                 return all_nodes_dict[selected_node].dist
 
@@ -402,11 +409,15 @@ class DonutMaze(Grid2D):
             unvisited_nodes.remove(selected_node)
 
             # update dist to all nodes reachable
+            dist_to_selected = all_nodes_dict[selected_node].dist
             for reachable_node in self.get_reachable(selected_node):
-                dist_via_selected = (
-                        all_nodes_dict[selected_node].dist
-                        + self.reachable_dict[selected_node][reachable_node]
-                )
+                dist_selected_to_reachable = self.get_dist_to_reachable(selected_node, reachable_node)
+                dist_via_selected = dist_to_selected + dist_selected_to_reachable
+
+                if reachable_node not in all_nodes_dict:
+                    all_nodes_dict[reachable_node] = Node(reachable_node)
+                    unvisited_nodes.add(reachable_node)
+
                 if dist_via_selected < all_nodes_dict[reachable_node].dist:
                     # update shortest path to node
                     all_nodes_dict[reachable_node].dist = dist_via_selected
@@ -414,6 +425,18 @@ class DonutMaze(Grid2D):
                     all_nodes_dict[reachable_node].path.append(reachable_node)
 
         raise RuntimeError('unreachable')
+
+
+    def get_dist_to_reachable(self, selected, reachable):
+        if self.is_part_2:
+            return self.reachable_dict[self.get_portal_id(selected)][self.get_portal_id(reachable)]
+        else:
+            return self.reachable_dict[selected][reachable]
+
+
+    def get_portal_id(self, id_with_level):
+        i = id_with_level.index('_')
+        return id_with_level[i + 1:]
 
 
     def get_reachable(self, start_portal):
@@ -472,7 +495,7 @@ class DonutMaze(Grid2D):
                     new_key = '{}_{}'.format(level, key)
                     result[new_key] = reachable_no_levels[key]
 
-            AocLogger.log('reachable from {}: {}'.format(start_portal, result))
+            # AocLogger.log('reachable from {}: {}'.format(start_portal, result))
             return result
         else:
             return self.reachable_dict[start_portal]
@@ -573,6 +596,11 @@ def main():
         solve_part_1(puzzle_input)
     )
 
+    aoc_util.assert_equal(
+        7798,
+        solve_part_2(puzzle_input)
+    )
+
 
 def run_tests():
     ### part 1 ###
@@ -596,11 +624,11 @@ def run_tests():
     )
 
     # ### part 2 ###
-    # AocLogger.verbose = True
-    # aoc_util.assert_equal(
-    #     0,
-    #     solve_part_2(TEST_INPUT[2])
-    # )
+    AocLogger.verbose = True
+    aoc_util.assert_equal(
+        37,
+        solve_part_2(TEST_INPUT[2])
+    )
 
 
 def solve_part_1(text):
