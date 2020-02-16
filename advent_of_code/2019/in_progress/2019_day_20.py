@@ -15,8 +15,6 @@ addToPath('../..')
 
 ### IMPORTS ###
 
-import importlib
-
 import aocd
 
 from aoc_util import aoc_util
@@ -102,15 +100,15 @@ YN......#               VT..#....QG
   #####  B    ###.#
 BC...##  C  HI....#
   ##.##       ###.#
-  ##...DE  F  ###..HI
+  ##...DE  F  ###.#
   #####    G  ###.#
   #########.#####.#
-DE..#######...###.#
-  #.#########.###.#
-FG..#########.....#
-  ###########.#####
-             Z
-             Z
+DE..#######..####.#
+  #.#######.#.###.#
+FG..#######.#.....#
+  #########.#.#####
+           H Z
+           I Z
     """, """
              Z L X W       C
              Z P Q B       K
@@ -152,6 +150,9 @@ RE....#.#                           #......RF
     """
 ]
 
+AA = 'AA'
+ZZ = 'ZZ'
+INF = 9e9
 
 
 
@@ -175,7 +176,14 @@ class Portal(object):
         return str(self)
 
 
+class Node(object):
+    def __init__(self):
+        self.dist = INF
+        self.path = []
+        self.level = 0
 
+    def __repr__(self):
+        return 'dist={}, path={}'.format(self.dist, self.path)
 
 
 
@@ -304,9 +312,11 @@ class DonutMaze(Grid2D):
             find BC_in, ZZ, FG_in
     """
 
-    def __init__(self, text):
+    def __init__(self, text, is_part_2=False):
         # read into grid
         super().__init__(text)
+
+        self.is_part_2 = is_part_2
 
         print('\n' * 5)
         print('loaded maze:')
@@ -333,6 +343,7 @@ class DonutMaze(Grid2D):
         dd = DonutDroid(self)
         self.reachable_dict = dd.find_all_reachable()
         AocLogger.log_dict(self.reachable_dict, 'reachable_dict')
+        self.test_get_reachable()
 
         print('DonutMaze ready')
         print()
@@ -342,34 +353,37 @@ class DonutMaze(Grid2D):
         """
         find shortest path from AA to ZZ using dijkstra's algo
 
-        Args:
-            reachable_dict (dict):
-
         Returns:
+            int: dist in steps
 
         algo:
             while there are unvisited nodes:
                 select the node N at the shortest dist
                 update dist to all nodes reachable from N
+
+        part 2 algo:
+            setup:
+                all nodes dict should contain all level 0 portals
+                make a get reachable function
         """
-        INF = 9e9
-
-        class Node(object):
-            def __init__(self):
-                self.dist = INF
-                self.path = []
-            def __repr__(self):
-                return 'dist={}, path={}'.format(self.dist, self.path)
-
-        unvisited_nodes = set(self.reachable_dict.keys())
+        ### do setup ###
         all_nodes_dict = {}
 
         for key in self.reachable_dict:
+            if self.is_part_2:
+                if 'out' in key:
+                    continue
+                key = '0_' + key
+
             all_nodes_dict[key] = Node()
-            if key == 'AA':
+            if AA in key:
                 all_nodes_dict[key].dist = 0
                 all_nodes_dict[key].path.append(key)
 
+        AocLogger.log_dict(all_nodes_dict, 'all_nodes_dict')
+        unvisited_nodes = set(all_nodes_dict.keys())
+
+        ### do main algo loop ###
         while unvisited_nodes:
             # select node at shortest distance
             min_dist = INF
@@ -380,7 +394,7 @@ class DonutMaze(Grid2D):
                     selected_node = node_name
 
             # check if done
-            if selected_node == 'ZZ':
+            if selected_node == ZZ:
                 print('shortest path found: {}'.format(all_nodes_dict[selected_node]))
                 return all_nodes_dict[selected_node].dist
 
@@ -388,7 +402,7 @@ class DonutMaze(Grid2D):
             unvisited_nodes.remove(selected_node)
 
             # update dist to all nodes reachable
-            for reachable_node in self.reachable_dict[selected_node]:
+            for reachable_node in self.get_reachable(selected_node):
                 dist_via_selected = (
                         all_nodes_dict[selected_node].dist
                         + self.reachable_dict[selected_node][reachable_node]
@@ -400,6 +414,81 @@ class DonutMaze(Grid2D):
                     all_nodes_dict[reachable_node].path.append(reachable_node)
 
         raise RuntimeError('unreachable')
+
+
+    def get_reachable(self, start_portal):
+        """
+        Args:
+            start_portal (str):
+
+        Returns:
+            dict:
+
+        algo:
+            get reachable no levels
+
+            for each key:
+                if same level:
+                    if level 0:
+                        filter outside portals
+                    else:
+                        filter AA, ZZ
+                else: (paired portal)
+                    keep, but mod level
+
+        """
+        if self.is_part_2:
+            i = start_portal.index('_')
+
+            portal_id = start_portal[i + 1:]
+            portal_letters = portal_id.replace('_in', '').replace('_out', '')
+            level = int(start_portal[:i])
+
+            reachable_no_levels = self.reachable_dict[portal_id]
+            result = {}
+
+            for key in reachable_no_levels:
+                if portal_letters in key:
+                    # this is the paired portal
+                    if start_portal.endswith('_out'):
+                        new_level = level - 1
+                    else:
+                        new_level = level + 1
+
+                    new_key = '{}_{}'.format(new_level, key)
+                    result[new_key] = reachable_no_levels[key]
+                else:
+                    # portal is on the same level
+                    if level == 0:
+                        # skip outside portals
+                        if key.endswith('_out'):
+                            continue
+                    else:
+                        # skip AA/ZZ
+                        if key in {AA, ZZ}:
+                            continue
+
+                    # otherwise, keep the portal
+                    new_key = '{}_{}'.format(level, key)
+                    result[new_key] = reachable_no_levels[key]
+
+            AocLogger.log('reachable from {}: {}'.format(start_portal, result))
+            return result
+        else:
+            return self.reachable_dict[start_portal]
+
+
+    def test_get_reachable(self):
+        if self.is_part_2 and AocLogger.verbose:
+            self.get_reachable('0_AA')
+            self.get_reachable('0_BC_in')
+            # self.get_reachable('0_BC_out')
+            self.get_reachable('0_DE_in')
+            # self.get_reachable('0_DE_out')
+            self.get_reachable('1_BC_in')
+            self.get_reachable('1_BC_out')
+            self.get_reachable('1_DE_in')
+            self.get_reachable('1_DE_out')
 
 
     def is_outside(self, x, y):
@@ -438,7 +527,7 @@ class DonutMaze(Grid2D):
                     result_str = self.get(*c) + self.get(*e)
                     break
 
-        if result_str not in {'', 'AA', 'ZZ'}:
+        if result_str not in {'', AA, ZZ}:
             if self.is_outside(x, y):
                 result_str += '_out'
             else:
@@ -487,6 +576,7 @@ def main():
 
 def run_tests():
     ### part 1 ###
+    AocLogger.verbose = True
     aoc_util.assert_equal(
         23,
         solve_part_1(TEST_INPUT[0])
@@ -496,20 +586,22 @@ def run_tests():
         58,
         solve_part_1(TEST_INPUT[1])
     )
-    aoc_util.assert_equal(
-        23,
-        solve_part_1(TEST_INPUT[2])
-    )
+    # aoc_util.assert_equal(
+    #     23,
+    #     solve_part_1(TEST_INPUT[2])
+    # )
     aoc_util.assert_equal(
         77,
         solve_part_1(TEST_INPUT[3])
     )
 
-    ### part 2 ###
+    # ### part 2 ###
+    # AocLogger.verbose = True
     # aoc_util.assert_equal(
     #     0,
-    #     solve_part_1(TEST_INPUT[2])
+    #     solve_part_2(TEST_INPUT[2])
     # )
+
 
 def solve_part_1(text):
     AocLogger.log('input text:\n{}'.format(text))
@@ -521,13 +613,21 @@ def solve_part_1(text):
     return part_1_result
 
 
+def solve_part_2(text):
+    AocLogger.log('input text:\n{}'.format(text))
+
+    dm = DonutMaze(text, is_part_2=True)
+    part_2_result = dm.find_shortest_path()
+
+    print('part_2_result: {}'.format(part_2_result))
+    return part_2_result
+
 
 
 
 
 if __name__ == '__main__':
     main()
-
 
 
 
