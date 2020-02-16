@@ -492,7 +492,7 @@ class DonutMaze(Grid2D):
 
 
     def is_outside(self, x, y):
-        THRESHOLD = 5
+        THRESHOLD = 4
         if x < THRESHOLD or x > self.max_x - THRESHOLD:
             return True
         if y < THRESHOLD or y > self.max_y - THRESHOLD:
@@ -586,10 +586,10 @@ def run_tests():
         58,
         solve_part_1(TEST_INPUT[1])
     )
-    # aoc_util.assert_equal(
-    #     23,
-    #     solve_part_1(TEST_INPUT[2])
-    # )
+    aoc_util.assert_equal(
+        37,
+        solve_part_1(TEST_INPUT[2])
+    )
     aoc_util.assert_equal(
         77,
         solve_part_1(TEST_INPUT[3])
