@@ -20,9 +20,7 @@ import aocd
 from aoc_util import aoc_util
 from aoc_util.aoc_util import AocLogger
 from aoc_util.grid_2d import Grid2D
-
-# day15 = importlib.import_module('2019.solved.2019_day_15')
-from aoc_util.aoc_2019_day_15 import RecursivePathfinderDroid
+from aoc_util.recursive_pathfinder_droid import RecursivePathfinderDroid
 
 
 
