@@ -51,6 +51,13 @@ class Grid2D(object):
                 result.append(coord)
         return result
 
+    def find_by_function(self, func):
+        result = []
+        for coord, value in self.grid.items():
+            if func(value):
+                result.append(coord)
+        return result
+
     def __str__(self):
         lines = []
         for y in range(self.min_y, self.max_y + 1):

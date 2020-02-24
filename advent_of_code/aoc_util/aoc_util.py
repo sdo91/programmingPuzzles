@@ -23,8 +23,8 @@ class AocLogger(object):
                 print(msg)
 
     @classmethod
-    def log_dict(cls, my_dict, name=''):
-        if cls.verbose:
+    def log_dict(cls, my_dict, name='', force_verbose=False):
+        if cls.verbose or force_verbose:
             if name:
                 print('{}:'.format(name))
             pprint.pprint(my_dict)
