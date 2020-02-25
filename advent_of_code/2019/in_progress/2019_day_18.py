@@ -116,8 +116,7 @@ class MazeSolver(object):
         self.finder_droid = KeyFinderDroid(self.maze)
 
         self.reachable_by_start_dict = {}
-        # self.keys_by_point = {}
-        self.num_keys = 0
+        self.num_keys_in_maze = 0
 
     def __repr__(self):
         return '{}: {}'.format(type(self).__name__, self.text)
@@ -136,9 +135,9 @@ class MazeSolver(object):
             a (a): 2
             b (a,b): 8
         """
-        if AocLogger.verbose:
-            self.maze.show()
+        self.maze.show()
 
+        # do setup
         self.find_reachable()
         AocLogger.log_dict(self.reachable_by_start_dict, 'reachable_by_start_dict', force_verbose=True)
 
@@ -159,11 +158,10 @@ class MazeSolver(object):
 
             # mark as visited
             unvisited_nodes_set.remove(selected_node)
-            selected_node.visited = True
             print('\nselected_node: {}'.format(selected_node))
 
             # check if done
-            if len(selected_node.keys_set) == self.num_keys:
+            if len(selected_node.keys_set) == self.num_keys_in_maze:
                 return selected_node.dist
 
             # update dist to all reachable nodes
@@ -210,7 +208,7 @@ class MazeSolver(object):
         }
 
         key_coords = self.find_all_key_coords()
-        self.num_keys = len(key_coords)
+        self.num_keys_in_maze = len(key_coords)
 
         for point in key_coords:
             letter = self.maze.get(*point)
@@ -330,7 +328,6 @@ class Node(object):
         self.uid = '{}({})'.format(char, ','.join(sorted(keys_set)))
         self.dist = INF
         self.path = []
-        self.visited = False
 
     @staticmethod
     def create(selected, key):
@@ -349,9 +346,6 @@ class Node(object):
     def __repr__(self):
         return '{}: uid={}, dist={}, path={}'.format(
             type(self).__name__, self.uid, self.dist, self.path)
-
-    def get_id(self):
-        return
 
     def does_not_have(self, key: ReachableKey):
         return key.letter not in self.keys_set
