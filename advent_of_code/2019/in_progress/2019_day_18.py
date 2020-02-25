@@ -59,14 +59,10 @@ class AdventOfCode(object):
 
         AocLogger.verbose = False
 
-        self.solve_part_1(puzzle_input)
-
-        # self.solve_part_2(puzzle_input)
-
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_1(puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            6098,
+            self.solve_part_1(puzzle_input)
+        )
 
         # aoc_util.assert_equal(
         #     0,
@@ -77,13 +73,13 @@ class AdventOfCode(object):
         AocLogger.verbose = True
 
         aoc_util.assert_equal(
-            self.solve_part_1(TEST_INPUT[0]),
-            8
+            8,
+            self.solve_part_1(TEST_INPUT[0])
         )
 
         aoc_util.assert_equal(
-            self.solve_part_1(TEST_INPUT[1]),
-            86
+            86,
+            self.solve_part_1(TEST_INPUT[1])
         )
 
     def solve_part_1(self, puzzle_input: str):
@@ -112,17 +108,6 @@ class AdventOfCode(object):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 class MazeSolver(object):
 
     def __init__(self, text):
@@ -134,40 +119,27 @@ class MazeSolver(object):
         # self.keys_by_point = {}
         self.num_keys = 0
 
-    def __str__(self):
-        return '{}: {}'.format(
-            type(self).__name__, [self.text])
-
     def __repr__(self):
-        return str(self)
+        return '{}: {}'.format(type(self).__name__, self.text)
 
     def find_shortest_path(self):
         """
-        algo:
-            search map for all POIs {start, a, b}
+        search map for all POIs {start, a, b}
 
-            reachable from point:
-                start: a=2{}, b=4{a}
-                a: b=6{a}
-                b: a=6{A}
+        reachable from point:
+            start: a=2{}, b=4{a}
+            a: b=6{a}
+            b: a=6{A}
 
-            dijkstra's:
-                start (): 0
-                a (a): 2
-                b (a,b): 8
-
-
-        Args:
-            test_input:
-
-        Returns:
-
+        dijkstra's:
+            start (): 0
+            a (a): 2
+            b (a,b): 8
         """
         if AocLogger.verbose:
             self.maze.show()
 
         self.find_reachable()
-
         AocLogger.log_dict(self.reachable_by_start_dict, 'reachable_by_start_dict', force_verbose=True)
 
         start_node = Node('@', set())
@@ -175,6 +147,7 @@ class MazeSolver(object):
         all_nodes_dict = {start_node.uid: start_node}
         unvisited_nodes_set = {start_node}
 
+        # do dijkstra's algo
         while unvisited_nodes_set:
             # select node at shortest distance
             min_dist = INF
@@ -193,12 +166,12 @@ class MazeSolver(object):
             if len(selected_node.keys_set) == self.num_keys:
                 return selected_node.dist
 
-            # update dist to all nodes reachable
+            # update dist to all reachable nodes
             for key in self.reachable_by_start_dict[selected_node.char].values():
                 if selected_node.does_not_have(key) and selected_node.can_reach(key):
                     AocLogger.log('checking: {}'.format(key))
 
-                    # add node if DNE
+                    # add node if not already there
                     new_node = Node.create(selected_node, key)
                     if new_node.uid in all_nodes_dict:
                         AocLogger.log('already exists: {}'.format(new_node))
@@ -217,35 +190,10 @@ class MazeSolver(object):
                         reachable_node.path = selected_node.path.copy()
                         reachable_node.path.append(reachable_node.char)
                         AocLogger.log('updated path: {}'.format(reachable_node))
-
-                    # add node if not already there (letter, keys)
-
-
-                    z=0
                 else:
                     AocLogger.log('skipping: {}'.format(key))
 
-                # z=0
-                # if can reach
-                # and dont already have
-
-
-
-
-            z=0
-
-            # select smallest, mark as visited
-
-            # check if done
-            # add/update all reachable
-
-
-
-        z=0
-
-        # todo: now do dijkstra's here
-
-        return 0
+        raise RuntimeError('should never get here')
 
     def find_reachable(self):
         """
@@ -270,14 +218,12 @@ class MazeSolver(object):
             reachable = self.finder_droid.find_reachable_from_start(point)
             self.reachable_by_start_dict[letter] = reachable
 
-
     def find_all_key_coords(self):
         def is_maze_key(char: str):
             return char.islower()
 
         coords_list = self.maze.find_by_function(is_maze_key)
         return coords_list
-
 
     def get_dist_between(self, selected_node, key):
         reachable = self.reachable_by_start_dict[selected_node.char][key.letter]  # type: ReachableKey
@@ -291,13 +237,9 @@ class KeyFinderDroid(RecursivePathfinderDroid):
 
     def __init__(self, maze: Grid2D):
         super().__init__()
-
         self.maze = maze
-
         self.shortest_paths = {}
-
         self.doors_by_point = {}
-
 
     def find_all_doors(self):
         def is_maze_door(char: str):
@@ -306,8 +248,6 @@ class KeyFinderDroid(RecursivePathfinderDroid):
         coords_list = self.maze.find_by_function(is_maze_door)
         for point in coords_list:
             self.doors_by_point[point] = self.maze.get(*point)
-
-
 
     def find_reachable_from_start(self, start_point):
         """
@@ -334,8 +274,6 @@ class KeyFinderDroid(RecursivePathfinderDroid):
                     needed_keys.add(self.doors_by_point[point].lower())
 
             result_dict[key] = ReachableKey(key, len(path) - 1, needed_keys)
-
-        z=0
 
         return result_dict
 
@@ -365,7 +303,8 @@ class KeyFinderDroid(RecursivePathfinderDroid):
                 # set shortest path
                 self.shortest_paths[value] = new_path
 
-        z=0
+
+
 
 
 class ReachableKey(object):
@@ -375,12 +314,9 @@ class ReachableKey(object):
         self.dist = dist
         self.needed = needed
 
-    def __str__(self):
+    def __repr__(self):
         return '{}: {}'.format(
             type(self).__name__, [self.letter, self.dist, self.needed])
-
-    def __repr__(self):
-        return str(self)
 
 
 
@@ -422,6 +358,8 @@ class Node(object):
 
     def can_reach(self, key: ReachableKey):
         return self.keys_set.issuperset(key.needed)
+
+
 
 
 
