@@ -4,6 +4,8 @@
 
 ### IMPORTS ###
 
+import typing
+
 import aocd
 
 from aoc_util import aoc_util
@@ -16,6 +18,8 @@ sys.setrecursionlimit(2000)
 
 
 ### CONSTANTS ###
+
+INF = 9e9
 
 TEST_INPUT = [
     """      
@@ -55,7 +59,7 @@ class AdventOfCode(object):
 
         AocLogger.verbose = False
 
-        # self.solve_part_1(puzzle_input)
+        self.solve_part_1(puzzle_input)
 
         # self.solve_part_2(puzzle_input)
 
@@ -74,12 +78,12 @@ class AdventOfCode(object):
 
         aoc_util.assert_equal(
             self.solve_part_1(TEST_INPUT[0]),
-            0
+            8
         )
 
         aoc_util.assert_equal(
             self.solve_part_1(TEST_INPUT[1]),
-            0
+            86
         )
 
     def solve_part_1(self, puzzle_input: str):
@@ -128,6 +132,7 @@ class MazeSolver(object):
 
         self.reachable_by_start_dict = {}
         # self.keys_by_point = {}
+        self.num_keys = 0
 
     def __str__(self):
         return '{}: {}'.format(
@@ -161,10 +166,80 @@ class MazeSolver(object):
         if AocLogger.verbose:
             self.maze.show()
 
-
         self.find_reachable()
 
         AocLogger.log_dict(self.reachable_by_start_dict, 'reachable_by_start_dict', force_verbose=True)
+
+        start_node = Node('@', set())
+        start_node.dist = 0
+        all_nodes_dict = {start_node.uid: start_node}
+        unvisited_nodes_set = {start_node}
+
+        while unvisited_nodes_set:
+            # select node at shortest distance
+            min_dist = INF
+            selected_node = None  # type: Node
+            for node in unvisited_nodes_set:
+                if node.dist < min_dist:
+                    min_dist = node.dist
+                    selected_node = node
+
+            # mark as visited
+            unvisited_nodes_set.remove(selected_node)
+            selected_node.visited = True
+            print('\nselected_node: {}'.format(selected_node))
+
+            # check if done
+            if len(selected_node.keys_set) == self.num_keys:
+                return selected_node.dist
+
+            # update dist to all nodes reachable
+            for key in self.reachable_by_start_dict[selected_node.char].values():
+                if selected_node.does_not_have(key) and selected_node.can_reach(key):
+                    AocLogger.log('checking: {}'.format(key))
+
+                    # add node if DNE
+                    new_node = Node.create(selected_node, key)
+                    if new_node.uid in all_nodes_dict:
+                        AocLogger.log('already exists: {}'.format(new_node))
+                    else:
+                        all_nodes_dict[new_node.uid] = new_node
+                        unvisited_nodes_set.add(new_node)
+                    reachable_node = all_nodes_dict[new_node.uid]
+
+                    # calc dist via selected
+                    dist_between = self.get_dist_between(selected_node, key)
+                    dist_via_selected = selected_node.dist + dist_between
+
+                    if dist_via_selected < reachable_node.dist:
+                        # update shortest path to node
+                        reachable_node.dist = dist_via_selected
+                        reachable_node.path = selected_node.path.copy()
+                        reachable_node.path.append(reachable_node.char)
+                        AocLogger.log('updated path: {}'.format(reachable_node))
+
+                    # add node if not already there (letter, keys)
+
+
+                    z=0
+                else:
+                    AocLogger.log('skipping: {}'.format(key))
+
+                # z=0
+                # if can reach
+                # and dont already have
+
+
+
+
+            z=0
+
+            # select smallest, mark as visited
+
+            # check if done
+            # add/update all reachable
+
+
 
         z=0
 
@@ -187,6 +262,7 @@ class MazeSolver(object):
         }
 
         key_coords = self.find_all_key_coords()
+        self.num_keys = len(key_coords)
 
         for point in key_coords:
             letter = self.maze.get(*point)
@@ -201,6 +277,11 @@ class MazeSolver(object):
 
         coords_list = self.maze.find_by_function(is_maze_key)
         return coords_list
+
+
+    def get_dist_between(self, selected_node, key):
+        reachable = self.reachable_by_start_dict[selected_node.char][key.letter]  # type: ReachableKey
+        return reachable.dist
 
 
 
@@ -296,10 +377,52 @@ class ReachableKey(object):
 
     def __str__(self):
         return '{}: {}'.format(
-            type(self).__name__, [self.dist, self.needed])
+            type(self).__name__, [self.letter, self.dist, self.needed])
 
     def __repr__(self):
         return str(self)
+
+
+
+
+
+class Node(object):
+
+    def __init__(self, char: str, keys_set: typing.Set[str]):
+        self.char = char
+        self.keys_set = keys_set
+        self.uid = '{}({})'.format(char, ','.join(sorted(keys_set)))
+        self.dist = INF
+        self.path = []
+        self.visited = False
+
+    @staticmethod
+    def create(selected, key):
+        """
+        Args:
+            selected (Node):
+            key (ReachableKey):
+
+        Returns:
+            Node:
+        """
+        combined_keys = selected.keys_set.copy()
+        combined_keys.add(key.letter)
+        return Node(key.letter, combined_keys)
+
+    def __repr__(self):
+        return '{}: uid={}, dist={}, path={}'.format(
+            type(self).__name__, self.uid, self.dist, self.path)
+
+    def get_id(self):
+        return
+
+    def does_not_have(self, key: ReachableKey):
+        return key.letter not in self.keys_set
+
+    def can_reach(self, key: ReachableKey):
+        return self.keys_set.issuperset(key.needed)
+
 
 
 if __name__ == '__main__':
