@@ -33,7 +33,13 @@ TEST_INPUT = [
 #d.....................#
 ########################
     """, """
-
+#######
+#a.#Cd#
+##...##
+##.@.##
+##...##
+#cB#Ab#
+#######
     """
 ]
 
@@ -49,10 +55,7 @@ class AdventOfCode(object):
     def run(self):
         print('starting {}'.format(__file__.split('/')[-1]))
 
-        try:
-            puzzle_input = aocd.data
-        except aocd.exceptions.AocdError:
-            puzzle_input = 'unable to get input'
+        puzzle_input = aocd.data
         aoc_util.write_input(puzzle_input, __file__)
 
         self.run_tests()
@@ -72,14 +75,19 @@ class AdventOfCode(object):
     def run_tests(self):
         AocLogger.verbose = True
 
-        aoc_util.assert_equal(
-            8,
-            self.solve_part_1(TEST_INPUT[0])
-        )
+        # aoc_util.assert_equal(
+        #     8,
+        #     self.solve_part_1(TEST_INPUT[0])
+        # )
+        #
+        # aoc_util.assert_equal(
+        #     86,
+        #     self.solve_part_1(TEST_INPUT[1])
+        # )
 
         aoc_util.assert_equal(
-            86,
-            self.solve_part_1(TEST_INPUT[1])
+            8,
+            self.solve_part_2(TEST_INPUT[2])
         )
 
     def solve_part_1(self, puzzle_input: str):
@@ -92,17 +100,17 @@ class AdventOfCode(object):
         print('part 1 result: {}'.format(part_1_result))
         return part_1_result
 
-    def solve_test_case_2(self, test_input):
-        AocLogger.log('test input: {}'.format(test_input))
-        return 0
-
     def solve_part_2(self, puzzle_input: str):
         puzzle_input = puzzle_input.strip()
+        AocLogger.log('puzzle_input:\n{}\n'.format(puzzle_input))
 
-        result = 0
+        solver = MazeSolver(puzzle_input, is_part_2=True)
+        part_2_result = solver.find_shortest_path()
 
-        print('part 2 result: {}'.format(result))
-        return result
+        z=0
+
+        print('part 2 result: {}'.format(part_2_result))
+        return part_2_result
 
 
 
@@ -110,10 +118,14 @@ class AdventOfCode(object):
 
 class MazeSolver(object):
 
-    def __init__(self, text):
+    def __init__(self, text, is_part_2=False):
+        self.is_part_2 = is_part_2
         self.text = text
+
         self.maze = Grid2D(text)
-        self.finder_droid = KeyFinderDroid(self.maze)
+        if is_part_2:
+            self.replace_maze_center()
+        self.maze.show()
 
         self.reachable_by_start_dict = {}
         self.num_keys_in_maze = 0
@@ -135,8 +147,6 @@ class MazeSolver(object):
             a (a): 2
             b (a,b): 8
         """
-        self.maze.show()
-
         # do setup
         self.find_reachable()
         AocLogger.log_dict(self.reachable_by_start_dict, 'reachable_by_start_dict', force_verbose=True)
@@ -199,12 +209,14 @@ class MazeSolver(object):
             (@, a, b)
         then get reachable for each
         """
-        self.finder_droid.find_all_doors()
+        finder_droid = KeyFinderDroid(self.maze)
+
+        finder_droid.find_all_doors()
 
         start_coords = self.maze.find('@')[0]
 
         self.reachable_by_start_dict = {
-            '@': self.finder_droid.find_reachable_from_start(start_coords)
+            '@': finder_droid.find_reachable_from_start(start_coords)
         }
 
         key_coords = self.find_all_key_coords()
@@ -213,7 +225,7 @@ class MazeSolver(object):
         for point in key_coords:
             letter = self.maze.get(*point)
             print('doing letter: {}'.format(letter))
-            reachable = self.finder_droid.find_reachable_from_start(point)
+            reachable = finder_droid.find_reachable_from_start(point)
             self.reachable_by_start_dict[letter] = reachable
 
     def find_all_key_coords(self):
@@ -226,6 +238,17 @@ class MazeSolver(object):
     def get_dist_between(self, selected_node, key):
         reachable = self.reachable_by_start_dict[selected_node.char][key.letter]  # type: ReachableKey
         return reachable.dist
+
+    def replace_maze_center(self):
+        center_point = self.maze.find('@')[0]
+
+        self.maze.set_tuple(center_point, '#')
+
+        for point in self.maze.get_adjacent_coords(center_point):
+            self.maze.set_tuple(point, '#')
+
+        for point in self.maze.get_diagonal_coords(center_point):
+            self.maze.set_tuple(point, '@')
 
 
 

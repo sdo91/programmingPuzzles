@@ -58,7 +58,7 @@ class Grid2D(object):
                 result.append(coord)
         return result
 
-    def __str__(self):
+    def __repr__(self):
         lines = []
         for y in range(self.min_y, self.max_y + 1):
             line = ''
@@ -71,13 +71,8 @@ class Grid2D(object):
             lines.append(line)
         return '\n'.join(lines)
 
-    def __repr__(self):
-        return str(self)
-
     def show(self):
-        print()
-        print(self)
-        print()
+        print('\n{}:\n{}\n'.format(type(self).__name__, self))
 
     def count_adjacent(self, x, y, value):
         adj_coords = [
@@ -88,13 +83,22 @@ class Grid2D(object):
         ]
         return sum([1 for c in adj_coords if self.is_value(c, value)])
 
-    @staticmethod
-    def get_adjacent_coords(coord):
+    @classmethod
+    def get_adjacent_coords(cls, coord):
         return [
-            (coord[0] - 1, coord[1]),
-            (coord[0] + 1, coord[1]),
-            (coord[0], coord[1] - 1),
-            (coord[0], coord[1] + 1),
+            cls.get_coord_north(coord),
+            cls.get_coord_east(coord),
+            cls.get_coord_south(coord),
+            cls.get_coord_west(coord),
+        ]
+
+    @classmethod
+    def get_diagonal_coords(cls, coord):
+        return [
+            (coord[0] - 1, coord[1] - 1),
+            (coord[0] - 1, coord[1] + 1),
+            (coord[0] + 1, coord[1] + 1),
+            (coord[0] + 1, coord[1] - 1),
         ]
 
     @staticmethod
