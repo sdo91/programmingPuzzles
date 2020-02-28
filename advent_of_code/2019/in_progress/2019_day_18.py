@@ -127,7 +127,8 @@ class MazeSolver(object):
             self.replace_maze_center()
         self.maze.show()
 
-        self.reachable_by_start_dict = {}
+        self.droids = []
+        # self.reachable_by_start_dict = {}
         self.num_keys_in_maze = 0
 
     def __repr__(self):
@@ -135,6 +136,10 @@ class MazeSolver(object):
 
     def find_shortest_path(self):
         """
+        p2 algo:
+            create 4 droids
+            each droid makes its own reachable_by_start_dict
+
         search map for all POIs {start, a, b}
 
         reachable from point:
@@ -148,8 +153,9 @@ class MazeSolver(object):
             b (a,b): 8
         """
         # do setup
-        self.find_reachable()
-        AocLogger.log_dict(self.reachable_by_start_dict, 'reachable_by_start_dict', force_verbose=True)
+        self.init_all_droids()
+        # self.find_reachable()
+        # AocLogger.log_dict(self.reachable_by_start_dict, 'reachable_by_start_dict', force_verbose=True)
 
         start_node = Node('@', set())
         start_node.dist = 0
@@ -203,7 +209,14 @@ class MazeSolver(object):
 
         raise RuntimeError('should never get here')
 
-    def find_reachable(self):
+    def init_all_droids(self):
+        for x in range(1, 5):
+            droid = self.find_reachable(start_char=str(x))
+            AocLogger.log_dict(droid.reachable_by_start_dict, 'reachable_by_start_dict', force_verbose=True)
+            self.droids.append(droid)
+        z=0
+
+    def find_reachable(self, start_char='@'):
         """
         get points of interest
             (@, a, b)
@@ -211,22 +224,31 @@ class MazeSolver(object):
         """
         finder_droid = KeyFinderDroid(self.maze)
 
+        # todo: just do once
         finder_droid.find_all_doors()
 
-        start_coords = self.maze.find('@')[0]
+        start_coords = self.maze.find(start_char)[0]
 
-        self.reachable_by_start_dict = {
-            '@': finder_droid.find_reachable_from_start(start_coords)
+        reachable_by_start_dict = {
+            start_char: finder_droid.find_reachable_from_start(start_coords)
         }
 
-        key_coords = self.find_all_key_coords()
-        self.num_keys_in_maze = len(key_coords)
+        keys_in_quad = reachable_by_start_dict[start_char].keys()
 
-        for point in key_coords:
+        # todo: just do once
+        all_key_coords = self.find_all_key_coords()
+        if not self.num_keys_in_maze:
+            self.num_keys_in_maze = len(all_key_coords)
+
+        for point in all_key_coords:
             letter = self.maze.get(*point)
-            print('doing letter: {}'.format(letter))
-            reachable = finder_droid.find_reachable_from_start(point)
-            self.reachable_by_start_dict[letter] = reachable
+            if letter in keys_in_quad:
+                # print('doing letter: {}'.format(letter))
+                reachable = finder_droid.find_reachable_from_start(point)
+                reachable_by_start_dict[letter] = reachable
+
+        finder_droid.reachable_by_start_dict = reachable_by_start_dict
+        return finder_droid
 
     def find_all_key_coords(self):
         def is_maze_key(char: str):
@@ -247,8 +269,10 @@ class MazeSolver(object):
         for point in self.maze.get_adjacent_coords(center_point):
             self.maze.set_tuple(point, '#')
 
+        quadrant = 1
         for point in self.maze.get_diagonal_coords(center_point):
-            self.maze.set_tuple(point, '@')
+            self.maze.set_tuple(point, str(quadrant))
+            quadrant += 1
 
 
 
@@ -312,12 +336,12 @@ class KeyFinderDroid(RecursivePathfinderDroid):
         return self.STATUS_MOVED
 
     def process_new_path(self, new_path):
-        if AocLogger.verbose:
-            self.maze.show()
+        # if AocLogger.verbose:
+        #     self.maze.show()
 
         value = self.maze.get(self.x, self.y)
         if value.islower():
-            AocLogger.log('path to {}: {}'.format(value, new_path))
+            # AocLogger.log('path to {}: {}'.format(value, new_path))
 
             if (value not in self.shortest_paths
                     or len(new_path) < len(self.shortest_paths[value])):

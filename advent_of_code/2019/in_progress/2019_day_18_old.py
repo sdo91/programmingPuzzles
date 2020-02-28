@@ -33,7 +33,13 @@ TEST_INPUT = [
 #d.....................#
 ########################
     """, """
-
+#######
+#a.#Cd#
+##...##
+##.@.##
+##...##
+#cB#Ab#
+#######
     """
 ]
 
@@ -59,10 +65,10 @@ class AdventOfCode(object):
 
         AocLogger.verbose = False
 
-        aoc_util.assert_equal(
-            6098,
-            self.solve_part_1(puzzle_input)
-        )
+        # aoc_util.assert_equal(
+        #     6098,
+        #     self.solve_part_1(puzzle_input)
+        # )
 
         # aoc_util.assert_equal(
         #     0,
@@ -72,14 +78,19 @@ class AdventOfCode(object):
     def run_tests(self):
         AocLogger.verbose = True
 
-        aoc_util.assert_equal(
-            8,
-            self.solve_part_1(TEST_INPUT[0])
-        )
+        # aoc_util.assert_equal(
+        #     8,
+        #     self.solve_part_1(TEST_INPUT[0])
+        # )
+        #
+        # aoc_util.assert_equal(
+        #     86,
+        #     self.solve_part_1(TEST_INPUT[1])
+        # )
 
         aoc_util.assert_equal(
-            86,
-            self.solve_part_1(TEST_INPUT[1])
+            26,
+            self.solve_part_1(TEST_INPUT[2])
         )
 
     def solve_part_1(self, puzzle_input: str):

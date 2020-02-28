@@ -94,11 +94,12 @@ class Grid2D(object):
 
     @classmethod
     def get_diagonal_coords(cls, coord):
+        # in order by quadrant
         return [
+            (coord[0] + 1, coord[1] - 1),
             (coord[0] - 1, coord[1] - 1),
             (coord[0] - 1, coord[1] + 1),
             (coord[0] + 1, coord[1] + 1),
-            (coord[0] + 1, coord[1] - 1),
         ]
 
     @staticmethod
