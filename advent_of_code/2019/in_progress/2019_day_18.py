@@ -62,15 +62,15 @@ class AdventOfCode(object):
 
         AocLogger.verbose = False
 
-        aoc_util.assert_equal(
-            6098,
-            self.solve_part_1(puzzle_input)
-        )
-
         # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
+        #     6098,
+        #     self.solve_part_1(puzzle_input)
         # )
+
+        aoc_util.assert_equal(
+            0,
+            self.solve_part_2(puzzle_input)
+        )
 
     def run_tests(self):
         AocLogger.verbose = True
@@ -107,8 +107,6 @@ class AdventOfCode(object):
         solver = MazeSolver(puzzle_input, is_part_2=True)
         part_2_result = solver.find_shortest_path()
 
-        z=0
-
         print('part 2 result: {}'.format(part_2_result))
         return part_2_result
 
@@ -128,7 +126,6 @@ class MazeSolver(object):
         self.maze.show()
 
         self.droids = []
-        # self.reachable_by_start_dict = {}
         self.num_keys_in_maze = 0
 
     def __repr__(self):
@@ -154,17 +151,17 @@ class MazeSolver(object):
         """
         # do setup
         self.init_all_droids()
-        # self.find_reachable()
-        # AocLogger.log_dict(self.reachable_by_start_dict, 'reachable_by_start_dict', force_verbose=True)
 
-        start_node = Node('@', set())
+        start_node = Node([x.start_char for x in self.droids], set())
         start_node.dist = 0
         all_nodes_dict = {start_node.uid: start_node}
         unvisited_nodes_set = {start_node}
 
         # do dijkstra's algo
         while unvisited_nodes_set:
+
             # select node at shortest distance
+            # todo: use priority queue
             min_dist = INF
             selected_node = None  # type: Node
             for node in unvisited_nodes_set:
@@ -181,40 +178,75 @@ class MazeSolver(object):
                 return selected_node.dist
 
             # update dist to all reachable nodes
-            for key in self.reachable_by_start_dict[selected_node.char].values():
-                if selected_node.does_not_have(key) and selected_node.can_reach(key):
-                    AocLogger.log('checking: {}'.format(key))
+            for potential_node in self.get_nodes_reachable_from(selected_node):
+                # 3 cases
+                # DNE (use)
+                # better (use)
+                # worse (nope)
 
-                    # add node if not already there
-                    new_node = Node.create(selected_node, key)
-                    if new_node.uid in all_nodes_dict:
-                        AocLogger.log('already exists: {}'.format(new_node))
+                # add node if not already there
+                if potential_node.uid in all_nodes_dict:
+                    existing_node = all_nodes_dict[potential_node.uid]
+
+                    if potential_node.dist < existing_node.dist:
+                        # AocLogger.log('better: {}'.format(potential_node))
+                        unvisited_nodes_set.remove(existing_node)
                     else:
-                        all_nodes_dict[new_node.uid] = new_node
-                        unvisited_nodes_set.add(new_node)
-                    reachable_node = all_nodes_dict[new_node.uid]
+                        # AocLogger.log('not better: {}'.format(potential_node))
+                        continue
 
-                    # calc dist via selected
-                    dist_between = self.get_dist_between(selected_node, key)
-                    dist_via_selected = selected_node.dist + dist_between
-
-                    if dist_via_selected < reachable_node.dist:
-                        # update shortest path to node
-                        reachable_node.dist = dist_via_selected
-                        reachable_node.path = selected_node.path.copy()
-                        reachable_node.path.append(reachable_node.char)
-                        AocLogger.log('updated path: {}'.format(reachable_node))
-                else:
-                    AocLogger.log('skipping: {}'.format(key))
+                # if we get here we are using the potential_node
+                all_nodes_dict[potential_node.uid] = potential_node
+                unvisited_nodes_set.add(potential_node)
+                AocLogger.log('updated path: {}'.format(potential_node))
 
         raise RuntimeError('should never get here')
+
+    def get_nodes_reachable_from(self, selected_node):
+        """
+        for each droid:
+            look thru reachable keys:
+                keep:
+                    dont have the key
+                    path is unlocked
+
+        Args:
+            selected_node (Node):
+
+        Returns:
+            list[Node]:
+        """
+        results_list = []
+
+        for i, droid in enumerate(self.droids):
+            current_char = selected_node.locations[i]
+            AocLogger.log('checking droid {} @ {}'.format(i, current_char))
+
+            for key in droid.reachable_by_start_dict[current_char].values():
+                if selected_node.does_not_have(key) and selected_node.is_path_unlocked(key):
+                    AocLogger.log('path unlocked: {}'.format(key))
+
+                    # calc dist via selected
+                    dist_between = droid.get_dist_between(selected_node.locations[i], key)
+                    dist_via_selected = selected_node.dist + dist_between
+
+                    # add node to results_list
+                    reachable_node = Node.create(selected_node, key, i)
+                    reachable_node.dist = dist_via_selected
+                    reachable_node.path = selected_node.path.copy()
+                    reachable_node.path.append(key.letter)
+
+                    results_list.append(reachable_node)
+                else:
+                    AocLogger.log('path locked: {}'.format(key))
+
+        return results_list
 
     def init_all_droids(self):
         for x in range(1, 5):
             droid = self.find_reachable(start_char=str(x))
             AocLogger.log_dict(droid.reachable_by_start_dict, 'reachable_by_start_dict', force_verbose=True)
             self.droids.append(droid)
-        z=0
 
     def find_reachable(self, start_char='@'):
         """
@@ -222,7 +254,7 @@ class MazeSolver(object):
             (@, a, b)
         then get reachable for each
         """
-        finder_droid = KeyFinderDroid(self.maze)
+        finder_droid = KeyFinderDroid(self.maze, start_char)
 
         # todo: just do once
         finder_droid.find_all_doors()
@@ -243,7 +275,7 @@ class MazeSolver(object):
         for point in all_key_coords:
             letter = self.maze.get(*point)
             if letter in keys_in_quad:
-                # print('doing letter: {}'.format(letter))
+                print('doing letter: {}'.format(letter))
                 reachable = finder_droid.find_reachable_from_start(point)
                 reachable_by_start_dict[letter] = reachable
 
@@ -256,10 +288,6 @@ class MazeSolver(object):
 
         coords_list = self.maze.find_by_function(is_maze_key)
         return coords_list
-
-    def get_dist_between(self, selected_node, key):
-        reachable = self.reachable_by_start_dict[selected_node.char][key.letter]  # type: ReachableKey
-        return reachable.dist
 
     def replace_maze_center(self):
         center_point = self.maze.find('@')[0]
@@ -280,11 +308,25 @@ class MazeSolver(object):
 
 class KeyFinderDroid(RecursivePathfinderDroid):
 
-    def __init__(self, maze: Grid2D):
+    def __init__(self, maze: Grid2D, start_char: str):
         super().__init__()
         self.maze = maze
         self.shortest_paths = {}
         self.doors_by_point = {}
+
+        self.start_char = start_char
+        self.reachable_by_start_dict = {}
+
+    def get_dist_between(self, start_char, key):
+        """
+        Args:
+            start_char (str):
+            key (ReachableKey):
+        Returns:
+            int:
+        """
+        reachable = self.reachable_by_start_dict[start_char][key.letter]  # type: ReachableKey
+        return reachable.dist
 
     def find_all_doors(self):
         def is_maze_door(char: str):
@@ -369,26 +411,32 @@ class ReachableKey(object):
 
 class Node(object):
 
-    def __init__(self, char: str, keys_set: typing.Set[str]):
-        self.char = char
+    def __init__(self, locations: typing.List[str], keys_set: typing.Set[str]):
+        self.locations = locations
         self.keys_set = keys_set
-        self.uid = '{}({})'.format(char, ','.join(sorted(keys_set)))
+        self.uid = '[{}]({})'.format(
+            ','.join(locations),
+            ','.join(sorted(keys_set))
+        )
         self.dist = INF
         self.path = []
 
     @staticmethod
-    def create(selected, key):
+    def create(selected, key, droid_index):
         """
         Args:
             selected (Node):
             key (ReachableKey):
+            droid_index (int):
 
         Returns:
             Node:
         """
         combined_keys = selected.keys_set.copy()
         combined_keys.add(key.letter)
-        return Node(key.letter, combined_keys)
+        locations = selected.locations.copy()
+        locations[droid_index] = key.letter
+        return Node(locations, combined_keys)
 
     def __repr__(self):
         return '{}: uid={}, dist={}, path={}'.format(
@@ -397,7 +445,7 @@ class Node(object):
     def does_not_have(self, key: ReachableKey):
         return key.letter not in self.keys_set
 
-    def can_reach(self, key: ReachableKey):
+    def is_path_unlocked(self, key: ReachableKey):
         return self.keys_set.issuperset(key.needed)
 
 
