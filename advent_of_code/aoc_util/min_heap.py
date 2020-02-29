@@ -16,6 +16,9 @@ class MinHeap(object):
         return not self.counter > 0
 
     def insert(self, item, priority):
+        """
+        NOTE: if the item is already in the heap, its priority will be updated
+        """
         if item in self.items:
             self.remove(item)
         entry = [priority, item, True]
@@ -28,10 +31,24 @@ class MinHeap(object):
         entry[-1] = False
         self.counter -= 1
 
-    def del_min(self):
+    def pop(self):
         while self.h:
             _, item, is_active = heapq.heappop(self.h)
             if is_active:
                 self.counter -= 1
                 del self.items[item]
                 return item
+
+    def get_num_active(self):
+        return self.counter
+
+    def get_priority(self, item):
+        return self.items[item][0]
+
+    def insert_if_better(self, item, priority):
+        if item in self.items and priority >= self.get_priority(item):
+            # not better
+            return False
+        else:
+            self.insert(item, priority)
+            return True

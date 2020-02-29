@@ -1,6 +1,17 @@
 #!/usr/bin/env python3
 
+def addToPath(relPath):
+    from os import path
+    import sys
+    dirOfThisFile = path.dirname(path.realpath(__file__))
+    dirToAdd = path.normpath(path.join(dirOfThisFile, relPath))
+    if dirToAdd not in sys.path:
+        print('adding to path: {}'.format(dirToAdd))
+        sys.path.insert(0, dirToAdd)
+    else:
+        print('already in path: {}'.format(dirToAdd))
 
+addToPath('../..')
 
 ### IMPORTS ###
 
@@ -12,6 +23,7 @@ from aoc_util import aoc_util
 from aoc_util.aoc_util import AocLogger
 from aoc_util.grid_2d import Grid2D
 from aoc_util.recursive_pathfinder_droid import RecursivePathfinderDroid
+from aoc_util.min_heap import MinHeap
 
 import sys
 sys.setrecursionlimit(2000)
@@ -68,7 +80,7 @@ class AdventOfCode(object):
         # )
 
         aoc_util.assert_equal(
-            0,
+            1698,
             self.solve_part_2(puzzle_input)
         )
 
@@ -152,26 +164,21 @@ class MazeSolver(object):
         # do setup
         self.init_all_droids()
 
+        priority_queue = MinHeap()
+
         start_node = Node([x.start_char for x in self.droids], set())
         start_node.dist = 0
-        all_nodes_dict = {start_node.uid: start_node}
-        unvisited_nodes_set = {start_node}
+        priority_queue.insert(start_node, start_node.dist)
 
         # do dijkstra's algo
-        while unvisited_nodes_set:
+        while not priority_queue.is_empty():
 
             # select node at shortest distance
-            # todo: use priority queue
-            min_dist = INF
-            selected_node = None  # type: Node
-            for node in unvisited_nodes_set:
-                if node.dist < min_dist:
-                    min_dist = node.dist
-                    selected_node = node
+            selected_node = priority_queue.pop()  # type: Node
 
-            # mark as visited
-            unvisited_nodes_set.remove(selected_node)
             print('\nselected_node: {}'.format(selected_node))
+            print('num unvisited: {}'.format(priority_queue.get_num_active()))
+            print('num keys: {}'.format(len(selected_node.keys_set)))
 
             # check if done
             if len(selected_node.keys_set) == self.num_keys_in_maze:
@@ -179,26 +186,11 @@ class MazeSolver(object):
 
             # update dist to all reachable nodes
             for potential_node in self.get_nodes_reachable_from(selected_node):
-                # 3 cases
-                # DNE (use)
-                # better (use)
-                # worse (nope)
-
-                # add node if not already there
-                if potential_node.uid in all_nodes_dict:
-                    existing_node = all_nodes_dict[potential_node.uid]
-
-                    if potential_node.dist < existing_node.dist:
-                        # AocLogger.log('better: {}'.format(potential_node))
-                        unvisited_nodes_set.remove(existing_node)
-                    else:
-                        # AocLogger.log('not better: {}'.format(potential_node))
-                        continue
-
-                # if we get here we are using the potential_node
-                all_nodes_dict[potential_node.uid] = potential_node
-                unvisited_nodes_set.add(potential_node)
-                AocLogger.log('updated path: {}'.format(potential_node))
+                # 3 cases:
+                #   DNE (use)
+                #   better (use)
+                #   worse (don't use)
+                priority_queue.insert_if_better(potential_node, potential_node.dist)
 
         raise RuntimeError('should never get here')
 
@@ -233,8 +225,9 @@ class MazeSolver(object):
                     # add node to results_list
                     reachable_node = Node.create(selected_node, key, i)
                     reachable_node.dist = dist_via_selected
-                    reachable_node.path = selected_node.path.copy()
-                    reachable_node.path.append(key.letter)
+                    if AocLogger.verbose:
+                        reachable_node.path = selected_node.path.copy()
+                        reachable_node.path.append(key.letter)
 
                     results_list.append(reachable_node)
                 else:
@@ -439,8 +432,17 @@ class Node(object):
         return Node(locations, combined_keys)
 
     def __repr__(self):
-        return '{}: uid={}, dist={}, path={}'.format(
-            type(self).__name__, self.uid, self.dist, self.path)
+        return '{}: dist={}, uid={}, path={}'.format(
+            type(self).__name__, self.dist, self.uid, self.path)
+
+    def __eq__(self, other):
+        return self.uid == other.uid
+
+    def __hash__(self):
+        return hash(self.uid)
+
+    def __lt__(self, other):
+        return self.uid < other.uid
 
     def does_not_have(self, key: ReachableKey):
         return key.letter not in self.keys_set
