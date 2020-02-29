@@ -70,6 +70,9 @@ class AdventOfCode(object):
         puzzle_input = aocd.data
         aoc_util.write_input(puzzle_input, __file__)
 
+        # AocLogger.verbose = True
+        AocLogger.verbose = False
+
         self.run_tests()
 
         AocLogger.verbose = False
@@ -78,24 +81,22 @@ class AdventOfCode(object):
         #     6098,
         #     self.solve_part_1(puzzle_input)
         # )
-
-        aoc_util.assert_equal(
-            1698,
-            self.solve_part_2(puzzle_input)
-        )
-
-    def run_tests(self):
-        AocLogger.verbose = True
-
-        # aoc_util.assert_equal(
-        #     8,
-        #     self.solve_part_1(TEST_INPUT[0])
-        # )
         #
         # aoc_util.assert_equal(
-        #     86,
-        #     self.solve_part_1(TEST_INPUT[1])
+        #     1698,
+        #     self.solve_part_2(puzzle_input)
         # )
+
+    def run_tests(self):
+        aoc_util.assert_equal(
+            8,
+            self.solve_part_1(TEST_INPUT[0])
+        )
+
+        aoc_util.assert_equal(
+            86,
+            self.solve_part_1(TEST_INPUT[1])
+        )
 
         aoc_util.assert_equal(
             8,
@@ -133,8 +134,7 @@ class MazeSolver(object):
         self.text = text
 
         self.maze = Grid2D(text)
-        if is_part_2:
-            self.replace_maze_center()
+        self.replace_maze_center()
         self.maze.show()
 
         self.droids = []
@@ -236,12 +236,15 @@ class MazeSolver(object):
         return results_list
 
     def init_all_droids(self):
-        for x in range(1, 5):
+        num_droids = 1
+        if self.is_part_2:
+            num_droids = 4
+        for x in range(1, num_droids + 1):
             droid = self.find_reachable(start_char=str(x))
             AocLogger.log_dict(droid.reachable_by_start_dict, 'reachable_by_start_dict', force_verbose=True)
             self.droids.append(droid)
 
-    def find_reachable(self, start_char='@'):
+    def find_reachable(self, start_char: str):
         """
         get points of interest
             (@, a, b)
@@ -285,15 +288,18 @@ class MazeSolver(object):
     def replace_maze_center(self):
         center_point = self.maze.find('@')[0]
 
-        self.maze.set_tuple(center_point, '#')
+        if self.is_part_2:
+            self.maze.set_tuple(center_point, '#')
 
-        for point in self.maze.get_adjacent_coords(center_point):
-            self.maze.set_tuple(point, '#')
+            for point in self.maze.get_adjacent_coords(center_point):
+                self.maze.set_tuple(point, '#')
 
-        quadrant = 1
-        for point in self.maze.get_diagonal_coords(center_point):
-            self.maze.set_tuple(point, str(quadrant))
-            quadrant += 1
+            quadrant = 1
+            for point in self.maze.get_diagonal_coords(center_point):
+                self.maze.set_tuple(point, str(quadrant))
+                quadrant += 1
+        else:
+            self.maze.set_tuple(center_point, '1')
 
 
 
