@@ -4,7 +4,6 @@
 
 ### IMPORTS ###
 
-import numpy as np
 import math
 import time
 
@@ -123,18 +122,13 @@ class Deck(object):
 
 
 class HugeDeck(object):
-    """
-    given:
-        list of steps
-        size of deck
-        final position
-        #num shuffles (start with 1)
 
-    algo:
-        go thru steps in reverse order
-        calc a, b
-        return ax + b
-    """
+    P2_DECK_SIZE = 119315717514047
+    P2_NUM_SHUFFLES = 101741582076661
+
+    P2_RESULT_1_SHUFFLE = 12854400258724
+    P2_RESULT_2_SHUFFLES = 50273104329503
+    P2_RESULT_9_SHUFFLES = 14959559542067
 
     DEAL_STACK = 1
     CUT_N = 2
@@ -196,10 +190,10 @@ class HugeDeck(object):
             raise RuntimeError('can\'t mod divide: {}'.format([a, m]))
         return pow(a, m - 2, m)
 
-    @staticmethod
-    def mod_divide(num, denom, m):
+    @classmethod
+    def mod_divide(cls, num, denom, m):
         num %= m
-        inv = HugeDeck.mod_inverse(denom, m)
+        inv = cls.mod_inverse(denom, m)
         return (inv * num) % m
 
     def deal_inc_n(self, n):
@@ -222,27 +216,42 @@ class HugeDeck(object):
         """
         self.position = self.mod_divide(self.position, n, self.size)
 
-    def shuffle(self):
+    def shuffle_n(self, n):
+        """
+        shuffle deck n times
 
-        for step in self.shuffle_steps_reversed:
-            # print()
-            # print(step)
-            # print(self.position)
+        given:
+            list of steps
+            size of deck
+            final position
+            #num shuffles (start with 1)
 
-            if step[1] == self.DEAL_STACK:
-                self.deal_stack()
-            elif step[1] == self.CUT_N:
-                self.cut_n(step[2])
-            elif step[1] == self.DEAL_INC_N:
-                self.deal_inc_n(step[2])
-            else:
-                raise RuntimeError('koaiuweoj')
+        algo:
+            go thru steps in reverse order
+            calc a, b
+            return ax + b
+        """
 
-            z=0
+        for x in range(n):
+            # if x % 1000 == 0:
+            #     print(x)
 
-            # print(self.position)
+            # do one shuffle
+            for step in self.shuffle_steps_reversed:
+                # print()
+                # print(step)
+                # print(self.position)
 
-        # pass
+                if step[1] == self.DEAL_STACK:
+                    self.deal_stack()
+                elif step[1] == self.CUT_N:
+                    self.cut_n(step[2])
+                elif step[1] == self.DEAL_INC_N:
+                    self.deal_inc_n(step[2])
+                else:
+                    raise RuntimeError('invalid technique')
+
+        return self.position
 
 
 
@@ -280,13 +289,10 @@ def main():
 
     # time_test()
 
-    # solve_2(puzzle_input, size=119315717514047,
-    #         final_position=2020, num_times=101741582076661)
-
 
 def time_test():
     start_time = time.time()
-    x = 101741582076661
+    x = HugeDeck.P2_NUM_SHUFFLES
     while x > 0:
         if x % 1000 == 9:
             print(x)
@@ -321,7 +327,7 @@ def run_tests(puzzle_input):
 
     aoc_util.assert_equal(
         5,
-        solve_2(TEST_INPUT[3], 10, 2)
+        solve_2(TEST_INPUT[3], size=10, final_position=2, num_times=1)
     )
 
     aoc_util.assert_equal(
@@ -329,29 +335,27 @@ def run_tests(puzzle_input):
         solve_2(puzzle_input, size=10007, final_position=2519, num_times=1)
     )
 
+    aoc_util.assert_equal(
+        HugeDeck.P2_RESULT_1_SHUFFLE,
+        solve_2(puzzle_input, size=HugeDeck.P2_DECK_SIZE, final_position=2020, num_times=1)
+    )    
+    
+    aoc_util.assert_equal(
+        HugeDeck.P2_RESULT_2_SHUFFLES,
+        solve_2(puzzle_input, size=HugeDeck.P2_DECK_SIZE, final_position=2020, num_times=2)
+    )
 
-def solve_2(text, size, final_position, num_times=1):
+    aoc_util.assert_equal(
+        HugeDeck.P2_RESULT_9_SHUFFLES,
+        solve_2(puzzle_input, size=HugeDeck.P2_DECK_SIZE, final_position=2020, num_times=9)
+    )
+
+
+def solve_2(text, size, final_position, num_times):
     hd = HugeDeck(text, size, final_position)
 
-    seen_positions = set()
-    seen_diffs = set()
+    part_2_result = hd.shuffle_n(num_times)
 
-    for x in range(num_times):
-        start_pos = hd.position
-        if start_pos in seen_positions:
-            raise RuntimeError('seen pos: {}'.format(start_pos))
-        seen_positions.add(start_pos)
-
-        # if x % 1000 == 0:
-        #     print(x)
-        hd.shuffle()
-        diff = hd.position - start_pos
-        if diff in seen_diffs:
-            raise RuntimeError('seen diff: {}'.format(diff))
-        seen_diffs.add(diff)
-        # print('{}: {} -> {} (+{})'.format(x, start_pos, hd.position, diff))
-
-    part_2_result = hd.position
     print('part_2_result: {}'.format(part_2_result))
     return part_2_result
 
