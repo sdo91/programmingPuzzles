@@ -71,6 +71,11 @@ class Deck(object):
         self.size = size
         self.cards = list(range(size))
 
+    def __repr__(self):
+        formatted_deck = ' '.join([str(x) for x in self.cards])
+        # AocLogger.log('new_deck: {}'.format(formatted_deck))
+        return formatted_deck
+
     def do(self, text):
         # techniques
 
@@ -82,7 +87,6 @@ class Deck(object):
             self.do_increment(aoc_util.ints(text)[0])
         else:
             raise RuntimeError(text)
-
 
     def do_stack(self):
         self.cards = list(reversed(self.cards))
@@ -119,6 +123,18 @@ class Deck(object):
 
 
 class HugeDeck(object):
+    """
+    given:
+        list of steps
+        size of deck
+        final position
+        #num shuffles (start with 1)
+
+    algo:
+        go thru steps in reverse order
+        calc a, b
+        return ax + b
+    """
 
     DEAL_STACK = 1
     CUT_N = 2
@@ -130,7 +146,7 @@ class HugeDeck(object):
         # self.technique_idx = 0
 
         # parse text
-        self.shuffle_steps = []
+        self.shuffle_steps_reversed = []
         for line in reversed(aoc_util.lines(text)):
             if 'Result' in line:
                 continue
@@ -143,7 +159,7 @@ class HugeDeck(object):
             else:
                 raise RuntimeError(line)
             # print('{} -> {}'.format(line, step))
-            self.shuffle_steps.append(step)
+            self.shuffle_steps_reversed.append(step)
 
     def deal_stack(self):
         """
@@ -208,7 +224,7 @@ class HugeDeck(object):
 
     def shuffle(self):
 
-        for step in self.shuffle_steps:
+        for step in self.shuffle_steps_reversed:
             # print()
             # print(step)
             # print(self.position)
@@ -256,7 +272,11 @@ def main():
     run_tests(puzzle_input)
 
     AocLogger.verbose = False
-    # solve_full_input(puzzle_input)
+
+    aoc_util.assert_equal(
+        2519,
+        solve_part_1(puzzle_input)
+    )
 
     # time_test()
 
@@ -274,27 +294,23 @@ def time_test():
     print(time.time() - start_time)
 
 
+def assert_p1_test(text: str):
+    input_text, expected_result = aoc_util.split_and_strip_each(text, 'Result:')
+
+    shuffled_deck = solve_test_case_1(input_text)
+
+    aoc_util.assert_equal(
+        expected_result,
+        str(shuffled_deck)
+    )
+
 
 def run_tests(puzzle_input):
-    # aoc_util.assert_equal(
-    #     '0 3 6 9 2 5 8 1 4 7',
-    #     solve_test_case(TEST_INPUT[0])
-    # )
-    #
-    # aoc_util.assert_equal(
-    #     '3 0 7 4 1 8 5 2 9 6',
-    #     solve_test_case(TEST_INPUT[1])
-    # )
-    #
-    # aoc_util.assert_equal(
-    #     '6 3 0 7 4 1 8 5 2 9',
-    #     solve_test_case(TEST_INPUT[2])
-    # )
-    #
-    # aoc_util.assert_equal(
-    #     '9 2 5 8 1 4 7 0 3 6',
-    #     solve_test_case(TEST_INPUT[3])
-    # )
+
+    assert_p1_test(TEST_INPUT[0])
+    assert_p1_test(TEST_INPUT[1])
+    assert_p1_test(TEST_INPUT[2])
+    assert_p1_test(TEST_INPUT[3])
 
     aoc_util.assert_equal(2, HugeDeck.mod_divide(8, 4, 5))
     aoc_util.assert_equal(1, HugeDeck.mod_divide(8, 3, 5))
@@ -335,11 +351,12 @@ def solve_2(text, size, final_position, num_times=1):
         seen_diffs.add(diff)
         # print('{}: {} -> {} (+{})'.format(x, start_pos, hd.position, diff))
 
+    part_2_result = hd.position
+    print('part_2_result: {}'.format(part_2_result))
+    return part_2_result
 
-    return hd.position
 
-
-def solve_test_case(test_input, size=10):
+def solve_test_case_1(test_input, size=10):
     test_input = test_input.strip()
     # AocLogger.log('test input:\n{}'.format(test_input))
 
@@ -350,24 +367,15 @@ def solve_test_case(test_input, size=10):
             continue
         d.do(line)
 
-    if size > 3000:
-        print(d.cards.index(2019))
-
-    result = ' '.join([str(x) for x in d.cards])
-    print('result: {}'.format(result))
-    return result
+    return d
 
 
-def solve_full_input(puzzle_input):
+def solve_part_1(puzzle_input):
     """
     8611 high
-    Args:
-        puzzle_input:
-
-    Returns:
-
     """
-    solve_test_case(puzzle_input, 10007)
+    shuffled_deck = solve_test_case_1(puzzle_input, 10007)
+    return shuffled_deck.cards.index(2019)
 
 
 
