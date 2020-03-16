@@ -4,7 +4,7 @@
 ### IMPORTS ###
 
 import aocd
-import aoc_util
+from aoc_util import aoc_util
 
 
 

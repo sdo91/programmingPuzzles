@@ -15,12 +15,12 @@ addToPath('../..')
 
 ### IMPORTS ###
 
-import numpy as np
+# import numpy as np
+
 import aocd
 
 from aoc_util import aoc_util
 from aoc_util.aoc_util import AocLogger
-# from aoc_util.intcode_computer import IntcodeComputer
 
 
 ### CONSTANTS ###
