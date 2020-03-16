@@ -145,7 +145,7 @@ class HugeDeck(object):
             if 'Result' in line:
                 continue
             elif 'stack' in line:
-                step = (line, self.DEAL_STACK)
+                step = (line, self.DEAL_STACK, 0)  # last arg doesn't matter
             elif 'cut' in line:
                 step = (line, self.CUT_N, aoc_util.ints(line)[0])
             elif 'increment' in line:
@@ -231,27 +231,53 @@ class HugeDeck(object):
             calc a, b
             return ax + b
         """
+        start_pos = self.position
 
-        for x in range(n):
-            # if x % 1000 == 0:
-            #     print(x)
+        # compose LCFs in one shuffle
+        a, b = 1, 0
+        for step in self.shuffle_steps_reversed:
+            technique = step[1]
+            x = step[2]
 
-            # do one shuffle
-            for step in self.shuffle_steps_reversed:
-                # print()
-                # print(step)
-                # print(self.position)
+            if technique == self.DEAL_STACK:
+                self.deal_stack()
+                a = -a % self.size
+                b = (-b - 1) % self.size
+            elif technique == self.CUT_N:
+                self.cut_n(x)
+                a = a
+                b = (b + x) % self.size
+            elif technique == self.DEAL_INC_N:
+                self.deal_inc_n(x)
+                x_inv = self.mod_inverse(x, self.size)
+                a = (x_inv * a) % self.size
+                b = (x_inv * b) % self.size
+            else:
+                raise RuntimeError('invalid technique')
 
-                if step[1] == self.DEAL_STACK:
-                    self.deal_stack()
-                elif step[1] == self.CUT_N:
-                    self.cut_n(step[2])
-                elif step[1] == self.DEAL_INC_N:
-                    self.deal_inc_n(step[2])
-                else:
-                    raise RuntimeError('invalid technique')
+        assert self.position == (a * start_pos + b) % self.size
 
-        return self.position
+        f = a, b
+        f_k = self.pow_compose(f, n)
+        a, b = f_k
+
+        return (a * start_pos + b) % self.size
+
+    def pow_compose(self, f, k):
+        g = 1, 0
+        while k > 0:
+            if k % 2 != 0:
+                # k is odd
+                g = self.compose(g, f)
+            k = k // 2
+            f = self.compose(f, f)
+        return g
+
+    def compose(self, f, g):
+        a, b = f
+        c, d = g
+        return (a * c) % self.size, (b * c + d) % self.size
+
 
 
 
@@ -285,6 +311,11 @@ def main():
     aoc_util.assert_equal(
         2519,
         solve_part_1(puzzle_input)
+    )
+
+    aoc_util.assert_equal(
+        58966729050483,
+        solve_2(puzzle_input, size=HugeDeck.P2_DECK_SIZE, final_position=2020, num_times=HugeDeck.P2_NUM_SHUFFLES)
     )
 
     # time_test()
