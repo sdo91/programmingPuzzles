@@ -15,6 +15,7 @@ addToPath('../..')
 
 ### IMPORTS ###
 
+import traceback
 # import numpy as np
 
 import aocd
@@ -26,7 +27,23 @@ from aoc_util.aoc_util import AocLogger
 ### CONSTANTS ###
 TEST_INPUT_1 = [
     """
-
+[1518-11-01 00:00] Guard #10 begins shift
+[1518-11-01 00:05] falls asleep
+[1518-11-01 00:25] wakes up
+[1518-11-01 00:30] falls asleep
+[1518-11-01 00:55] wakes up
+[1518-11-01 23:58] Guard #99 begins shift
+[1518-11-02 00:40] falls asleep
+[1518-11-02 00:50] wakes up
+[1518-11-03 00:05] Guard #10 begins shift
+[1518-11-03 00:24] falls asleep
+[1518-11-03 00:29] wakes up
+[1518-11-04 00:02] Guard #99 begins shift
+[1518-11-04 00:36] falls asleep
+[1518-11-04 00:46] wakes up
+[1518-11-05 00:03] Guard #99 begins shift
+[1518-11-05 00:45] falls asleep
+[1518-11-05 00:55] wakes up
     """, """
 
     """, """
@@ -88,6 +105,7 @@ class AdventOfCode(object):
         try:
             puzzle_input = aocd.data
         except aocd.exceptions.AocdError:
+            print(traceback.format_exc())
             puzzle_input = 'unable to get input'
         aoc_util.write_input(puzzle_input, __file__)
 
@@ -95,14 +113,10 @@ class AdventOfCode(object):
 
         AocLogger.verbose = False
 
-        # self.solve_part_1(puzzle_input)
-
-        # self.solve_part_2(puzzle_input)
-
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_1(puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            0,
+            self.solve_part_1(puzzle_input)
+        )
 
         # aoc_util.assert_equal(
         #     0,
@@ -114,29 +128,27 @@ class AdventOfCode(object):
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT_1, TEST_OUTPUT_1)
         # aoc_util.run_tests(self.solve_part_2, TEST_INPUT_2, TEST_OUTPUT_2)
 
-    def solve_test_case_1(self, test_input):
-        AocLogger.log('test input: {}'.format(test_input))
+    def solve_test_case_1(self, test_input: str):
+        test_input = test_input.strip()
+        AocLogger.log('test input:\n{}\n'.format(test_input))
         return 0
 
     def solve_part_1(self, puzzle_input: str):
-        puzzle_input = puzzle_input.strip()
+        part_1_result = self.solve_test_case_1(puzzle_input)
 
-        result = 0
+        print('part_1_result: {}'.format(part_1_result))
+        return part_1_result
 
-        print('part 1 result: {}'.format(result))
-        return result
-
-    def solve_test_case_2(self, test_input):
-        AocLogger.log('test input: {}'.format(test_input))
+    def solve_test_case_2(self, test_input: str):
+        test_input = test_input.strip()
+        AocLogger.log('test input:\n{}\n'.format(test_input))
         return 0
 
     def solve_part_2(self, puzzle_input: str):
-        puzzle_input = puzzle_input.strip()
+        part_2_result = self.solve_test_case_2(puzzle_input)
 
-        result = 0
-
-        print('part 2 result: {}'.format(result))
-        return result
+        print('part_2_result: {}'.format(part_2_result))
+        return part_2_result
 
 
 
