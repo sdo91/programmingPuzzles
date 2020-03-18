@@ -15,6 +15,8 @@ addToPath('../..')
 
 ### IMPORTS ###
 
+import time
+import typing
 import traceback
 # import numpy as np
 
@@ -25,7 +27,7 @@ from aoc_util.aoc_util import AocLogger
 
 
 ### CONSTANTS ###
-TEST_INPUT_1 = [
+TEST_INPUT = [
     """
 
     """, """
@@ -39,16 +41,6 @@ TEST_OUTPUT_1 = [
     0,
     0,
     0,
-]
-
-TEST_INPUT_2 = [
-    """
-
-    """, """
-
-    """, """
-
-    """
 ]
 
 TEST_OUTPUT_2 = [
@@ -73,6 +65,7 @@ class AdventOfCode(object):
 
     def run(self):
         print('starting {}'.format(__file__.split('/')[-1]))
+        start_time = time.time()
 
         try:
             puzzle_input = aocd.data
@@ -95,10 +88,13 @@ class AdventOfCode(object):
         #     self.solve_part_2(puzzle_input)
         # )
 
+        elapsed_time = time.time() - start_time
+        print('elapsed_time: {:.3f} sec'.format(elapsed_time))
+
     def run_tests(self):
         AocLogger.verbose = True
-        aoc_util.run_tests(self.solve_part_1, TEST_INPUT_1, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT_2, TEST_OUTPUT_2)
+        aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
+        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def solve_part_1(self, puzzle_input: str):
         solver = Solver(puzzle_input)
