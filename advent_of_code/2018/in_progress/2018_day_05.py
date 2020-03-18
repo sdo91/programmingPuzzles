@@ -131,10 +131,10 @@ class Solver(object):
         return '{}:\n{}\n'.format(
             type(self).__name__, self.text)
 
-    def can_react(self, chars: typing.List[str], x: int):
-        if x+1 >= len(chars):
+    def can_react(self, builder: typing.List[str], char: str):
+        if not builder:
             return False
-        a, b = chars[x], chars[x+1]
+        a, b = builder[-1], char
         if a.lower() == b.lower():  # same type
             return a.islower() != b.islower()  # different polarity
         return False
@@ -146,25 +146,18 @@ class Solver(object):
         dabCBAcCcaDA      Either 'cC' or 'Cc' are removed (the result is the same).
         dabCBAcaDA        No further actions can be taken.
         """
-        prev = [x for x in self.text]
-        is_changed = True
-        while is_changed:
-            builder = []
-            is_changed = False
-            x = 0
-            while x < len(prev):
-                if not self.can_react(prev, x):
-                    # keep char
-                    builder.append(prev[x])
-                    x += 1
-                else:
-                    # destroy 2 chars
-                    x += 2
-                    is_changed = True
-            prev = builder
+        builder = []
+        for char in self.text:
+            if self.can_react(builder, char):
+                # pop
+                del builder[-1]
+            else:
+                # push
+                builder.append(char)
 
-        AocLogger.log('p1: {}'.format(prev))
-        return len(prev)
+        if AocLogger.verbose:
+            AocLogger.log('p1 builder: {}'.format(''.join(builder)))
+        return len(builder)
 
     def p2(self):
         """
