@@ -61,18 +61,14 @@ TEST_OUTPUT_2 = [
 
 
 
-class MyObject(object):
+class Solver(object):
 
     def __init__(self, text):
         self.text = text
-        self.id = 0
-
-    def __str__(self):
-        return 'MyObject {}: {}'.format(
-            self.id, self.text)
 
     def __repr__(self):
-        return str(self)
+        return '{}: {}'.format(
+            type(self).__name__, self.text)
 
 
 
