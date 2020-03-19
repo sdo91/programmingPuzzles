@@ -137,11 +137,10 @@ class HugeDeck(object):
     def __init__(self, text, size, final_position):
         self.size = size
         self.position = final_position
-        # self.technique_idx = 0
 
         # parse text
-        self.shuffle_steps_reversed = []
-        for line in reversed(aoc_util.lines(text)):
+        self.shuffle_steps = []
+        for line in aoc_util.lines(text):
             if 'Result' in line:
                 continue
             elif 'stack' in line:
@@ -153,7 +152,7 @@ class HugeDeck(object):
             else:
                 raise RuntimeError(line)
             # print('{} -> {}'.format(line, step))
-            self.shuffle_steps_reversed.append(step)
+            self.shuffle_steps.append(step)
 
     def deal_stack(self):
         """
@@ -236,31 +235,32 @@ class HugeDeck(object):
 
         # compose LCFs in one shuffle
         lcf = 1, 0
-        for step in self.shuffle_steps_reversed:
+        for step in self.shuffle_steps:
             technique = step[1]
             x = step[2]
 
             if technique == self.DEAL_STACK:
                 self.deal_stack()
-                lcf = self.compose(lcf, (-1, -1))
+                deal_stack_lcf = (-1, -1)
+                lcf = self.compose(lcf, deal_stack_lcf)
             elif technique == self.CUT_N:
                 self.cut_n(x)
                 cut_lcf = (1, -x)
-                cut_lcf = self.lcf_invert(cut_lcf)
                 lcf = self.compose(lcf, cut_lcf)
             elif technique == self.DEAL_INC_N:
                 self.deal_inc_n(x)
                 deal_inc_lcf = (x, 0)
-                deal_inc_lcf = self.lcf_invert(deal_inc_lcf)
                 lcf = self.compose(lcf, deal_inc_lcf)
             else:
                 raise RuntimeError('invalid technique')
 
-        assert self.position == (lcf[0] * start_pos + lcf[1]) % self.size
+        # assert self.position == (lcf[0] * start_pos + lcf[1]) % self.size
 
         lcf_k = self.pow_compose(lcf, num_shuffles)
+        lcf_k_inv = self.lcf_invert(lcf_k)
 
-        return (lcf_k[0] * start_pos + lcf_k[1]) % self.size
+        result = (lcf_k_inv[0] * start_pos + lcf_k_inv[1]) % self.size
+        return result
 
     def pow_compose(self, f, k):
         g = 1, 0
