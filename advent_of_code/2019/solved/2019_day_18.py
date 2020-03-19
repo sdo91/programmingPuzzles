@@ -33,7 +33,7 @@ sys.setrecursionlimit(2000)
 
 INF = 9e9
 
-TEST_INPUT = [
+TEST_INPUTS_P1 = [
     """      
 #########
 #b.A.@.a#
@@ -45,6 +45,41 @@ TEST_INPUT = [
 #d.....................#
 ########################
     """, """
+########################
+#...............b.C.D.f#
+#.######################
+#.....@.a.B.c.d.A.e.F.g#
+########################
+    """, """
+#################
+#i.G..c...e..H.p#
+########.########
+#j.A..b...f..D.o#
+########@########
+#k.E..a...g..B.n#
+########.########
+#l.F..d...h..C.m#
+#################
+    """, """
+########################
+#@..............ac.GI.b#
+###d#e#f################
+###A#B#C################
+###g#h#i################
+########################
+    """
+]
+
+TEST_OUTPUTS_P1 = [
+    8,
+    86,
+    132,
+    136,
+    81,
+]
+
+TEST_INPUTS_P2 = [
+    """
 #######
 #a.#Cd#
 ##...##
@@ -52,7 +87,40 @@ TEST_INPUT = [
 ##...##
 #cB#Ab#
 #######
+    """, """
+###############
+#d.ABC.#.....a#
+######@#@######
+###############
+######@#@######
+#b.....#.....c#
+###############
+    """, """
+#############
+#DcBa.#.GhKl#
+#.###@#@#I###
+#e#d#####j#k#
+###C#@#@###J#
+#fEbA.#.FgHi#
+#############
+    """, """
+#############
+#g#f.D#..h#l#
+#F###e#E###.#
+#dCba@#@BcIJ#
+#############
+#nK.L@#@G...#
+#M###N#H###.#
+#o#m..#i#jk.#
+#############
     """
+]
+
+TEST_OUTPUTS_P2 = [
+    8,
+    24,
+    32,
+    72,
 ]
 
 
@@ -77,31 +145,19 @@ class AdventOfCode(object):
 
         AocLogger.verbose = False
 
-        # aoc_util.assert_equal(
-        #     6098,
-        #     self.solve_part_1(puzzle_input)
-        # )
-        #
-        # aoc_util.assert_equal(
-        #     1698,
-        #     self.solve_part_2(puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            6098,
+            self.solve_part_1(puzzle_input)
+        )
+
+        aoc_util.assert_equal(
+            1698,
+            self.solve_part_2(puzzle_input)
+        )
 
     def run_tests(self):
-        aoc_util.assert_equal(
-            8,
-            self.solve_part_1(TEST_INPUT[0])
-        )
-
-        aoc_util.assert_equal(
-            86,
-            self.solve_part_1(TEST_INPUT[1])
-        )
-
-        aoc_util.assert_equal(
-            8,
-            self.solve_part_2(TEST_INPUT[2])
-        )
+        aoc_util.run_tests(self.solve_part_1, TEST_INPUTS_P1, TEST_OUTPUTS_P1)
+        aoc_util.run_tests(self.solve_part_2, TEST_INPUTS_P2, TEST_OUTPUTS_P2)
 
     def solve_part_1(self, puzzle_input: str):
         puzzle_input = puzzle_input.strip()
@@ -286,16 +342,20 @@ class MazeSolver(object):
         return coords_list
 
     def replace_maze_center(self):
-        center_point = self.maze.find('@')[0]
+        starting_points = self.maze.find('@')
+        center_point = starting_points[0]
 
         if self.is_part_2:
-            self.maze.set_tuple(center_point, '#')
+            if len(starting_points) == 1:
+                self.maze.set_tuple(center_point, '#')
 
-            for point in self.maze.get_adjacent_coords(center_point):
-                self.maze.set_tuple(point, '#')
+                for point in self.maze.get_adjacent_coords(center_point):
+                    self.maze.set_tuple(point, '#')
+
+                starting_points = self.maze.get_diagonal_coords(center_point)
 
             quadrant = 1
-            for point in self.maze.get_diagonal_coords(center_point):
+            for point in starting_points:
                 self.maze.set_tuple(point, str(quadrant))
                 quadrant += 1
         else:
