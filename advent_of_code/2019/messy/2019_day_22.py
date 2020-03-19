@@ -216,9 +216,10 @@ class HugeDeck(object):
         """
         self.position = self.mod_divide(self.position, n, self.size)
 
-    def shuffle_n(self, n):
+    def shuffle_n(self, num_shuffles):
         """
-        shuffle deck n times
+        Args:
+            num_shuffles (int): shuffle deck this many times
 
         given:
             list of steps
@@ -234,34 +235,29 @@ class HugeDeck(object):
         start_pos = self.position
 
         # compose LCFs in one shuffle
-        a, b = 1, 0
+        lcf = 1, 0
         for step in self.shuffle_steps_reversed:
             technique = step[1]
             x = step[2]
 
             if technique == self.DEAL_STACK:
                 self.deal_stack()
-                a = -a % self.size
-                b = (-b - 1) % self.size
+                lcf = self.compose(lcf, (-1, -1))
             elif technique == self.CUT_N:
                 self.cut_n(x)
-                a = a
-                b = (b + x) % self.size
+                lcf = self.compose(lcf, (1, x))
             elif technique == self.DEAL_INC_N:
                 self.deal_inc_n(x)
                 x_inv = self.mod_inverse(x, self.size)
-                a = (x_inv * a) % self.size
-                b = (x_inv * b) % self.size
+                lcf = self.compose(lcf, (x_inv, 0))
             else:
                 raise RuntimeError('invalid technique')
 
-        assert self.position == (a * start_pos + b) % self.size
+        assert self.position == (lcf[0] * start_pos + lcf[1]) % self.size
 
-        f = a, b
-        f_k = self.pow_compose(f, n)
-        a, b = f_k
+        lcf_k = self.pow_compose(lcf, num_shuffles)
 
-        return (a * start_pos + b) % self.size
+        return (lcf_k[0] * start_pos + lcf_k[1]) % self.size
 
     def pow_compose(self, f, k):
         g = 1, 0
