@@ -245,11 +245,14 @@ class HugeDeck(object):
                 lcf = self.compose(lcf, (-1, -1))
             elif technique == self.CUT_N:
                 self.cut_n(x)
-                lcf = self.compose(lcf, (1, x))
+                cut_lcf = (1, -x)
+                cut_lcf = self.lcf_invert(cut_lcf)
+                lcf = self.compose(lcf, cut_lcf)
             elif technique == self.DEAL_INC_N:
                 self.deal_inc_n(x)
-                x_inv = self.mod_inverse(x, self.size)
-                lcf = self.compose(lcf, (x_inv, 0))
+                deal_inc_lcf = (x, 0)
+                deal_inc_lcf = self.lcf_invert(deal_inc_lcf)
+                lcf = self.compose(lcf, deal_inc_lcf)
             else:
                 raise RuntimeError('invalid technique')
 
@@ -273,6 +276,12 @@ class HugeDeck(object):
         a, b = f
         c, d = g
         return (a * c) % self.size, (b * c + d) % self.size
+
+    def lcf_invert(self, lcf):
+        a1_inv = self.mod_inverse(lcf[0], self.size) % self.size
+        a2 = a1_inv
+        b2 = (a1_inv * -lcf[1]) % self.size
+        return a2, b2
 
 
 
