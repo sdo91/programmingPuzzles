@@ -237,19 +237,19 @@ class HugeDeck(object):
         lcf = 1, 0
         for step in self.shuffle_steps:
             technique = step[1]
-            x = step[2]
+            n = step[2]
 
             if technique == self.DEAL_STACK:
                 self.deal_stack()
                 deal_stack_lcf = (-1, -1)
                 lcf = self.compose(lcf, deal_stack_lcf)
             elif technique == self.CUT_N:
-                self.cut_n(x)
-                cut_lcf = (1, -x)
+                self.cut_n(n)
+                cut_lcf = (1, -n)
                 lcf = self.compose(lcf, cut_lcf)
             elif technique == self.DEAL_INC_N:
-                self.deal_inc_n(x)
-                deal_inc_lcf = (x, 0)
+                self.deal_inc_n(n)
+                deal_inc_lcf = (n, 0)
                 lcf = self.compose(lcf, deal_inc_lcf)
             else:
                 raise RuntimeError('invalid technique')
