@@ -6,15 +6,15 @@ from aoc_util.aoc_util import AocLogger
 
 class Grid2D(object):
 
-    def __init__(self, text: str = ''):
+    def __init__(self, text='', default=' '):
         """
-        NOTE: uses an inverted y-axis by default (increasing downwards)
+        NOTE: uses an inverted y-axis (increasing downwards)
         """
-        self.grid = defaultdict(lambda: ' ')
+        self.grid = defaultdict(lambda: default)
 
-        self.min_x = 0
+        self.min_x = 2**32
         self.max_x = 0
-        self.min_y = 0
+        self.min_y = 2**32
         self.max_y = 0
 
         self.overlay = {}
@@ -60,9 +60,9 @@ class Grid2D(object):
 
     def __repr__(self):
         lines = []
-        for y in range(self.min_y, self.max_y + 1):
+        for y in self.rows():
             line = ''
-            for x in range(self.min_x, self.max_x + 1):
+            for x in self.cols():
                 coord = (x, y)
                 if coord in self.overlay:
                     line += self.overlay[coord]
@@ -71,8 +71,19 @@ class Grid2D(object):
             lines.append(line)
         return '\n'.join(lines)
 
+    def rows(self):
+        return range(self.min_y, self.max_y + 1)
+
+    def cols(self):
+        return range(self.min_x, self.max_x + 1)
+
     def show(self):
-        print('\n{}:\n{}\n'.format(type(self).__name__, self))
+        print('\n{}: {} to {}\n{}\n'.format(
+            type(self).__name__,
+            (self.min_x, self.min_y),
+            (self.max_x, self.max_y),
+            self
+        ))
 
     def count_adjacent(self, x, y, value):
         adj_coords = [
@@ -82,6 +93,9 @@ class Grid2D(object):
             (x, y+1),
         ]
         return sum([1 for c in adj_coords if self.is_value(c, value)])
+
+    def is_on_edge(self, x, y):
+        return x == self.min_x or x == self.max_x or y == self.min_y or y == self.max_y
 
     @classmethod
     def get_adjacent_coords(cls, coord):

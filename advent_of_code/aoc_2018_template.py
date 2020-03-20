@@ -16,9 +16,7 @@ addToPath('../..')
 ### IMPORTS ###
 
 import time
-import typing
 import traceback
-# import numpy as np
 
 import aocd
 
