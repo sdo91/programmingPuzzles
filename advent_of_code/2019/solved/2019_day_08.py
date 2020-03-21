@@ -7,8 +7,8 @@
 import numpy as np
 
 import aocd
-from aoc_util import aoc_util
-from aoc_util.aoc_util import AocLogger
+from advent_of_code.util import aoc_util
+from advent_of_code.util.aoc_util import AocLogger
 
 
 

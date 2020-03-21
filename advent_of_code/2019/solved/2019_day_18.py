@@ -19,11 +19,11 @@ import typing
 
 import aocd
 
-from aoc_util import aoc_util
-from aoc_util.aoc_util import AocLogger
-from aoc_util.grid_2d import Grid2D
-from aoc_util.recursive_pathfinder_droid import RecursivePathfinderDroid
-from aoc_util.min_heap import MinHeap
+from advent_of_code.util import aoc_util
+from advent_of_code.util.aoc_util import AocLogger
+from advent_of_code.util.grid_2d import Grid2D
+from advent_of_code.util.recursive_pathfinder_droid import RecursivePathfinderDroid
+from advent_of_code.util.min_heap import MinHeap
 
 import sys
 sys.setrecursionlimit(2000)

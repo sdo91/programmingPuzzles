@@ -1,7 +1,7 @@
 
 import typing
 from collections import defaultdict
-from aoc_util.aoc_util import AocLogger
+from advent_of_code.util.aoc_util import AocLogger
 
 
 class Grid2D(object):

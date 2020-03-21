@@ -4,7 +4,7 @@
 ### IMPORTS ###
 
 import aocd
-from aoc_util import aoc_util
+from advent_of_code.util import aoc_util
 
 
 

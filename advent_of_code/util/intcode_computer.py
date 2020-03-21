@@ -1,6 +1,6 @@
 
 import typing
-from aoc_util import aoc_util
+from advent_of_code.util import aoc_util
 
 
 class IntcodeComputer(object):

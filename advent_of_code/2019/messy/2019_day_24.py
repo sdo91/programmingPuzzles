@@ -21,9 +21,9 @@ from copy import deepcopy
 
 import aocd
 
-from aoc_util import aoc_util
-from aoc_util.aoc_util import AocLogger
-from aoc_util.grid_2d import Grid2D
+from advent_of_code.util import aoc_util
+from advent_of_code.util.aoc_util import AocLogger
+from advent_of_code.util.grid_2d import Grid2D
 
 
 ### CONSTANTS ###
