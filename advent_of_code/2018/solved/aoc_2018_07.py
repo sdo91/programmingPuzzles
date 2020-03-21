@@ -49,12 +49,12 @@ TEST_OUTPUT_1 = [
 ]
 
 TEST_OUTPUT_2 = [
-    0,
+    15,
     0,
     0,
 ]
 
-
+ORD_A = ord('A')
 
 
 
@@ -89,7 +89,7 @@ class AdventOfCode(object):
         )
 
         aoc_util.assert_equal(
-            0,
+            929,
             self.solve_part_2(puzzle_input)
         )
 
@@ -116,6 +116,34 @@ class AdventOfCode(object):
 
         print('part_2_result: {}'.format(part_2_result))
         return part_2_result
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Task(object):
+
+    def __init__(self, char: str, base_step_time: int):
+        self.char = char
+        self.seconds_left = ord(char) - ORD_A + 1 + base_step_time
+
+    def __repr__(self):
+        return '{}: {}, {}'.format(
+            type(self).__name__,
+            self.char,
+            self.seconds_left,
+        )
+
+
+
 
 
 
@@ -162,9 +190,8 @@ class Solver(object):
         # pick order
         steps_done = set()
         steps_order = []
-        ord_a = ord('A')
         while self.all_steps - steps_done:
-            x = ord_a
+            x = ORD_A
             while True:
                 char = chr(x)
                 x += 1
@@ -201,21 +228,106 @@ class Solver(object):
           13        E          .       CABFD
           14        E          .       CABFD
           15        .          .       CABFDE
+
+        algo:
+            while idle workers
+                if no more steps:
+                    break
+                find next step, assign to idle worker
+
+            now advance time until there is an idle worker
+
+            repeat
+
+        1667 too high
         """
+        # determine test or real input
         num_workers = 2
         base_step_time = 0
+        if len(self.all_steps) > 10:
+            # real input
+            num_workers = 5
+            base_step_time = 60
 
-        z=0
+        # do setup
+        idle_workers = set()
 
-        return 2
+        workers = {}
+        for x in range(num_workers):
+            task = None  # type: Task
+            workers[x] = task
+            idle_workers.add(x)
 
+        steps_done = set()
+        steps_in_progress = set()
+        steps_order = []
+        elapsed_time = 0
 
+        # pick order
+        while self.all_steps - steps_done:
+            # there are still steps to do
 
+            # select next step, starting at A
+            potential_task = ORD_A
+            while idle_workers:
+                char = chr(potential_task)
+                potential_task += 1
+                if char in steps_done or char in steps_in_progress:
+                    # task already done or in progress
+                    continue
+                if char not in self.all_steps:
+                    # there are no available steps to assign
+                    break
 
+                if not (self.dependencies[char] - steps_done):
+                    # all dependencies done, this is the next step
 
+                    # assign to next idle worker
+                    for x in range(num_workers):
+                        task = workers[x]
+                        if task is None:
+                            new_task = Task(char, base_step_time)
+                            workers[x] = new_task
+                            idle_workers.remove(x)
+                            steps_in_progress.add(char)
+                            AocLogger.log('task {} assigned to worker {} @ t={}'.format(char, x, elapsed_time))
+                            break
 
+            # can't assign more steps
+            AocLogger.log('summary: t={}, workers={}, done={}\n'.format(
+                elapsed_time, self.format_workers(workers), ''.join(steps_order)))
 
+            # get min time
+            min_time = 9e9
+            for task in workers.values():
+                if task:
+                    min_time = min(min_time, task.seconds_left)
+            elapsed_time += min_time
 
+            # update workers
+            for x, task in workers.items():
+                if task:
+                    task.seconds_left -= min_time
+                    if task.seconds_left == 0:
+                        # task now done
+                        steps_in_progress.remove(task.char)
+                        steps_done.add(task.char)
+                        steps_order.append(task.char)
+                        AocLogger.log('task {} done after {} sec'.format(task.char, elapsed_time))
+                        workers[x] = None
+                        idle_workers.add(x)
+
+        print('p2 order: {}'.format(''.join(steps_order)))
+        return elapsed_time
+
+    def advance_clock(self):
+        pass
+
+    def format_workers(self, workers):
+        builder = []
+        for x, task in workers.items():
+            builder.append((x, task))
+        return builder
 
 
 if __name__ == '__main__':
