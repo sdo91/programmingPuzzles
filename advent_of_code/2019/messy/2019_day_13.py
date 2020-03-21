@@ -15,7 +15,8 @@ addToPath('../../..')
 
 ### IMPORTS ###
 
-import numpy as np
+import time
+
 import aocd
 
 from advent_of_code.util import aoc_util
@@ -23,38 +24,9 @@ from advent_of_code.util.aoc_util import AocLogger
 from advent_of_code.util.intcode_computer import IntcodeComputer
 
 
-### CONSTANTS ###
-TEST_INPUT_1 = [
-    """
 
-    """, """
 
-    """, """
 
-    """
-]
-
-TEST_OUTPUT_1 = [
-    0,
-    0,
-    0,
-]
-
-TEST_INPUT_2 = [
-    """
-
-    """, """
-
-    """, """
-
-    """
-]
-
-TEST_OUTPUT_2 = [
-    0,
-    0,
-    0,
-]
 
 
 
@@ -77,9 +49,6 @@ class Display(object):
     }
 
     def __init__(self):
-        # self.text = text
-        # self.id = 0
-
         self.score = 0
         self.grid = []
 
@@ -107,12 +76,8 @@ class Display(object):
 
 
 
-    # def __str__(self):
-    #     return 'MyObject {}: {}'.format(
-    #         self.id, self.text)
-    #
-    # def __repr__(self):
-    #     return str(self)
+
+
 
 
 
@@ -125,6 +90,7 @@ class AdventOfCode(object):
 
     def run(self):
         print('starting {}'.format(__file__.split('/')[-1]))
+        start_time = time.time()
 
         try:
             puzzle_input = aocd.data
@@ -132,88 +98,48 @@ class AdventOfCode(object):
             puzzle_input = 'unable to get input'
         aoc_util.write_input(puzzle_input, __file__)
 
-        self.run_tests()
-
         AocLogger.verbose = False
+        # AocLogger.verbose = True
 
-        self.solve_part_1(puzzle_input)
+        aoc_util.assert_equal(
+            318,
+            self.solve(puzzle_input)
+        )
 
-        # self.solve_part_2(puzzle_input)
+        aoc_util.assert_equal(
+            16309,
+            self.solve(puzzle_input, is_p2=True)
+        )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_1(puzzle_input)
-        # )
+        elapsed_time = time.time() - start_time
+        print('elapsed_time: {:.3f} sec'.format(elapsed_time))
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
-        # )
-
-    def run_tests(self):
-        AocLogger.verbose = True
-        aoc_util.run_tests(self.solve_part_1, TEST_INPUT_1, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT_2, TEST_OUTPUT_2)
-
-    def solve_part_1(self, puzzle_input: str):
+    def solve(self, puzzle_input: str, is_p2=False):
+        """
+        todo: use Grid2D
+        """
         puzzle_input = puzzle_input.strip()
 
         mem = aoc_util.ints(puzzle_input)
-        mem[0] = 2
+        if is_p2:
+            mem[0] = 2
         ic = IntcodeComputer(mem)
 
-
-
-        EMPTY = 0
-        WALL = 1
-        BLOCK = 2
-        PADDLE = 3
-        BALL = 4
-
         num_blocks = 0
-        score = 0
 
         d = Display()
 
-        direction = -2
-
-        directions_dict = {
-            'a': -1,
-            's': 0,
-            'd': 1,
-        }
-
-        ball_pos = (19.14)
-        prev_ball_pos = (19,14)
-        paddle_pos = (0,0)
+        ball_pos = (19, 14)
+        paddle_pos = (0, 0)
 
         while not ic.is_halted():
-
-            out = -2
-            # while ic.is_input_needed():
-            #     d.show()
-            #
-            #     # direction = input('asd: ')
-            #     direction = 0
-            #
-            #     ic.queue_input(direction)
-            #
-            #     # out = ic.run()
-            #
-            #     z=0
-            #
-            #     # assert False
 
             for _ in range(3):
                 ic.run()
 
                 while ic.state == ic.STATE_INPUT_NEEDED:
-                    d.show()
-
-                    # direction = input('asd: ')
-                    direction = 0
-
-                    z=0
+                    if AocLogger.verbose:
+                        d.show()
 
                     if paddle_pos[0] > ball_pos[0]:
                         direction = -1
@@ -223,46 +149,32 @@ class AdventOfCode(object):
                         direction = 0
 
                     ic.queue_input(direction)
-                    ic.run()  # re run
+                    ic.run()
 
             x, y, tile = ic.get_all_output()[-3:]
 
-            if direction != -2:
-                # d.show()
-                z=0
-
             if x != -1 or y != 0:
-                if tile == BLOCK:
+                if tile == Display.BLOCK:
                     num_blocks += 1
-                elif tile == BALL:
-                    prev_ball_pos = ball_pos
+                elif tile == Display.BALL:
                     ball_pos = (x, y)
-                elif tile == PADDLE:
+                elif tile == Display.PADDLE:
                     paddle_pos = (x, y)
-
-
 
             d.add(x, y, tile)
 
-
-
-
-
-
-        print('part 1 result: {}'.format(num_blocks))
-        return num_blocks
-
-    def solve_test_case_2(self, test_input):
-        AocLogger.log('test input: {}'.format(test_input))
-        return 0
-
-    def solve_part_2(self, puzzle_input: str):
-        puzzle_input = puzzle_input.strip()
-
-        result = 0
-
-        print('part 2 result: {}'.format(result))
+        if not is_p2:
+            result = num_blocks
+            print('p1 result: {}'.format(result))
+        else:
+            result = ic.get_latest_output()
+            print('p2 result: {}'.format(result))
         return result
+
+
+
+
+
 
 
 

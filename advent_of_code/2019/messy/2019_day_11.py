@@ -129,10 +129,10 @@ class AdventOfCode(object):
 
     def run_robot(self, puzzle_input: str, starting_panel_color):
         """
+        todo: use Grid2D
 
         IRIHFKIH
         IR1HFKIH
-
         """
         puzzle_input = puzzle_input.strip()
 
