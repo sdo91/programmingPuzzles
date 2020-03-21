@@ -40,13 +40,20 @@ def main():
     aoc_util.write_input(puzzle_input, __file__)
 
     AocLogger.verbose = True
-    # aoc_util.run_tests(test_part_1, TEST_INPUT, TEST_OUTPUT)
+
     run_tests()
 
-    # AocLogger.verbose = False
+    AocLogger.verbose = False
 
-    # solve_part_1(puzzle_input)
-    solve_part_2(puzzle_input)
+    aoc_util.assert_equal(
+        '96136976',
+        solve_part_1(puzzle_input)
+    )
+
+    aoc_util.assert_equal(
+        '85600369',
+        solve_part_2(puzzle_input)
+    )
 
 
 def run_tests():
@@ -54,6 +61,7 @@ def run_tests():
         '01029498',
         test_part_1(TEST_INPUT[0], 4)
     )
+
     aoc_util.assert_equal(
         '24176176',
         test_part_1(TEST_INPUT[1], 100)
@@ -81,7 +89,7 @@ def calc_pattern(idx, num_digits):
     return np.array(result)
 
 
-def keepOnes(value):
+def keep_ones(value):
     if value > 0:
         return value % 10
     else:
@@ -110,8 +118,7 @@ def test_part_1(test_input, num_phases):
                 pattern = patterns[out_digit]
                 product = digits[in_digit] * pattern[in_digit]
                 sum_ += product
-            new_digits.append(keepOnes(sum_))
-
+            new_digits.append(keep_ones(sum_))
 
         digits = new_digits
         AocLogger.log('phase {}: {}'.format(phase, digits))
@@ -176,7 +183,7 @@ def solve_part_2(puzzle_input):
         running_sum = 0
         for i in range(num_digits_small - 1, -1, -1):
             running_sum += prev_digits[i]
-            running_sum = keepOnes(running_sum)
+            running_sum = keep_ones(running_sum)
             digits[i] = running_sum
 
     first_8 = ''.join([str(x) for x in digits[:8]])
