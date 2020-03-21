@@ -4,8 +4,6 @@
 
 ### IMPORTS ###
 
-import numpy as np
-
 import aocd
 
 from advent_of_code.util import aoc_util
@@ -225,10 +223,16 @@ def solve_full_input(puzzle_input):
     13121052 too high
     """
     solver = Solver(puzzle_input, 100)
-    # solver.solve_1()
-    solver.solve_2()
 
-    pass
+    aoc_util.assert_equal(
+        164,
+        solver.solve_1()
+    )
+
+    aoc_util.assert_equal(
+        13081049,
+        solver.solve_2()
+    )
 
 
 
