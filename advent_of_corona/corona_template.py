@@ -19,8 +19,8 @@ addToPath('../../..')
 import time
 import traceback
 
-from advent_of_code.aoc_util import aoc_util
-from advent_of_code.aoc_util.aoc_util import AocLogger
+from advent_of_code.util import aoc_util
+from advent_of_code.util.aoc_util import AocLogger
 
 from advent_of_corona.util import corona_util
 
@@ -85,6 +85,7 @@ class DayManager(object):
 
     def run_real(self):
         AocLogger.verbose = False
+
         aoc_util.assert_equal(
             0,
             self.solve_part_1(self.puzzle_input)
