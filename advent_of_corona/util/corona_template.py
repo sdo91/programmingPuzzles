@@ -81,18 +81,19 @@ class DayManager(object):
     def run_tests(self):
         AocLogger.verbose = True
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def run_real(self):
+        AocLogger.verbose = False
         aoc_util.assert_equal(
             0,
             self.solve_part_1(self.puzzle_input)
         )
 
-        aoc_util.assert_equal(
-            0,
-            self.solve_part_2(self.puzzle_input)
-        )
+        # aoc_util.assert_equal(
+        #     0,
+        #     self.solve_part_2(self.puzzle_input)
+        # )
 
     def solve_part_1(self, puzzle_input: str):
         solver = Solver(puzzle_input)

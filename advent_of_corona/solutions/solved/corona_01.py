@@ -21,6 +21,7 @@ import traceback
 
 from advent_of_code.aoc_util import aoc_util
 from advent_of_code.aoc_util.aoc_util import AocLogger
+from advent_of_code.aoc_util.min_heap import MinHeap
 
 from advent_of_corona.util import corona_util
 
@@ -31,7 +32,7 @@ TEST_INPUT = [
     """
 1 2 3 4 1 2 3
     """, """
-
+8 8 8 5 5 3
     """, """
 
     """
@@ -39,13 +40,13 @@ TEST_INPUT = [
 
 TEST_OUTPUT_1 = [
     4,
-    0,
+    1,
     0,
 ]
 
 TEST_OUTPUT_2 = [
-    0,
-    0,
+    4,
+    2,
     0,
 ]
 
@@ -81,18 +82,19 @@ class DayManager(object):
     def run_tests(self):
         AocLogger.verbose = True
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+        aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def run_real(self):
+        AocLogger.verbose = False
         aoc_util.assert_equal(
             5,
             self.solve_part_1(self.puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(self.puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            1337,
+            self.solve_part_2(self.puzzle_input)
+        )
 
     def solve_part_1(self, puzzle_input: str):
         solver = Solver(puzzle_input)
@@ -123,6 +125,9 @@ class Solver(object):
 
     def __init__(self, text: str):
         self.text = text.strip()
+
+        self.sequence = aoc_util.ints(self.text)
+
         AocLogger.log(str(self))
 
     def __repr__(self):
@@ -151,13 +156,11 @@ class Solver(object):
         With an input 1 2 3 4 1 2 3 the program should generate the output 4.
         """
 
-        sequence = aoc_util.ints(self.text)
-
         max_subsequence_len = 0
         current_subsequence_len = 0
 
         prev = None
-        for x in sequence:
+        for x in self.sequence:
             # check that x obeys the rules
             if prev is None:
                 # first number in seq always valid
@@ -190,10 +193,63 @@ class Solver(object):
 
     def p2(self):
         """
+        Nice, you did it! But you’re not done yet
 
+        We will add a new rule to this game. You can shuffle the list anyway you want to create that maximum
+        subsequence that fulfills the rules (explained before):
+            The resulting sequence must be increasing
+            There cannot be two even numbers together nor two odd numbers together
+
+        Example
+        Given the sequence: [8, 8, 8, 5, 5, 3], the longest subsequence that follows the rules explained
+        above is: [3, 8] so the answer should be 2.
         """
-        z=0
-        return 2
+
+        # populate evens and odds
+        odds = MinHeap()
+        evens = MinHeap()
+
+        for x in self.sequence:
+            if self.is_even(x):
+                evens.insert(x, x)
+            else:
+                odds.insert(x, x)
+
+        if odds.peek() < evens.peek():
+            # start with an odd
+            subsequence = [odds.pop()]
+            current_heap = evens
+        else:
+            # start with an even
+            subsequence = [evens.pop()]
+            current_heap = odds
+
+        is_done = False
+        while not is_done:
+            # add next number to sequence
+            prev = subsequence[-1]
+
+            # find the next valid number in the current heap
+            while not is_done:
+                if current_heap.is_empty():
+                    # no more valid numbers in the heap, we are done
+                    is_done = True
+                    break
+
+                potential_next = current_heap.pop()
+                if potential_next > prev:
+                    # found the next valid number
+                    subsequence.append(potential_next)
+                    AocLogger.log('valid number found: {}'.format(subsequence))
+                    break
+
+            # switch heap
+            if current_heap is evens:
+                current_heap = odds
+            else:
+                current_heap = evens
+
+        return len(subsequence)
 
 
 
