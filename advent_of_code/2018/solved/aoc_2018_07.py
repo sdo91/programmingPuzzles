@@ -320,9 +320,6 @@ class Solver(object):
         print('p2 order: {}'.format(''.join(steps_order)))
         return elapsed_time
 
-    def advance_clock(self):
-        pass
-
     def format_workers(self, workers):
         builder = []
         for x, task in workers.items():
