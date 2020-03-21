@@ -48,7 +48,7 @@ TEST_OUTPUT_1 = [
 ]
 
 TEST_OUTPUT_2 = [
-    0,
+    16,
     0,
     0,
 ]
@@ -103,10 +103,10 @@ class AdventOfCode(object):
             self.solve_part_1(puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            48034,
+            self.solve_part_2(puzzle_input)
+        )
 
         elapsed_time = time.time() - start_time
         print('elapsed_time: {:.3f} sec'.format(elapsed_time))
@@ -114,7 +114,7 @@ class AdventOfCode(object):
     def run_tests(self):
         AocLogger.verbose = True
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+        aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def solve_part_1(self, puzzle_input: str):
         solver = Solver(puzzle_input)
@@ -164,10 +164,9 @@ class Solver(object):
     def __init__(self, text: str):
         self.text = text.strip()
 
-        # populate grid
+        # populate grid, targets
         self.grid = Grid2D('', '.')
         self.targets = {}
-        self.inf_targets = set()
 
         x = 0
         for line in aoc_util.lines(self.text):
@@ -175,9 +174,13 @@ class Solver(object):
             self.assign_char(coords, x)
             self.targets[coords] = 0
             x += 1
-        self.grid.show()
+        # self.grid.show()
 
-        # AocLogger.log(str(self))
+        # p1
+        self.inf_targets = set()
+
+        # p2
+        self.p2_total = 0
 
     def __repr__(self):
         return '{}:\n{}\n'.format(
@@ -252,8 +255,25 @@ class Solver(object):
                 self.inf_targets.add(selected)
 
     def p2(self):
-        z=0
-        return 2
+        for y in self.grid.rows():
+            for x in self.grid.cols():
+                coords = (x, y)
+                self.check_dist(coords)
+
+        self.grid.show()
+        return self.p2_total
+
+    def check_dist(self, coords):
+        threshold = 32
+        if len(self.targets) > 10:
+            threshold = 10000
+
+        total = sum([aoc_util.manhatten_dist(x, coords) for x in self.targets])
+
+        if total < threshold:
+            self.p2_total += 1
+            if coords not in self.targets:
+                self.grid.set_tuple(coords, '#')
 
 
 

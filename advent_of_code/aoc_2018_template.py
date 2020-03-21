@@ -130,9 +130,17 @@ class Solver(object):
             type(self).__name__, self.text)
 
     def p1(self):
+        """
+
+        """
+        z=0
         return 1
 
     def p2(self):
+        """
+
+        """
+        z=0
         return 2
 
 
