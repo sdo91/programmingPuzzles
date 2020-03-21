@@ -4,13 +4,11 @@
 
 ### IMPORTS ###
 
-import numpy as np
 import math
 import aocd
 
 from advent_of_code.util import aoc_util
 from advent_of_code.util.aoc_util import AocLogger
-# from advent_of_code.util.intcode_computer import IntcodeComputer
 
 
 ### CONSTANTS ###
@@ -64,6 +62,11 @@ TEST_OUTPUT_2 = [
 
 
 
+
+
+
+
+
 class Reaction(object):
 
     def __init__(self, text):
@@ -80,11 +83,13 @@ class Reaction(object):
             num, val = token.split()
             self.inputs[val] = int(num)
 
-    def __str__(self):
+    def __repr__(self):
         return 'Reaction {}'.format(self.text)
 
-    def __repr__(self):
-        return str(self)
+
+
+
+
 
 
 
@@ -104,84 +109,70 @@ class AdventOfCode(object):
             puzzle_input = 'unable to get input'
         aoc_util.write_input(puzzle_input, __file__)
 
-        # self.run_tests()
-
         AocLogger.verbose = False
 
-        # self.solve_part_1(puzzle_input)
+        self.run_tests()
 
-        self.solve_part_2(puzzle_input)
+        aoc_util.assert_equal(
+            1065255,
+            self.solve_part_1(puzzle_input)
+        )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_1(puzzle_input)
-        # )
-
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            1766154,
+            self.solve_part_2(puzzle_input)
+        )
 
     def run_tests(self):
-        AocLogger.verbose = True
+        AocLogger.verbose = False
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT_1, TEST_OUTPUT_1)
-
         aoc_util.run_tests(self.solve_part_2, TEST_INPUT_1, TEST_OUTPUT_2)
+        print('all tests passed!')
+        print('\n\n\n')
 
-    # def solve_test_case_1(self, test_input):
-    #     AocLogger.log('test input: {}'.format(test_input))
-    #     return 0
-
+    def solve_part_1(self, puzzle_input: str, num_fuel=1):
+        p1_result = self.calc_min_ore(puzzle_input, num_fuel)
+        print('p1_result: {}'.format(p1_result))
+        return p1_result
 
     def solve_part_2(self, puzzle_input: str):
+        ONE_TRILLION = 1e12
         puzzle_input = puzzle_input.strip()
 
-        # bounds of fuel created
-        lower_bound = 1  #
+        # calc quick upper/lower bounds
+        lower_bound = 1
         upper_bound = 2
 
         while True:
+            num_ore_needed = self.calc_min_ore(puzzle_input, upper_bound)
 
-            num_ore_needed = self.solve_part_1(puzzle_input, upper_bound)
-
-            if num_ore_needed > 1e12:
+            if num_ore_needed > ONE_TRILLION:
                 print('bounds found: {}'.format([lower_bound, upper_bound]))
                 break
 
             lower_bound = upper_bound
             upper_bound *= 2
 
-
+        # do binary search
         while True:
-            # check if neighbors
             if upper_bound == lower_bound + 1:
+                # if upper/lower bounds are neighbors we are done
                 break
 
             midpoint = (upper_bound + lower_bound) // 2
+            num_ore_needed = self.calc_min_ore(puzzle_input, midpoint)
 
-            num_ore_needed = self.solve_part_1(puzzle_input, midpoint)
-
-            if num_ore_needed > 1e12:
+            if num_ore_needed > ONE_TRILLION:
                 upper_bound = midpoint
             else:
                 lower_bound = midpoint
 
+        # finish up
+        p2_result = lower_bound
+        print('p2_result: {}'.format(p2_result))
+        return p2_result
 
-
-        result = lower_bound
-        print('part 2 result: {}'.format(result))
-        return result
-
-
-
-
-
-
-
-
-
-
-    def solve_part_1(self, puzzle_input: str, num_fuel=1):
+    def calc_min_ore(self, puzzle_input: str, num_fuel=1):
         puzzle_input = puzzle_input.strip()
 
         self.reaction_dict = {}
@@ -192,15 +183,9 @@ class AdventOfCode(object):
         self.collected = {}
         self.num_ore = 0
 
-        # x = self.collect(7, 'A')
-        # x = self.old_collect(100, 'FUEL')
-
         self.collect(num_fuel, 'FUEL')
 
-        # result = self.num_ore
-        # print('part 1 result: {}'.format(result))
-
-        print('{} ore -> {} fuel'.format(self.num_ore, num_fuel))
+        AocLogger.log('{} ore -> {} fuel'.format(self.num_ore, num_fuel))
         return self.num_ore
 
     def collect(self, desired_num, resource_name):
@@ -247,65 +232,8 @@ class AdventOfCode(object):
                 self.collected[resource_name] += num_created
                 # print('created {} {}'.format(num_created, resource_name))
 
-        z=0
 
 
-    def old_collect(self, desired_num, resource_name):
-        """
-        return num ore
-
-        base case:
-            name is ore, return number
-
-        examples:
-            1 fuel
-                7a
-                    10 ore, 3 a in extra
-
-        goal for 7A: collect 10 ore, then convert to 10 A
-        """
-        if resource_name not in self.collected:
-            self.collected[resource_name] = 0
-
-        if resource_name == 'ORE':
-            self.collected[resource_name] += desired_num
-            self.num_ore += desired_num
-            print('created {} {}'.format(desired_num, resource_name))
-        else:
-            # non base case
-
-            reaction = self.reaction_dict[resource_name]
-
-            # num_we_lack = desired_num - self.collected[resource_name]
-            # num_reactions_needed = int(math.ceil(num_we_lack/reaction.num_out))
-
-            while self.collected[resource_name] < desired_num:
-                # collect all ingredients
-                for ingredient in reaction.inputs:
-                    # print(ingredient)
-                    num_ingredient_needed = reaction.inputs[ingredient]
-                    self.collect(num_ingredient_needed, ingredient)
-
-                    # then consume the needed amount
-                    self.collected[ingredient] -= num_ingredient_needed
-
-                # we have now collected/consumed
-                self.collected[resource_name] += reaction.num_out
-                print('created {} {}'.format(reaction.num_out, resource_name))
-
-
-
-
-
-
-
-
-
-
-
-    def solve_test_case_2(self, test_input):
-        AocLogger.log('test input: {}'.format(test_input))
-        return 0
 
 
 
