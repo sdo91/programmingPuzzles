@@ -11,11 +11,12 @@ def addToPath(relPath):
     else:
         print('already in path: {}'.format(dirToAdd))
 
-# addToPath('.')
+addToPath('../../..')
 
 ### IMPORTS ###
 
 import aocd
+
 from advent_of_code.util import aoc_util
 
 

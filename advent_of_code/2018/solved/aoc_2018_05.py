@@ -11,14 +11,13 @@ def addToPath(relPath):
     else:
         print('already in path: {}'.format(dirToAdd))
 
-addToPath('../..')
+addToPath('../../..')
 
 ### IMPORTS ###
 
 import time
 import typing
 import traceback
-# import numpy as np
 
 import aocd
 
