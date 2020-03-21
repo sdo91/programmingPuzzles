@@ -102,6 +102,7 @@ def solve_part_1(puzzle_input):
 
 def solve_part_2(puzzle_input):
     image = SpaceImage(puzzle_input)
+    print('\npart 2:')
     image.print_image()
 
 

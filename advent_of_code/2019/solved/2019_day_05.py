@@ -5,6 +5,7 @@
 ### IMPORTS ###
 
 import aocd
+
 from advent_of_code.util import aoc_util
 from advent_of_code.util.intcode_computer import IntcodeComputer
 from advent_of_code.util.aoc_util import AocLogger
@@ -108,6 +109,8 @@ def main():
 def solve_part_1(puzzle_input):
     codes = aoc_util.ints(puzzle_input)
     computer = IntcodeComputer(codes)
+    p1_result = computer.run_to_halt(1)
+    print('p1_result: {}'.format(p1_result))
     return computer.run_to_halt(1)
 
 
@@ -122,7 +125,9 @@ def solve_test_case_2(test_input):
 
 def solve_part_2(puzzle_input):
     codes = aoc_util.ints(puzzle_input)
-    return solve_test_case_2((codes, 5))
+    p2_result = solve_test_case_2((codes, 5))
+    print('p2_result: {}'.format(p2_result))
+    return p2_result
 
 
 

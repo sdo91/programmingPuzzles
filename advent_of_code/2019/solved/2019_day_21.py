@@ -10,6 +10,7 @@ import aocd
 
 from advent_of_code.util import aoc_util
 from advent_of_code.util.intcode_computer import IntcodeComputer
+from advent_of_code.util.aoc_util import AocLogger
 
 
 
@@ -24,6 +25,8 @@ def main():
     except aocd.exceptions.AocdError:
         puzzle_input = 'unable to get input'
     aoc_util.write_input(puzzle_input, __file__)
+
+    AocLogger.verbose = False
 
     aoc_util.assert_equal(
         19362259,
@@ -52,8 +55,9 @@ def solve_part_1(puzzle_input):
         AND D J
         WALK
     '''
-
-    return get_hull_damage(puzzle_input, instructions)
+    p1_result = get_hull_damage(puzzle_input, instructions)
+    print('p1_result: {}'.format(p1_result))
+    return p1_result
 
 
 def solve_part_2(puzzle_input):
@@ -74,11 +78,13 @@ def solve_part_2(puzzle_input):
         AND T J
         RUN
     '''
-
-    return get_hull_damage(puzzle_input, instructions)
+    p2_result = get_hull_damage(puzzle_input, instructions)
+    print('p2_result: {}'.format(p2_result))
+    return p2_result
 
 
 def get_hull_damage(puzzle_input, instructions):
+    print('\n\n\n')
     ic = IntcodeComputer(puzzle_input)
 
     for instruction in aoc_util.stripped_lines(instructions):

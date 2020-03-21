@@ -1,6 +1,8 @@
 
 import typing
+
 from advent_of_code.util import aoc_util
+from advent_of_code.util.aoc_util import AocLogger
 
 
 class IntcodeComputer(object):
@@ -17,9 +19,9 @@ class IntcodeComputer(object):
     IMMEDIATE_MODE = 1
     RELATIVE_MODE = 2
 
-    def __init__(self, initial_memory):
+    def __init__(self, initial_memory, ascii_mode=False):
         self.verbose = True
-        self.ascii_mode = True
+        self.ascii_mode = ascii_mode
 
         if isinstance(initial_memory, str):
             self.initial_memory = aoc_util.ints(initial_memory)
@@ -157,7 +159,7 @@ class IntcodeComputer(object):
                     if self.ascii_mode:
                         print(chr(a), end='')
                     else:
-                        print('intcode output: {}'.format(self.get_latest_output()))
+                        AocLogger.log('intcode output: {}'.format(self.get_latest_output()))
                 self.state = self.STATE_OUTPUT
                 self.instruction_ptr += 2
                 break

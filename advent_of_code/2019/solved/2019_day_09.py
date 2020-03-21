@@ -89,6 +89,7 @@ class AdventOfCode(object):
         ic = IntcodeComputer(codes)
         ic.queue_input(intcode_input)
         result = ic.run_to_halt()
+        print('result (intcode_input={}): {}'.format(intcode_input, result))
         return result
 
 

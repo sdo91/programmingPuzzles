@@ -17,7 +17,7 @@ steps:
 * `echo <session> > ~/.config/aocd/token`
 
 # PyCharm setup
-* mark `advent_of_code` dir as 'Sources Root'
+* (not needed anymore) mark `advent_of_code` dir as 'Sources Root'
 
 # Other setup
 * `sudo pip3 install advent-of-code-data`

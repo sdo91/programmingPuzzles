@@ -5,6 +5,7 @@
 ### IMPORTS ###
 
 import aocd
+
 from advent_of_code.util import aoc_util
 from advent_of_code.util.aoc_util import AocLogger
 
