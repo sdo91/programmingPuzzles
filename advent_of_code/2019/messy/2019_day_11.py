@@ -3,7 +3,6 @@
 
 ### IMPORTS ###
 
-import numpy as np
 import aocd
 
 from advent_of_code.util import aoc_util
@@ -11,38 +10,12 @@ from advent_of_code.util.aoc_util import AocLogger
 from advent_of_code.util.intcode_computer import IntcodeComputer
 
 
-### CONSTANTS ###
-TEST_INPUT_1 = [
-    """
 
-    """, """
 
-    """, """
 
-    """
-]
 
-TEST_OUTPUT_1 = [
-    0,
-    0,
-    0,
-]
 
-TEST_INPUT_2 = [
-    """
 
-    """, """
-
-    """, """
-
-    """
-]
-
-TEST_OUTPUT_2 = [
-    0,
-    0,
-    0,
-]
 
 
 class Robot(object):
@@ -53,13 +26,11 @@ class Robot(object):
     LEFT = 0
     RIGHT = 1
 
-    def __init__(self, text):
+    def __init__(self, text, starting_panel_color):
         self.text = text
 
-        # self.panels = {}
         self.panels = {
-            (0,0): self.WHITE
-            # (0,0): self.BLACK
+            (0, 0): starting_panel_color
         }
 
         self.x = 0
@@ -147,34 +118,16 @@ class AdventOfCode(object):
             puzzle_input = 'unable to get input'
         aoc_util.write_input(puzzle_input, __file__)
 
-        # self.run_tests()
-
         AocLogger.verbose = False
 
-        self.solve_part_1(puzzle_input)
+        aoc_util.assert_equal(
+            2021,
+            self.solve_part_1(puzzle_input)
+        )
 
-        # self.solve_part_2(puzzle_input)
+        self.solve_part_2(puzzle_input)
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_1(puzzle_input)
-        # )
-
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
-        # )
-
-    def run_tests(self):
-        AocLogger.verbose = True
-        aoc_util.run_tests(self.solve_part_1, TEST_INPUT_1, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT_2, TEST_OUTPUT_2)
-
-    def solve_test_case_1(self, test_input):
-        AocLogger.log('test input: {}'.format(test_input))
-        return 0
-
-    def solve_part_1(self, puzzle_input: str):
+    def run_robot(self, puzzle_input: str, starting_panel_color):
         """
 
         IRIHFKIH
@@ -183,7 +136,7 @@ class AdventOfCode(object):
         """
         puzzle_input = puzzle_input.strip()
 
-        robot = Robot(puzzle_input)
+        robot = Robot(puzzle_input, starting_panel_color)
 
         while not robot.ic.is_halted():
             robot.do_next()
@@ -208,20 +161,16 @@ class AdventOfCode(object):
                 line += color
             print(line)
 
-        print('part 1 result: {}'.format(result))
         return result
 
-    def solve_test_case_2(self, test_input):
-        AocLogger.log('test input: {}'.format(test_input))
-        return 0
+    def solve_part_1(self, puzzle_input: str):
+        p1_result = self.run_robot(puzzle_input, Robot.BLACK)
+        print('p1_result: {}\n\n\n'.format(p1_result))
+        return p1_result
 
     def solve_part_2(self, puzzle_input: str):
-        puzzle_input = puzzle_input.strip()
-
-        result = 0
-
-        print('part 2 result: {}'.format(result))
-        return result
+        print('p2_result: LBJHEKLH')
+        self.run_robot(puzzle_input, Robot.WHITE)
 
 
 if __name__ == '__main__':

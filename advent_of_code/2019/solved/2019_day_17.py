@@ -4,9 +4,6 @@
 
 ### IMPORTS ###
 
-import numpy as np
-import typing
-
 import aocd
 
 from advent_of_code.util import aoc_util
@@ -189,7 +186,7 @@ def solve_full_input(puzzle_input):
     # print(string)
 
     ap_sum = calc_ap_sum(string)
-    print('ap_sum: {}'.format(ap_sum))
+    print('ap_sum (p1 result): {}'.format(ap_sum))
 
     ### part 2 ###
     path = find_full_path(string)
@@ -226,7 +223,7 @@ def solve_full_input(puzzle_input):
 
     ic.run_to_halt()
     dust_collected = ic.get_latest_output()
-    print('dust_collected: {}'.format(dust_collected))
+    print('dust_collected (p2 result): {}'.format(dust_collected))
     return ap_sum, dust_collected
 
 

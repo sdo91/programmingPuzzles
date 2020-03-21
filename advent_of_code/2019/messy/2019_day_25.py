@@ -20,7 +20,6 @@ from itertools import combinations
 import aocd
 
 from advent_of_code.util import aoc_util
-from advent_of_code.util.aoc_util import AocLogger
 from advent_of_code.util.intcode_computer import IntcodeComputer
 
 
@@ -79,7 +78,7 @@ class Droid(IntcodeComputer):
     }
 
     def __init__(self, initial_memory):
-        super().__init__(initial_memory)
+        super().__init__(initial_memory, ascii_output_mode=True)
 
         self.do_auto_take = True
 

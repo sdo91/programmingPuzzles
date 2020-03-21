@@ -19,9 +19,9 @@ class IntcodeComputer(object):
     IMMEDIATE_MODE = 1
     RELATIVE_MODE = 2
 
-    def __init__(self, initial_memory, ascii_mode=False):
+    def __init__(self, initial_memory, ascii_output_mode=False):
         self.verbose = True
-        self.ascii_mode = ascii_mode
+        self.ascii_output_mode = ascii_output_mode
 
         if isinstance(initial_memory, str):
             self.initial_memory = aoc_util.ints(initial_memory)
@@ -156,7 +156,7 @@ class IntcodeComputer(object):
                 a = self._get_value(1)
                 self.output_list.append(a)
                 if self.verbose:
-                    if self.ascii_mode:
+                    if self.ascii_output_mode:
                         print(chr(a), end='')
                     else:
                         AocLogger.log('intcode output: {}'.format(self.get_latest_output()))
