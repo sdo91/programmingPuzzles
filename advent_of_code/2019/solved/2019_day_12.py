@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 
 
-
 ### IMPORTS ###
 
 import numpy as np
 import itertools
+import time
+
 import aocd
 
 from advent_of_code.util import aoc_util
 from advent_of_code.util.aoc_util import AocLogger
-# from advent_of_code.util.intcode_computer import IntcodeComputer
-
 
 
 ### CONSTANTS ###
-TEST_INPUT_1 = [
+
+TEST_INPUT = [
     """
 <x=-1, y=0, z=2>
 <x=2, y=-10, z=-7>
@@ -31,27 +31,16 @@ TEST_INPUT_1 = [
     """
 ]
 
-TEST_OUTPUT_1 = [
-    179,
-    0,
-    0,
-]
-
-TEST_INPUT_2 = [
-    """
-
-    """, """
-
-    """, """
-
-    """
-]
-
-TEST_OUTPUT_2 = [
-    0,
-    0,
+TEST_OUTPUT = [
+    (179, 2772),
+    (1940, 4686774924),
     0,
 ]
+
+
+
+
+
 
 
 
@@ -63,7 +52,7 @@ class Moon(object):
         self.text = text
 
         self.pos = aoc_util.ints(text)
-        self.vel = [0,0,0]
+        self.vel = [0, 0, 0]
 
         self.energy = 0
 
@@ -74,9 +63,6 @@ class Moon(object):
         self.vx = {}
         self.vy = {}
         self.vz = {}
-
-    # def check_for_dup(self, i):
-    #     if
 
     def apply_grav(self, other):
         for axis in range(3):
@@ -92,16 +78,18 @@ class Moon(object):
             self.pos[axis] += self.vel[axis]
 
     def calc_energy(self):
-        z = [0,0,0]
+        z = [0, 0, 0]
         self.energy = aoc_util.manhatten_dist(z, self.pos) * aoc_util.manhatten_dist(z, self.vel)
         return self.energy
 
-    def __str__(self):
+    def __repr__(self):
         return 'pos={}, vel={}, energy={}'.format(
             self.pos, self.vel, self.energy)
 
-    def __repr__(self):
-        return str(self)
+
+
+
+
 
 
 
@@ -114,6 +102,7 @@ class AdventOfCode(object):
 
     def run(self):
         print('starting {}'.format(__file__.split('/')[-1]))
+        start_time = time.time()
 
         try:
             puzzle_input = aocd.data
@@ -125,32 +114,26 @@ class AdventOfCode(object):
 
         AocLogger.verbose = False
 
-        self.solve_part_1(puzzle_input, 1000)
+        aoc_util.assert_equal(
+            (7722, 292653556339368),
+            self.solve(puzzle_input, 1000)
+        )
 
-        # self.solve_part_2(puzzle_input)
-
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_1(puzzle_input)
-        # )
-
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
-        # )
+        elapsed_time = time.time() - start_time
+        print('elapsed_time: {:.3f} sec'.format(elapsed_time))
 
     def run_tests(self):
         AocLogger.verbose = True
-        # aoc_util.run_tests(self.solve_part_1, TEST_INPUT_1, TEST_OUTPUT_1)
 
-        self.solve_part_1(TEST_INPUT_1[0], 10)
-        # self.solve_part_1(TEST_INPUT_1[1], 100)
+        aoc_util.assert_equal(
+            TEST_OUTPUT[0],
+            self.solve(TEST_INPUT[0], 10)
+        )
 
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT_2, TEST_OUTPUT_2)
-
-    def solve_test_case_1(self, test_input):
-        AocLogger.log('test input: {}'.format(test_input))
-        return 0
+        aoc_util.assert_equal(
+            TEST_OUTPUT[1],
+            self.solve(TEST_INPUT[1], 100)
+        )
 
     def calc_state(self, axis, moons):
         result = []
@@ -159,47 +142,41 @@ class AdventOfCode(object):
             result.append(m.vel[axis])
         return tuple(result)
 
-    def solve_part_1(self, puzzle_input: str, num_steps):
+    def solve(self, puzzle_input: str, num_steps_p1):
+        print('\n\n\n')
         puzzle_input = puzzle_input.strip()
+        p1_result = -1
 
         lines = puzzle_input.split('\n')
         moons = []
         for line in lines:
             moons.append(Moon(line))
 
-        pairs = list(itertools.combinations([0,1,2,3], 2))
+        pairs = list(itertools.combinations([0, 1, 2, 3], 2))
 
         initial_state = []
         for axis in range(3):
             initial_state.append(self.calc_state(axis, moons))
 
-        periods = [0,0,0]
+        periods = [0, 0, 0]
 
-        # all_states = set()
-
-        # for i in range(1, num_steps+1):
         i = 0
         while True:
             i += 1
-
-            if i % 1000000 == 0:
-                print('i: {}'.format(i))
 
             # do vel
             for p in pairs:
                 moons[p[0]].apply_grav(moons[p[1]])
 
             # do pos
-            e_sum = 0
-            # state = []
+            total_energy = 0
             for m in moons:
                 m.apply_vel()
-                e_sum += m.calc_energy()
+                total_energy += m.calc_energy()
 
-                # m.check_for_dup()
-                #
-                # state += m.pos
-                # state += m.vel
+            if i == num_steps_p1:
+                p1_result = total_energy
+                print('p1_result: {}'.format(p1_result))
 
             # check state
             for axis in range(3):
@@ -210,45 +187,18 @@ class AdventOfCode(object):
                         periods[axis] = i
 
             if all(periods):
-                print(periods)
-
-                print(np.lcm.reduce(periods))
-
+                AocLogger.log(periods)
+                p2_result = np.lcm.reduce(periods)
+                print('p2_result: {}'.format(p2_result))
                 break
+        # end while
+
+        return p1_result, p2_result
 
 
 
-            # state = tuple(state)
-            #
-            # if state in all_states:
-            #     print(i-1)
-            #     break
-            # all_states.add(state)
-
-            # print('\nafter {}'.format(i))
-            # for m in moons:
-            #     print(m)
-            # print(e_sum)
 
 
-        result = 0
-
-        print('part 1 result: {}'.format(result))
-        return result
-
-    # def ()
-
-    def solve_test_case_2(self, test_input):
-        AocLogger.log('test input: {}'.format(test_input))
-        return 0
-
-    def solve_part_2(self, puzzle_input: str):
-        puzzle_input = puzzle_input.strip()
-
-        result = 0
-
-        print('part 2 result: {}'.format(result))
-        return result
 
 
 
@@ -257,7 +207,3 @@ class AdventOfCode(object):
 if __name__ == '__main__':
     instance = AdventOfCode()
     instance.run()
-
-
-
-
