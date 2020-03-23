@@ -17,38 +17,10 @@ addToPath('../../..')
 ### IMPORTS ###
 
 import time
-import traceback
 from itertools import permutations
 
 from advent_of_code.util import aoc_util
 from advent_of_code.util.aoc_util import AocLogger
-
-from advent_of_corona.util import corona_util
-
-
-### CONSTANTS ###
-
-TEST_INPUT = [
-    """
-
-    """, """
-
-    """, """
-
-    """
-]
-
-TEST_OUTPUT_1 = [
-    0,
-    0,
-    0,
-]
-
-TEST_OUTPUT_2 = [
-    0,
-    0,
-    0,
-]
 
 
 
@@ -77,11 +49,17 @@ class DayManager(object):
 
     def run_tests(self):
         AocLogger.verbose = True
-        # aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
-        for n in range(1, 4):
-            assert Solver.find_num_paths_slow(n) == Solver.find_num_paths_fast(n)
+        Solver.assert_fast_eq_slow(1)
+        Solver.assert_fast_eq_slow(2)
+        Solver.assert_fast_eq_slow(3)
+
+        # Solver.print_tri(Solver.gen_pascals_tri(5))
+
+        Solver.assert_fast_eq_slow(1, 4)
+        Solver.assert_fast_eq_slow(1, 5)
+        Solver.assert_fast_eq_slow(2, 4)
+        Solver.assert_fast_eq_slow(2, 5)
 
     def run_real(self):
         AocLogger.verbose = False
@@ -91,10 +69,10 @@ class DayManager(object):
             self.solve_part_1(self.puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(self.puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            623360743125120,
+            self.solve_part_2(self.puzzle_input)
+        )
 
     def solve_part_1(self, puzzle_input: str):
         solver = Solver(puzzle_input)
@@ -140,44 +118,57 @@ class Solver(object):
         told to move to the opposite corner of that cube.
 
         How many paths you can take?
+
+        Note: You must take the shortest possible path and can only walk on the edges of the 1m cubes forming the big
+        one.
+
+        #iwouldnotbruteforcethis
         """
         num_paths = self.find_num_paths_fast(10)
         return num_paths
 
     @classmethod
-    def find_num_paths_slow(cls, x, y=None, z=None):
-        if y is None and z is None:
-            y = x
-            z = x
+    def assert_fast_eq_slow(cls, n, d=3):
+        assert cls.find_num_paths_slow(n, d) == cls.find_num_paths_fast(n, d)
 
+    @classmethod
+    def find_num_paths_slow(cls, n, dimensions=3):
         steps = []
-        for i in range(x):
-            steps.append('X')
-        for i in range(y):
-            steps.append('Y')
-        for i in range(z):
-            steps.append('Z')
+        for i in range(n):
+            for j in range(dimensions):
+                char = chr(ord('A') + j)
+                steps.append(char)
 
         num_paths = len(set(permutations(steps)))
-        print('{} x {} x {} -> {}'.format(x, y, z, num_paths))
+        print('{} -> {}'.format(
+            ' x '.join([str(n)] * dimensions),
+            num_paths
+        ))
         return num_paths
 
     @classmethod
-    def find_num_paths_fast(cls, n):
-        tri = cls.gen_tri(3 * n + 1)
-        if AocLogger.verbose:
+    def find_num_paths_fast(cls, n, dimensions=3):
+        triangle_size = n * dimensions
+        tri = cls.gen_pascals_tri(triangle_size)
+        if AocLogger.verbose or 1:
             cls.print_tri(tri)
 
-        ans_2d = tri[n][n]
-        mult_3d = tri[n][2 * n]
-        ans_3d = ans_2d * mult_3d
-        print('{} * {} = {}\n'.format(ans_2d, mult_3d, ans_3d))
+        num_paths = 1  # 1d base case
+        multipliers = []
+        for x in range(2, dimensions + 1):
+            mult = tri[n][n * (x - 1)]
+            num_paths *= mult
+            multipliers.append(str(mult))
 
-        return ans_3d
+        print('{} = {}\n'.format(
+            ' * '.join(multipliers),
+            num_paths
+        ))
+        return num_paths
 
     @classmethod
-    def gen_tri(cls, n):
-        tri = []
+    def gen_pascals_tri(cls, n):
+        tri = [[1]]
         for _ in range(n):
             # print('add a new diag')
             for y, row in enumerate(tri):
@@ -189,7 +180,7 @@ class Solver(object):
                     value = tri[y - 1][x] + tri[y][x - 1]
                 row.append(value)
             tri.append([1])
-            z=0
+            # z=0
         return tri
 
     @classmethod
@@ -206,10 +197,20 @@ class Solver(object):
 
     def p2(self):
         """
+        Wow, you made it!
 
+        I guess it was too easy, so… imagine that the cube is from another universe (also with a pandemic issue)
+        where there are more than 3 dimensions. In that universe, the cube is converted to an hypercube of dimension 5.
+
+        What would be the number of paths in that hypercube?
+
+        Oh wait, I forgot something… The size of its sides was reduced by half during the multi-universe transition,
+        so take that in mind.
+
+        #idefinitelyshouldnotbruteforcethis
         """
-        z=0
-        return 2
+        fast_5x5 = self.find_num_paths_fast(5, 5)
+        return fast_5x5
 
 
 
