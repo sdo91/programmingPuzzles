@@ -203,6 +203,7 @@ class Solver(object):
 
             # show letters
             if height < 10:
+                grid.set_value_width(2)
                 grid.show()
                 print('after {} sec (height={})'.format(num_sec, height))
 

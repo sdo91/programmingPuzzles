@@ -12,6 +12,8 @@ class Grid2D(object):
         """
         self.grid = defaultdict(lambda: default)
 
+        self.value_width = 1
+
         self.min_x = 2**32
         self.max_x = 0
         self.min_y = 2**32
@@ -25,6 +27,9 @@ class Grid2D(object):
             for r, row in enumerate(lines):
                 for c, col in enumerate(row):
                     self.set(c, r, col)
+
+    def set_value_width(self, width):
+        self.value_width = width
 
     def set_tuple(self, coord, value):
         self.set(coord[0], coord[1], value)
@@ -58,32 +63,46 @@ class Grid2D(object):
                 result.append(coord)
         return result
 
-    def __repr__(self):
+    def to_string(self, top_left, bottom_right):
+        row_range = range(top_left[1], bottom_right[1] + 1)
+        col_range = range(top_left[0], bottom_right[0] + 1)
         lines = []
-        for y in self.rows():
-            line = ''
-            for x in self.cols():
+        for y in row_range:
+            builder = []
+            for x in col_range:
                 coord = (x, y)
                 if coord in self.overlay:
-                    line += self.overlay[coord]
+                    value = self.overlay[coord]
                 else:
-                    line += self.grid[coord]
-            lines.append(line)
+                    value = self.grid[coord]
+                formatted = '{:{}}'.format(value, self.value_width)
+                builder.append(formatted)
+            lines.append(''.join(builder))
         return '\n'.join(lines)
+
+    def __repr__(self):
+        top_left = (self.min_x, self.min_y)
+        bottom_right = (self.max_x, self.max_y)
+        return self.to_string(top_left, bottom_right)
+
+    def show_from(self, top_left, bottom_right):
+        print('\n{}: {} to {}\n{}\n'.format(
+            type(self).__name__,
+            top_left,
+            bottom_right,
+            self.to_string(top_left, bottom_right)
+        ))
+
+    def show(self):
+        top_left = (self.min_x, self.min_y)
+        bottom_right = (self.max_x, self.max_y)
+        self.show_from(top_left, bottom_right)
 
     def rows(self):
         return range(self.min_y, self.max_y + 1)
 
     def cols(self):
         return range(self.min_x, self.max_x + 1)
-
-    def show(self):
-        print('\n{}: {} to {}\n{}\n'.format(
-            type(self).__name__,
-            (self.min_x, self.min_y),
-            (self.max_x, self.max_y),
-            self
-        ))
 
     def count_adjacent(self, x, y, value):
         adj_coords = [
