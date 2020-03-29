@@ -72,7 +72,7 @@ class DayManager(object):
         print('starting {}'.format(__file__.split('/')[-1]))
         start_time = time.time()
 
-        self.run_tests()
+        # self.run_tests()
 
         self.run_real()
 
@@ -152,17 +152,48 @@ class Solver(object):
 
         Example
         Being N = 10 and citizens = [2, 4, 2, 6, 1, 7, 8, 9, 2, 1].
-        We will give [1, 2, 1, 2, 1, 2, 3, 4, 2, 1] vaccines that has a total of 19.
+        We will give                [1, 2, 1, 2, 1, 2, 3, 4, 2, 1] vaccines that has a total of 19.
+
+        NOTE:
+            adjacent citizens can have same value
+
+            2 4 6 6 2
+            1 2 3 2 1
 
         algo:
             find local min, assign 1
             in between, repeat recursive, x+1
+
+            reduce until no reductions
         """
         lines = aoc_util.lines(self.text)
         citizens = aoc_util.ints(lines[-1])
 
+        # self.assert_no_twins(citizens)
+
+        # assert no equal
+
+
+        # given start index, find next local min
+
         z=0
         return 1
+
+    # def assert_no_twins(self, array):
+    #     for x in range(len(array) - 1):
+    #         assert array[x] != array[x + 1]
+
+    def reduce(self, array, index):
+        """
+        set value to min value that is larger
+
+
+        given A B
+
+        if b is larger
+        """
+
+        return 0
 
     def p2(self):
         """
