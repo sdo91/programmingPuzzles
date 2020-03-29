@@ -45,7 +45,7 @@ TEST_OUTPUT_1 = [
 ]
 
 TEST_OUTPUT_2 = [
-    0,
+    22563,
     0,
     0,
 ]
@@ -84,10 +84,10 @@ class AdventOfCode(object):
             self.solve_part_1(puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            3009951158,
+            self.solve_part_2(puzzle_input)
+        )
 
         elapsed_time = time.time() - start_time
         print('elapsed_time: {:.3f} sec'.format(elapsed_time))
@@ -95,7 +95,8 @@ class AdventOfCode(object):
     def run_tests(self):
         AocLogger.verbose = True
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+        AocLogger.verbose = False
+        aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def solve_part_1(self, puzzle_input: str):
         solver = Solver(puzzle_input)
@@ -140,6 +141,15 @@ class Solver(object):
             type(self).__name__, self.text)
 
     def p1(self):
+        num_players, last_marble = aoc_util.ints(self.text)
+        return self.play_game(num_players, last_marble)
+
+    def p2(self):
+        num_players, last_marble = aoc_util.ints(self.text)
+        last_marble *= 100
+        return self.play_game(num_players, last_marble)
+
+    def play_game(self, num_players, last_marble):
         """
         Then, each Elf takes a turn placing the lowest-numbered remaining marble into the circle between the marbles
         that are 1 and 2 marbles clockwise of the current marble. (When the circle is large enough, this means that
@@ -155,7 +165,6 @@ class Solver(object):
         [1]  0  8  4  9  2(10) 5  1  6  3  7
         [7]  0 16  8 17  4 18 19  2 24 20(25)10 21  5 22 11  1 12  6 13  3 14  7 15
         """
-        num_players, last_marble = aoc_util.ints(self.text)
 
         scores = defaultdict(int)
         winning_score = 0
@@ -204,13 +213,6 @@ class Solver(object):
         if result is None:
             result = self.circle.last
         return result
-
-    def p2(self):
-        """
-
-        """
-        z=0
-        return 2
 
 
 
