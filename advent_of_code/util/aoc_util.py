@@ -78,7 +78,7 @@ def assert_equal(expected, actual):
     if expected != actual:
         print('expected: {}'.format(expected))
         print('actual: {}'.format(actual))
-    time.sleep(0.1)
+        time.sleep(0.1)
     assert expected == actual
 
 
