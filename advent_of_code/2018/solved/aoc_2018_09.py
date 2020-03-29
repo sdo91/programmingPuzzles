@@ -173,6 +173,9 @@ class Solver(object):
         for x in range(1, last_marble + 1):
             player_1_idx = player_0_idx + 1
 
+            if x % 1e6 == 0:
+                print('marble: {}'.format(x))
+
             if x % 23 == 0:
                 # move current
                 self.move_ccw(6)
