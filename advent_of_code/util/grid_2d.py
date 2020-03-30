@@ -45,6 +45,9 @@ class Grid2D(object):
     def is_value(self, coord, value):
         return self.grid[coord] == value
 
+    def get_tuple(self, coord):
+        return self.get(*coord)
+
     def get(self, x, y):
         return self.grid[(x, y)]
 

@@ -43,8 +43,8 @@ TEST_OUTPUT_1 = [
 ]
 
 TEST_OUTPUT_2 = [
-    0,
-    0,
+    (90, 269, 16),
+    (232, 251, 12),
     0,
 ]
 
@@ -82,10 +82,10 @@ class AdventOfCode(object):
             self.solve_part_1(puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            (235, 87, 13),
+            self.solve_part_2(puzzle_input)
+        )
 
         elapsed_time = time.time() - start_time
         print('elapsed_time: {:.3f} sec'.format(elapsed_time))
@@ -99,6 +99,11 @@ class AdventOfCode(object):
         aoc_util.assert_equal( 4, Solver.calc_power_level((101, 153), 71))
 
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
+
+        # aoc_util.assert_equal(
+        #     TEST_OUTPUT_2[0],
+        #     self.solve_part_2(TEST_INPUT[0])
+        # )
 
         # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
@@ -133,6 +138,17 @@ class Solver(object):
 
     def __init__(self, text: str):
         self.text = text.strip()
+        self.serial_number = int(self.text)
+
+        # populate grid
+        self.grid = Grid2D()
+        self.grid.set_value_width(4)
+        for y in range(1, self.ORDER + 1):
+            for x in range(1, self.ORDER + 1):
+                coord = x, y
+                power_level = self.calc_power_level(coord, self.serial_number)
+                self.grid.set_tuple(coord, power_level)
+
         AocLogger.log(str(self))
 
     def __repr__(self):
@@ -140,47 +156,59 @@ class Solver(object):
             type(self).__name__, self.text)
 
     def p1(self):
-        """
+        # find best square
+        max_coord, max_sq_power = self.check_all_squares_of_size(3)
 
-        """
-        serial_number = int(self.text)
+        self.show_square(max_coord)
+        print('max_sq_power: {}'.format(max_sq_power))
+        return max_coord
 
-        grid = Grid2D()
-        grid.set_value_width(4)
-
-        max_sq_power = -99
+    def p2(self):
         max_coord = None
+        max_sq_power = -99
 
-        # pop grid
-        for y in range(1, self.ORDER + 1):
-            for x in range(1, self.ORDER + 1):
-                coord = x, y
-                power_level = self.calc_power_level(coord, serial_number)
-                grid.set_tuple(coord, power_level)
+        # todo: make faster
+        for size in range(13, 14):
+            print('on size: {}'.format(size))
 
+            coord, power = self.check_all_squares_of_size(size)
+
+            if power > max_sq_power:
+                max_sq_power = power
+                max_coord = (coord[0], coord[1], size)
+
+            print('best so far: {}'.format(max_coord))
+
+        print('max_sq_power: {}'.format(max_sq_power))
+        return max_coord
+
+    def check_all_squares_of_size(self, size):
+        RANGE_MAX = self.ORDER - size + 1
+
+        max_coord = None
+        max_sq_power = -99
+
+        for y in range(1, RANGE_MAX):
+
+            for x in range(1, RANGE_MAX):
                 # check square power
-                top_left = (x - 2, y - 2)
-                sq_power = self.calc_square_power(grid, top_left)
+                top_left = x, y
+                sq_power = self.calc_square_power(top_left, size)
                 if sq_power > max_sq_power:
                     max_sq_power = sq_power
                     max_coord = top_left
 
-        self.show_square(grid, max_coord)
-        print('max_sq_power: {}'.format(max_sq_power))
-        return max_coord
+        return max_coord, max_sq_power
 
-    def calc_square_power(self, grid, top_left):
-        if min(top_left) < 1:
-            return -99
-
+    def calc_square_power(self, top_left, size):
         result = 0
-        for y_offset in range(3):
-            for x_offset in range(3):
+        for y_offset in range(size):
+            for x_offset in range(size):
                 coord = (top_left[0] + x_offset, top_left[1] + y_offset)
-                result += grid.get(*coord)
+                result += self.grid.get(*coord)
         return result
 
-    def show_square(self, grid, top_left):
+    def show_square(self, top_left):
         adj_top_left = (
             top_left[0] - 1,
             top_left[1] - 1
@@ -189,14 +217,7 @@ class Solver(object):
             top_left[0] + 3,
             top_left[1] + 3
         )
-        grid.show_from(adj_top_left, bottom_right)
-
-    def p2(self):
-        """
-
-        """
-        z=0
-        return 2
+        self.grid.show_from(adj_top_left, bottom_right)
 
     @classmethod
     def calc_power_level(cls, coord, serial_number):
