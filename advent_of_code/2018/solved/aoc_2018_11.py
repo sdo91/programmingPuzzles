@@ -42,12 +42,6 @@ TEST_OUTPUT_1 = [
     0,
 ]
 
-TEST_OUTPUT_2 = [
-    (90, 269, 16),
-    (232, 251, 12),
-    0,
-]
-
 
 
 
@@ -100,13 +94,6 @@ class AdventOfCode(object):
 
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
 
-        # aoc_util.assert_equal(
-        #     TEST_OUTPUT_2[0],
-        #     self.solve_part_2(TEST_INPUT[0])
-        # )
-
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
-
     def solve_part_1(self, puzzle_input: str):
         solver = Solver(puzzle_input)
 
@@ -157,7 +144,7 @@ class Solver(object):
 
     def p1(self):
         # find best square
-        max_coord, max_sq_power = self.check_all_squares_of_size(3)
+        max_coord, max_sq_power = self.check_squares_fast(3)
 
         self.show_square(max_coord)
         print('max_sq_power: {}'.format(max_sq_power))
@@ -167,11 +154,10 @@ class Solver(object):
         max_coord = None
         max_sq_power = -99
 
-        # todo: make faster
-        for size in range(13, 14):
+        for size in range(3, 20):
             print('on size: {}'.format(size))
 
-            coord, power = self.check_all_squares_of_size(size)
+            coord, power = self.check_squares_fast(size)
 
             if power > max_sq_power:
                 max_sq_power = power
@@ -182,42 +168,63 @@ class Solver(object):
         print('max_sq_power: {}'.format(max_sq_power))
         return max_coord
 
-    def check_all_squares_of_size(self, size):
-        RANGE_MAX = self.ORDER - size + 1
-
+    def check_squares_fast(self, size):
         max_coord = None
         max_sq_power = -99
 
-        for y in range(1, RANGE_MAX):
+        grid_rows = range(1, self.ORDER - size + 2)
+        for grid_row in grid_rows:
 
-            for x in range(1, RANGE_MAX):
-                # check square power
-                top_left = x, y
-                sq_power = self.calc_square_power(top_left, size)
-                if sq_power > max_sq_power:
-                    max_sq_power = sq_power
-                    max_coord = top_left
+            # calc subcolumn sums
+            subcolumn_sums = []  # zero indexed
+            for grid_col in range(1, self.ORDER + 1):
+                # let col = 1
+                subcol_sum = 0
+                for y_offset in range(size):
+                    coord = (grid_col, grid_row + y_offset)
+                    subcol_sum += self.grid.get_tuple(coord)
+                subcolumn_sums.append(subcol_sum)
+
+            # find the best column given this row
+            grid_col, sq_power = self.find_best_column(subcolumn_sums, size)
+            if sq_power > max_sq_power:
+                max_sq_power = sq_power
+                max_coord = (grid_col, grid_row)
 
         return max_coord, max_sq_power
 
-    def calc_square_power(self, top_left, size):
-        result = 0
-        for y_offset in range(size):
-            for x_offset in range(size):
-                coord = (top_left[0] + x_offset, top_left[1] + y_offset)
-                result += self.grid.get(*coord)
-        return result
+    def find_best_column(self, subcolumn_sums, size):
+        max_col = None
+        max_sq_power = -99
+        sq_power = -1
+
+        grid_columns = range(1, self.ORDER - size + 2)
+        for grid_col in grid_columns:
+            # calc square power
+            if grid_col == 1:
+                sq_power = sum(subcolumn_sums[0:size])
+            else:
+                old_col = grid_col - 2
+                new_col = old_col + size
+                sq_power += subcolumn_sums[new_col] - subcolumn_sums[old_col]
+
+            # check square power
+            if sq_power > max_sq_power:
+                max_sq_power = sq_power
+                max_col = grid_col
+
+        return max_col, max_sq_power
 
     def show_square(self, top_left):
         adj_top_left = (
             top_left[0] - 1,
             top_left[1] - 1
         )
-        bottom_right = (
+        adj_bottom_right = (
             top_left[0] + 3,
             top_left[1] + 3
         )
-        self.grid.show_from(adj_top_left, bottom_right)
+        self.grid.show_from(adj_top_left, adj_bottom_right)
 
     @classmethod
     def calc_power_level(cls, coord, serial_number):
