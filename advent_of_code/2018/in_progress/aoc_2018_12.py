@@ -27,7 +27,22 @@ from advent_of_code.util.aoc_util import AocLogger
 ### CONSTANTS ###
 TEST_INPUT = [
     """
+initial state: #..#.#..##......###...###
 
+...## => #
+..#.. => #
+.#... => #
+.#.#. => #
+.#.## => #
+.##.. => #
+.#### => #
+#.#.# => #
+#.### => #
+##.#. => #
+##.## => #
+###.. => #
+###.# => #
+####. => #
     """, """
 
     """, """
@@ -36,7 +51,7 @@ TEST_INPUT = [
 ]
 
 TEST_OUTPUT_1 = [
-    0,
+    325,
     0,
     0,
 ]
@@ -77,7 +92,7 @@ class AdventOfCode(object):
         AocLogger.verbose = False
 
         aoc_util.assert_equal(
-            0,
+            3230,
             self.solve_part_1(puzzle_input)
         )
 
@@ -119,6 +134,56 @@ class AdventOfCode(object):
 
 
 
+class Generation(object):
+
+    PRINT_LEFT = -5
+
+    min = 0
+    max = 0
+
+    def __init__(self, gen=0):
+        self.gen = gen
+        self.pots = {}
+
+    def __repr__(self):
+        return '{:3}: {} (sum={})'.format(
+            self.gen,
+            self.to_string(self.PRINT_LEFT, self.max + 3),
+            self.sum()
+        )
+
+    def to_string(self, left, right):
+        rng = range(left, right + 1)
+        return ''.join([self.get_pot(x) for x in rng])
+
+    def set(self, i):
+        self.pots[i] = '#'
+        self.min = min(self.min, i)
+        self.max = max(self.max, i)
+
+    def get_pot(self, i):
+        try:
+            return self.pots[i]
+        except KeyError:
+            return '.'
+
+    def get_combo(self, i):
+        left = i - 2
+        right = i + 2
+        return self.to_string(left, right)
+
+    def sum(self):
+        return sum(self.pots.keys())
+
+
+
+
+
+
+
+
+
+
 class Solver(object):
 
     def __init__(self, text: str):
@@ -131,10 +196,64 @@ class Solver(object):
 
     def p1(self):
         """
-
+                         1         2         3
+               0         0         0         0
+         0: ...#..#.#..##......###...###...........
+         1: ...#...#....#.....#..#..#..#...........
+         2: ...##..##...##....#..#..#..##..........
+         3: ..#.#...#..#.#....#..#..#...#..........
+         4: ...#.#..#...#.#...#..#..##..##.........
+         5: ....#...##...#.#..#..#...#...#.........
+         6: ....##.#.#....#...#..##..##..##........
+         7: ...#..###.#...##..#...#...#...#........
+         8: ...#....##.#.#.#..##..##..##..##.......
+         9: ...##..#..#####....#...#...#...#.......
+        10: ..#.#..#...#.##....##..##..##..##......
+        11: ...#...##...#.#...#.#...#...#...#......
+        12: ...##.#.#....#.#...#.#..##..##..##.....
+        13: ..#..###.#....#.#...#....#...#...#.....
+        14: ..#....##.#....#.#..##...##..##..##....
+        15: ..##..#..#.#....#....#..#.#...#...#....
+        16: .#.#..#...#.#...##...#...#.#..##..##...
+        17: ..#...##...#.#.#.#...##...#....#...#...
+        18: ..##.#.#....#####.#.#.#...##...##..##..
+        19: .#..###.#..#.#.#######.#.#.#..#.#...#..
+        20: .#....##....#####...#######....#.#..##.
         """
-        z=0
-        return 1
+        lines = aoc_util.lines(self.text)
+
+        # parse initial state
+        initial_state = lines[0].split()[-1]
+        current_gen = Generation()
+        for i, char in enumerate(initial_state):
+            if char == '#':
+                current_gen.set(i)
+        print(current_gen)
+
+        # parse rules
+        plant_combos = set()
+        for line in lines:
+            if '=> #' not in line:
+                # skip
+                continue
+            tokens = aoc_util.split_and_strip_each(line, '=>')
+            plant_combos.add(tokens[0])
+        assert '.....' not in plant_combos
+
+        # loop
+        for gen in range(1, 21):
+            prev_gen = current_gen
+            current_gen = Generation(gen)
+
+            for pot in range(prev_gen.min - 2, prev_gen.max + 3):
+                combo = prev_gen.get_combo(pot)
+                # print('{}: {}'.format(pot, combo))
+                if combo in plant_combos:
+                    current_gen.set(pot)
+
+            print(current_gen)
+
+        return current_gen.sum()
 
     def p2(self):
         """
