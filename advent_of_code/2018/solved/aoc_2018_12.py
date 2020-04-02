@@ -96,10 +96,10 @@ class AdventOfCode(object):
             self.solve_part_1(puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            4400000000304,
+            self.solve_part_2(puzzle_input)
+        )
 
         elapsed_time = time.time() - start_time
         print('elapsed_time: {:.3f} sec'.format(elapsed_time))
@@ -114,7 +114,7 @@ class AdventOfCode(object):
 
         part_1_result = solver.p1()
 
-        print('part_1_result: {}'.format(part_1_result))
+        print('part_1_result: {}\n'.format(part_1_result))
         return part_1_result
 
     def solve_part_2(self, puzzle_input: str):
@@ -122,7 +122,7 @@ class AdventOfCode(object):
 
         part_2_result = solver.p2()
 
-        print('part_2_result: {}'.format(part_2_result))
+        print('part_2_result: {}\n'.format(part_2_result))
         return part_2_result
 
 
@@ -175,6 +175,16 @@ class Generation(object):
     def sum(self):
         return sum(self.pots.keys())
 
+    def populate(self, prev_gen, plant_combos):
+        """
+        Args:
+            prev_gen (Generation):
+            plant_combos (set):
+        """
+        for pot in range(prev_gen.min - 2, prev_gen.max + 3):
+            combo = prev_gen.get_combo(pot)
+            if combo in plant_combos:
+                self.set(pot)
 
 
 
@@ -188,6 +198,26 @@ class Solver(object):
 
     def __init__(self, text: str):
         self.text = text.strip()
+        lines = aoc_util.lines(self.text)
+
+        # parse initial state
+        initial_state = lines[0].split()[-1]
+        self.initial_gen = Generation()
+        for i, char in enumerate(initial_state):
+            if char == '#':
+                self.initial_gen.set(i)
+        print(self.initial_gen)
+
+        # parse rules
+        self.plant_combos = set()
+        for line in lines:
+            if '=> #' not in line:
+                # skip
+                continue
+            tokens = aoc_util.split_and_strip_each(line, '=>')
+            self.plant_combos.add(tokens[0])
+        assert '.....' not in self.plant_combos
+
         AocLogger.log(str(self))
 
     def __repr__(self):
@@ -220,36 +250,13 @@ class Solver(object):
         19: .#..###.#..#.#.#######.#.#.#..#.#...#..
         20: .#....##....#####...#######....#.#..##.
         """
-        lines = aoc_util.lines(self.text)
-
-        # parse initial state
-        initial_state = lines[0].split()[-1]
-        current_gen = Generation()
-        for i, char in enumerate(initial_state):
-            if char == '#':
-                current_gen.set(i)
-        print(current_gen)
-
-        # parse rules
-        plant_combos = set()
-        for line in lines:
-            if '=> #' not in line:
-                # skip
-                continue
-            tokens = aoc_util.split_and_strip_each(line, '=>')
-            plant_combos.add(tokens[0])
-        assert '.....' not in plant_combos
+        current_gen = self.initial_gen
 
         # loop
         for gen in range(1, 21):
             prev_gen = current_gen
             current_gen = Generation(gen)
-
-            for pot in range(prev_gen.min - 2, prev_gen.max + 3):
-                combo = prev_gen.get_combo(pot)
-                # print('{}: {}'.format(pot, combo))
-                if combo in plant_combos:
-                    current_gen.set(pot)
+            current_gen.populate(prev_gen, self.plant_combos)
 
             print(current_gen)
 
@@ -257,10 +264,35 @@ class Solver(object):
 
     def p2(self):
         """
-
+        after 200: 17904
         """
-        z=0
-        return 2
+        current_gen = self.initial_gen
+        num_repeats = 0
+        diff = 0
+        gen = 0
+
+        # loop
+        for gen in range(1, 201):
+            prev_gen = current_gen
+            prev_diff = diff
+
+            current_gen = Generation(gen)
+            current_gen.populate(prev_gen, self.plant_combos)
+
+            # calc diff
+            diff = current_gen.sum() - prev_gen.sum()
+            print('diff={:5}, current_gen={}'.format(diff, current_gen))
+
+            if diff == prev_diff:
+                num_repeats += 1
+                if num_repeats >= 5:
+                    break
+            else:
+                num_repeats = 0
+
+        num_gens_left = int(50e9) - gen
+        result = current_gen.sum() + (num_gens_left * diff)
+        return result
 
 
 
