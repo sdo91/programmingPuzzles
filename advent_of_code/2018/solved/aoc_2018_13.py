@@ -18,6 +18,7 @@ addToPath('../../..')
 import time
 import traceback
 from bidict import bidict
+from typing import List
 
 import aocd
 
@@ -42,8 +43,14 @@ TEST_INPUT = [
 | | |  | |  |
 \-+-/  \-+--/
   \----<-/
-    """, """
-
+    """, r"""
+/>-<\
+|   |
+| /<+-\
+| | | v
+\>+</ |
+  |   ^
+  \<->/
     """
 ]
 
@@ -56,7 +63,7 @@ TEST_OUTPUT_1 = [
 TEST_OUTPUT_2 = [
     0,
     0,
-    0,
+    (6, 4),
 ]
 
 
@@ -93,10 +100,10 @@ class AdventOfCode(object):
             self.solve_part_1(puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            (69, 67),
+            self.solve_part_2(puzzle_input)
+        )
 
         elapsed_time = time.time() - start_time
         print('elapsed_time: {:.3f} sec'.format(elapsed_time))
@@ -111,15 +118,17 @@ class AdventOfCode(object):
 
         # self.solve_part_1(TEST_INPUT[1])
 
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+        aoc_util.assert_equal(
+            TEST_OUTPUT_2[2],
+            self.solve_part_2(TEST_INPUT[2])
+        )
 
     def solve_part_1(self, puzzle_input: str):
         solver = Solver(puzzle_input)
 
         part_1_result = solver.p1()
-        p1_formatted = ''.join([x for x in str(part_1_result) if x.isdigit() or x == ','])
 
-        print('part_1_result: {}\n'.format(p1_formatted))
+        print('part_1_result: {}\n'.format(aoc_util.format_coords(part_1_result)))
         return part_1_result
 
     def solve_part_2(self, puzzle_input: str):
@@ -127,8 +136,10 @@ class AdventOfCode(object):
 
         part_2_result = solver.p2()
 
-        print('part_2_result: {}\n'.format(part_2_result))
+        print('part_2_result: {}\n'.format(aoc_util.format_coords(part_2_result)))
         return part_2_result
+
+
 
 
 
@@ -153,12 +164,9 @@ class Cart(object):
         '<': 3,
     })
 
-    ALL_CHARS = {'^', '>', 'v', '<'}
     LR_CHARS = {'<', '>'}
-
     CORNERS = {'/', '\\'}
     INTERSECTION = '+'
-
 
     def __init__(self, char, coord, tracks: Grid2D):
         self.char = char
@@ -208,22 +216,23 @@ class Cart(object):
         """
         old = self.coord
         new = aoc_util.tuple_add(old, self.DELTAS[self.char])
+        self.coord = new
 
         # check for collision
         if new in self.tracks.overlay:
             print('collison @ {}'.format(new))
-            self.tracks.show()
+            if AocLogger.verbose:
+                self.tracks.show()
             return new
 
         # move
         del self.tracks.overlay[old]
-        self.coord = new
-        self.decide_direction(old, new)
+        self.decide_direction(new)
         self.tracks.overlay[new] = self.char
 
         return None
 
-    def decide_direction(self, old, new):
+    def decide_direction(self, new):
         """
         Each time a cart has the option to turn (by arriving at any intersection), it turns left the first time,
         goes straight the second time, turns right the third time, and then repeats those directions starting again
@@ -239,7 +248,6 @@ class Cart(object):
                 self.next_turn = -1
 
         elif new_track in self.CORNERS:
-            old_track = self.tracks.get_tuple(old)
             turn_int = -1
             if new_track == '/':
                 if self.char not in self.LR_CHARS:
@@ -261,7 +269,13 @@ class Cart(object):
 
 
 
+
+
+
+
 class Solver(object):
+
+    carts = ...  # type: List[Cart]
 
     def __init__(self, text: str):
         self.text = text.strip('\n')
@@ -330,10 +344,52 @@ class Solver(object):
 
     def p2(self):
         """
+        There isn't much you can do to prevent crashes in this ridiculous system. However, by predicting the crashes,
+        the Elves know where to be in advance and instantly remove the two crashing carts the moment any crash occurs.
 
+        They can proceed like this for a while, but eventually, they're going to run out of carts. It could be useful
+        to figure out where the last cart that hasn't crashed will end up.
+
+        After four very expensive crashes, a tick ends with only one cart remaining; its final location is 6,4.
+
+        What is the location of the last cart at the end of the first tick where it is the only cart left?
         """
-        z=0
-        return 2
+        i = 0
+        while True:
+            i += 1
+            # do one tick
+            self.carts = list(sorted(self.carts))
+            tick_collisions = set()
+            for cart in self.carts:  # type: Cart
+                if cart.coord in tick_collisions:
+                    # skip cart if already in a collison
+                    print('skipping cart already in collision: {}'.format(cart))
+                    continue
+                collision = cart.move()
+                if collision:
+                    tick_collisions.add(collision)
+
+            # remove collisions
+            if tick_collisions:
+                remaining = []
+                self.tracks.overlay = {}
+                for cart in self.carts:
+                    if cart.coord not in tick_collisions:
+                        remaining.append(cart)
+                        self.tracks.overlay[cart.coord] = cart.char
+                self.carts = remaining
+
+            if AocLogger.verbose:
+                self.tracks.show()
+                print('i: {}'.format(i))
+
+            if len(self.carts) == 1:
+                if AocLogger.verbose:
+                    self.tracks.show()
+                return self.carts[0].coord
+
+            if self.delay:
+                time.sleep(self.delay)
 
 
 
