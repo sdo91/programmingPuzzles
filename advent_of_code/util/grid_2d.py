@@ -60,6 +60,13 @@ class Grid2D(object):
         return result
 
     def find_by_function(self, func):
+        """
+        Args:
+            func (function(str) -> bool):
+
+        Returns:
+             list[str]
+        """
         result = []
         for coord, value in self.grid.items():
             if func(value):

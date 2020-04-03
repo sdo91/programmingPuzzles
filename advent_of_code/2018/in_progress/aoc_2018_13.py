@@ -17,26 +17,38 @@ addToPath('../../..')
 
 import time
 import traceback
+from bidict import bidict
 
 import aocd
 
 from advent_of_code.util import aoc_util
 from advent_of_code.util.aoc_util import AocLogger
+from advent_of_code.util.grid_2d import Grid2D
 
 
 ### CONSTANTS ###
 TEST_INPUT = [
-    """
-
-    """, """
-
+    r"""
+/->-\
+|   |  /----\
+| /-+--+-\  |
+| | |  | v  |
+\-+-/  \-+--/
+  \------/
+    """, r"""
+/---\
+|   |  /----\
+| /-+--+-\  |
+| | |  | |  |
+\-+-/  \-+--/
+  \----<-/
     """, """
 
     """
 ]
 
 TEST_OUTPUT_1 = [
-    0,
+    (7, 3),
     0,
     0,
 ]
@@ -77,7 +89,7 @@ class AdventOfCode(object):
         AocLogger.verbose = False
 
         aoc_util.assert_equal(
-            0,
+            (117, 62),
             self.solve_part_1(puzzle_input)
         )
 
@@ -91,15 +103,23 @@ class AdventOfCode(object):
 
     def run_tests(self):
         AocLogger.verbose = True
-        aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
+
+        aoc_util.assert_equal(
+            TEST_OUTPUT_1[0],
+            self.solve_part_1(TEST_INPUT[0])
+        )
+
+        # self.solve_part_1(TEST_INPUT[1])
+
         # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def solve_part_1(self, puzzle_input: str):
         solver = Solver(puzzle_input)
 
         part_1_result = solver.p1()
+        p1_formatted = ''.join([x for x in str(part_1_result) if x.isdigit() or x == ','])
 
-        print('part_1_result: {}\n'.format(part_1_result))
+        print('part_1_result: {}\n'.format(p1_formatted))
         return part_1_result
 
     def solve_part_2(self, puzzle_input: str):
@@ -117,13 +137,162 @@ class AdventOfCode(object):
 
 
 
+class Cart(object):
+
+    DELTAS = {
+        '<': (-1, 0),
+        '>': (1, 0),
+        '^': (0, -1),
+        'v': (0, 1),
+    }
+
+    CHAR_TO_INT = bidict({
+        '^': 0,
+        '>': 1,
+        'v': 2,
+        '<': 3,
+    })
+
+    ALL_CHARS = {'^', '>', 'v', '<'}
+    LR_CHARS = {'<', '>'}
+
+    CORNERS = {'/', '\\'}
+    INTERSECTION = '+'
+
+
+    def __init__(self, char, coord, tracks: Grid2D):
+        self.char = char
+        self.coord = coord
+        self.tracks = tracks
+        self.next_turn = -1
+
+    def __repr__(self):
+        return '{} @ {}'.format(self.char, self.coord)
+
+    def __lt__(self, other):
+        """
+        Args:
+            other (Cart):
+
+        carts on the top row move first (acting from left to right),
+        then carts on the second row move (again from left to right),
+        then carts on the third row, and so on.
+        """
+        if self.coord[1] == other.coord[1]:
+            # if same row, choose left
+            return self.coord[0] < other.coord[0]
+        else:
+            # choose top
+            return self.coord[1] < other.coord[1]
+
+    def get_track_under(self):
+        if self.char in self.LR_CHARS:
+            return '-'
+        else:
+            return '|'
+
+    def move(self):
+        r"""
+        /->-\
+        |   |  /----\
+        | /-+--+-\  |
+        | | |  | v  |
+        \-+-/  \-+--/
+          \------/
+
+        new coord cases:
+            straight: just move
+            corner: move, decide, and turn
+            intersection: move, decide, and turn
+
+        """
+        old = self.coord
+        new = aoc_util.tuple_add(old, self.DELTAS[self.char])
+
+        # check for collision
+        if new in self.tracks.overlay:
+            print('collison @ {}'.format(new))
+            self.tracks.show()
+            return new
+
+        # move
+        del self.tracks.overlay[old]
+        self.coord = new
+        self.decide_direction(old, new)
+        self.tracks.overlay[new] = self.char
+
+        return None
+
+    def decide_direction(self, old, new):
+        """
+        Each time a cart has the option to turn (by arriving at any intersection), it turns left the first time,
+        goes straight the second time, turns right the third time, and then repeats those directions starting again
+        with left the fourth time, straight the fifth time, and so on. This process is independent of the particular
+        intersection at which the cart has arrived - that is, the cart has no per-intersection memory.
+        """
+        new_track = self.tracks.get_tuple(new)
+
+        if new_track == self.INTERSECTION:
+            self.apply_turn(self.next_turn)
+            self.next_turn += 1
+            if self.next_turn > 1:
+                self.next_turn = -1
+
+        elif new_track in self.CORNERS:
+            old_track = self.tracks.get_tuple(old)
+            turn_int = -1
+            if new_track == '/':
+                if self.char not in self.LR_CHARS:
+                    # coming from top/bottom
+                    turn_int = 1
+            else:          # \
+                if self.char in self.LR_CHARS:
+                    # coming from left/right
+                    turn_int = 1
+            self.apply_turn(turn_int)
+
+    def apply_turn(self, turn_int):
+        current_int = self.CHAR_TO_INT[self.char]
+        new_int = (current_int + turn_int) % 4
+        self.char = self.CHAR_TO_INT.inverse[new_int]
+
+
+
+
 
 
 class Solver(object):
 
     def __init__(self, text: str):
-        self.text = text.strip()
-        AocLogger.log(str(self))
+        self.text = text.strip('\n')
+        self.tracks = Grid2D(self.text)
+
+        # find carts
+        def is_cart(char):
+            return char in Cart.DELTAS.keys()
+        cart_coords = self.tracks.find_by_function(is_cart)
+
+        # create carts, fix tracks
+        self.carts = []
+        for coord in cart_coords:
+            char = self.tracks.get_tuple(coord)
+            cart = Cart(char, coord, self.tracks)
+            self.carts.append(cart)
+            self.tracks.set_tuple(coord, cart.get_track_under())
+        if AocLogger.verbose:
+            self.tracks.show()
+
+        # set overlay
+        for cart in self.carts:
+            self.tracks.overlay[cart.coord] = cart.char
+        if AocLogger.verbose:
+            self.tracks.show()
+
+        # slow mode
+        print('num_carts: {}'.format(len(self.carts)))
+        self.delay = 0
+        if len(self.carts) < 2:
+            self.delay = 0.5
 
     def __repr__(self):
         return '{}:\n{}\n'.format(
@@ -131,10 +300,33 @@ class Solver(object):
 
     def p1(self):
         """
+        Several carts are also on the tracks. Carts always face either up (^), down (v), left (<), or right (>). (On
+        your initial map, the track under each cart is a straight path matching the direction the cart is facing.)
 
+        Carts all move at the same speed; they take turns moving a single step at a time. They do this based on their
+        current location: carts on the top row move first (acting from left to right), then carts on the second row
+        move (again from left to right), then carts on the third row, and so on. Once each cart has moved one step,
+        the process repeats; each of these loops is called a tick.
+
+        not:
+        132,47
+        86,71
         """
-        z=0
-        return 1
+        i = 0
+        while True:
+            i += 1
+            # do one tick
+            self.carts = list(sorted(self.carts))
+            for cart in self.carts:  # type: Cart
+                collision = cart.move()
+                if collision:
+                    return collision
+            if AocLogger.verbose:
+                self.tracks.show()
+                print('i: {}'.format(i))
+            if self.delay:
+                time.sleep(self.delay)
+            z=0
 
     def p2(self):
         """
