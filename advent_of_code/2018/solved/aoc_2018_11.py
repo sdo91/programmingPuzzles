@@ -99,7 +99,7 @@ class AdventOfCode(object):
 
         part_1_result = solver.p1()
 
-        print('part_1_result: {}'.format(part_1_result))
+        print('part_1_result: {}'.format(aoc_util.format_coords(part_1_result)))
         return part_1_result
 
     def solve_part_2(self, puzzle_input: str):
@@ -107,7 +107,7 @@ class AdventOfCode(object):
 
         part_2_result = solver.p2()
 
-        print('part_2_result: {}'.format(part_2_result))
+        print('part_2_result: {}'.format(aoc_util.format_coords(part_2_result)))
         return part_2_result
 
 

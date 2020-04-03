@@ -134,6 +134,9 @@ def tuple_add(a, b):
     return tuple(i + j for i, j in zip(a, b))
 
 
+def format_coords(tup: tuple):
+    return ''.join([x for x in str(tup) if x.isdigit() or x == ','])
+
 
 
 
