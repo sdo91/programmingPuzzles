@@ -186,12 +186,7 @@ class Cart(object):
         then carts on the second row move (again from left to right),
         then carts on the third row, and so on.
         """
-        if self.coord[1] == other.coord[1]:
-            # if same row, choose left
-            return self.coord[0] < other.coord[0]
-        else:
-            # choose top
-            return self.coord[1] < other.coord[1]
+        return aoc_util.is_reading_order(self.coord, other.coord)
 
     def get_track_under(self):
         if self.char in self.LR_CHARS:
@@ -221,8 +216,6 @@ class Cart(object):
         # check for collision
         if new in self.tracks.overlay:
             print('collison @ {}'.format(new))
-            if AocLogger.verbose:
-                self.tracks.show()
             return new
 
         # move
@@ -334,6 +327,8 @@ class Solver(object):
             for cart in self.carts:  # type: Cart
                 collision = cart.move()
                 if collision:
+                    if AocLogger.verbose:
+                        self.tracks.show()
                     return collision
             if AocLogger.verbose:
                 self.tracks.show()

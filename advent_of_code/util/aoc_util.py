@@ -146,15 +146,29 @@ def digits(i):
     return [int(c) for c in str(i)]
 
 
-def even(x):
+def is_even(x):
     return x % 2 == 0
 
 
-def odd(x):
-    return not even(x)
+def is_odd(x):
+    return x % 2 != 0
 
 
+def is_reading_order(a, b):
+    """
+    When multiple choices are equally valid, ties are broken in reading order: top-to-bottom, then left-to-right.
 
+    Args:
+        a:
+        b:
+
+    Returns:
+
+    """
+    if a[1] == b[1]:
+        return a[0] < b[0]  # if same row, choose left
+    else:
+        return a[1] < b[1]  # choose top
 
 
 

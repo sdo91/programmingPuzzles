@@ -184,12 +184,8 @@ class Solver(object):
         return b > a
 
     @classmethod
-    def is_even(cls, x):
-        return x % 2 == 0
-
-    @classmethod
     def is_even_odd(cls, a, b):
-        return cls.is_even(a) != cls.is_even(b)
+        return aoc_util.is_even(a) != aoc_util.is_even(b)
 
     def p2(self):
         """
@@ -210,7 +206,7 @@ class Solver(object):
         evens = MinHeap()
 
         for x in self.sequence:
-            if self.is_even(x):
+            if aoc_util.is_even(x):
                 evens.insert(x, x)
             else:
                 odds.insert(x, x)
