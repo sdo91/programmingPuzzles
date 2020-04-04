@@ -227,13 +227,13 @@ class MazeSolver(object):
         priority_queue.insert(start_node, start_node.dist)
 
         # do dijkstra's algo
-        while not priority_queue.is_empty():
+        while priority_queue:
 
             # select node at shortest distance
             selected_node = priority_queue.pop()  # type: Node
 
             print('\nselected_node: {}'.format(selected_node))
-            print('num unvisited: {}'.format(priority_queue.get_num_active()))
+            print('num unvisited: {}'.format(len(priority_queue)))
             print('num keys: {}'.format(len(selected_node.keys_set)))
 
             # check if done
