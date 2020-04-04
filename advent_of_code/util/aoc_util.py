@@ -138,8 +138,12 @@ def format_coords(tup: tuple):
     return ''.join([x for x in str(tup) if x.isdigit() or x == ','])
 
 
+def join_ints(lst):
+    return ''.join([str(x) for x in lst])
 
 
+def digits(i):
+    return [int(c) for c in str(i)]
 
 
 
