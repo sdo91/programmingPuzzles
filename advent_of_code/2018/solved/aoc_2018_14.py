@@ -31,7 +31,7 @@ TEST_INPUT = [
     """, """
 51589
     """, """
-
+15891
     """
 ]
 
@@ -45,7 +45,7 @@ TEST_OUTPUT_1 = [
 TEST_OUTPUT_2 = [
     0,
     9,
-    0,
+    10,
 ]
 
 
@@ -82,10 +82,10 @@ class AdventOfCode(object):
             self.solve_part_1(puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            20333868,
+            self.solve_part_2(puzzle_input)
+        )
 
         elapsed_time = time.time() - start_time
         print('elapsed_time: {:.3f} sec'.format(elapsed_time))
@@ -98,10 +98,15 @@ class AdventOfCode(object):
             self.solve_part_1(TEST_INPUT[0])
         )
 
-        # aoc_util.assert_equal(
-        #     TEST_OUTPUT_2[1],
-        #     self.solve_part_2(TEST_INPUT[1])
-        # )
+        aoc_util.assert_equal(
+            TEST_OUTPUT_2[1],
+            self.solve_part_2(TEST_INPUT[1])
+        )
+
+        aoc_util.assert_equal(
+            TEST_OUTPUT_2[2],
+            self.solve_part_2(TEST_INPUT[2])
+        )
 
     def solve_part_1(self, puzzle_input: str):
         solver = Solver(puzzle_input)
@@ -168,11 +173,23 @@ class Solver(object):
         return result
 
     def p2(self):
-        """
+        goal_digits = aoc_util.digits(self.text)
+        N = len(goal_digits)
 
-        """
-        z=0
-        return 2
+        result = 0
+        while not result:
+            self.iterate()
+
+            # check end
+            almost_last_n = self.scoreboard[-(N+1):-1]
+            last_n = self.scoreboard[-N:]
+
+            if almost_last_n == goal_digits:
+                result = len(self.scoreboard) - (N+1)
+            elif last_n == goal_digits:
+                result = len(self.scoreboard) - N
+
+        return result
 
 
 

@@ -146,6 +146,14 @@ def digits(i):
     return [int(c) for c in str(i)]
 
 
+def even(x):
+    return x % 2 == 0
+
+
+def odd(x):
+    return not even(x)
+
+
 
 
 
