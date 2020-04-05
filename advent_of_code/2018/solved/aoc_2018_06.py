@@ -216,7 +216,7 @@ class Solver(object):
         max_area = 0
         max_char = ''
         for target, count in self.targets.items():
-            char = self.grid.get(*target)
+            char = self.grid.get_tuple(target)
             self.grid.set_tuple(target, ' ')
 
             if target in self.inf_targets:
@@ -245,7 +245,7 @@ class Solver(object):
 
         if len(min_targets) == 1:
             selected = min_targets[0]
-            char = self.grid.get(*selected)
+            char = self.grid.get_tuple(selected)
 
             self.grid.set_tuple(coords, char)
 

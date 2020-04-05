@@ -6,7 +6,7 @@ from advent_of_code.util.aoc_util import AocLogger
 
 class Grid2D(object):
 
-    def __init__(self, text='', default=' '):
+    def __init__(self, text='', default=' ', overlay_chars=frozenset()):
         """
         NOTE: uses an inverted y-axis (increasing downwards)
         """
@@ -22,11 +22,17 @@ class Grid2D(object):
         self.overlay = {}
 
         if text:
-            # text = text.strip()
             lines = text.split('\n')
-            for r, row in enumerate(lines):
-                for c, col in enumerate(row):
-                    self.set(c, r, col)
+            for y, line in enumerate(lines):
+                for x, char in enumerate(line):
+                    coord = (x, y)
+                    if char in overlay_chars:
+                        # place the char in the overlay instead
+                        self.overlay[coord] = char
+                        # use the default in the main grid
+                        self.set_tuple(coord, default)
+                    else:
+                        self.set_tuple(coord, char)
 
     def set_value_width(self, width):
         self.value_width = width
@@ -45,8 +51,14 @@ class Grid2D(object):
     def is_value(self, coord, value):
         return self.grid[coord] == value
 
+    def get_top(self, coord):
+        if coord in self.overlay:
+            return self.overlay[coord]
+        else:
+            return self.grid[coord]
+
     def get_tuple(self, coord):
-        return self.get(*coord)
+        return self.grid[coord]
 
     def get(self, x, y):
         return self.grid[(x, y)]
@@ -81,10 +93,7 @@ class Grid2D(object):
             builder = []
             for x in col_range:
                 coord = (x, y)
-                if coord in self.overlay:
-                    value = self.overlay[coord]
-                else:
-                    value = self.grid[coord]
+                value = self.get_top(coord)
                 formatted = '{:{}}'.format(value, self.value_width)
                 builder.append(formatted)
             lines.append(''.join(builder))
@@ -128,16 +137,17 @@ class Grid2D(object):
 
     @classmethod
     def get_adjacent_coords(cls, coord):
+        # in reading order (important)
         return [
             cls.get_coord_north(coord),
+            cls.get_coord_west(coord),
             cls.get_coord_east(coord),
             cls.get_coord_south(coord),
-            cls.get_coord_west(coord),
         ]
 
     @classmethod
     def get_diagonal_coords(cls, coord):
-        # in order by quadrant
+        # in order by quadrant (important)
         return [
             (coord[0] + 1, coord[1] - 1),
             (coord[0] - 1, coord[1] - 1),
