@@ -111,8 +111,7 @@ class DijkstraGrid(Grid2D):
                     all_nodes[adj_coord] = new_node
                     priority_queue.insert(new_node, new_node.dist)
 
-        print('no path found')
-        return []
+        return []  # no path found
 
 
 
