@@ -59,7 +59,7 @@ TEST_OUTPUT_1 = [
 ]
 
 TEST_OUTPUT_2 = [
-    0,
+    4988,
     0,
     0,
 ]
@@ -114,6 +114,11 @@ class AdventOfCode(object):
             self.solve_part_1(TEST_INPUT[0])
         )
 
+        # aoc_util.assert_equal(
+        #     TEST_OUTPUT_2[0],
+        #     self.solve_part_2(TEST_INPUT[0])
+        # )
+
         # aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
         # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
@@ -142,16 +147,19 @@ class AdventOfCode(object):
 
 
 
-
-
 class Unit(object):
+
+    BASE_ATTACK_POWER = 3
+    elf_attack_power = BASE_ATTACK_POWER
 
     def __init__(self, coord, grid: DijkstraGrid):
         self.coord = coord
         self.grid = grid
         self.char = self.grid.overlay[self.coord]
         self.target_char = self._get_target_char()
-        self.attack_power = 3
+        self.attack_power = self.BASE_ATTACK_POWER
+        if self.char == 'E':
+            self.attack_power = self.elf_attack_power
         self.hp = 200
 
     def __repr__(self):
@@ -202,35 +210,32 @@ class Solver(object):
     def __init__(self, text: str):
         self.text = text.strip()
 
-        self.grid = DijkstraGrid(self.text, default='.', overlay_chars=self.UNIT_CHARS)
-        self.grid.show()
-        print('START!\n\n\n')
-
     def __repr__(self):
         return '{}:\n{}\n'.format(
             type(self).__name__, self.text)
 
-    def p1(self):
-        """
+    def run(self, elf_power):
+        # load the map
+        grid = DijkstraGrid(self.text, default='.', overlay_chars=self.UNIT_CHARS)
+        grid.show()
+        print('START!\n\n\n')
 
-        """
-
-
-
-        # get all units
-        unit_coords = self.grid.overlay.keys()
+        # create units
+        Unit.elf_attack_power = elf_power
+        unit_coords = grid.overlay.keys()
         units_list = []
         units_dict = {}
         numbers = defaultdict(int)
         for coord in unit_coords:
-            unit = Unit(coord, self.grid)
+            unit = Unit(coord, grid)
             units_list.append(unit)
             units_dict[coord] = unit
             numbers[unit.char] += 1
+        num_start_elves = numbers['E']
 
-        is_done = False
+        # run the rounds
         completed_rounds = 0
-        while not is_done:
+        while True:
             units_list.sort()
 
             dead_units = []
@@ -245,20 +250,23 @@ class Solver(object):
                     for unit in units_list:
                         if not unit.is_dead():
                             remaining_hp += unit.hp
-                    z = 0
-                    return completed_rounds * remaining_hp
+                    outcome = completed_rounds * remaining_hp
+                    print('Outcome: {} * {} = {}'.format(completed_rounds, remaining_hp, outcome))
+                    num_dead_elves = num_start_elves - numbers['E']
+                    print('num_dead_elves: {}'.format(num_dead_elves))
+                    return outcome, num_dead_elves
 
                 # move the unit (if possible)
                 best_path = unit.find_best_path()
                 if len(best_path) > 1:
                     # do the move
                     old = unit.coord
-                    del self.grid.overlay[old]
+                    del grid.overlay[old]
                     del units_dict[old]
 
                     new = best_path[0]
                     unit.coord = new
-                    self.grid.overlay[new] = unit.char
+                    grid.overlay[new] = unit.char
                     units_dict[new] = unit
 
                 # attack (if possible)
@@ -268,7 +276,7 @@ class Solver(object):
 
                     if target.hp < 1:
                         print('dead: {}'.format(target))
-                        del self.grid.overlay[target.coord]
+                        del grid.overlay[target.coord]
                         del units_dict[target.coord]
                         dead_units.append(target)
                         numbers[target.char] -= 1
@@ -281,14 +289,16 @@ class Solver(object):
             if AocLogger.verbose:
                 print('\n'*2)
                 print('After {} rounds:'.format(completed_rounds))
-                self.grid.show()
+                grid.show()
                 units_list.sort()
                 for unit in units_list:
                     print(unit)
                 print('\n'*2)
+        # end while
 
-            z=0
-        return 1
+    def p1(self):
+        result = self.run(elf_power=3)
+        return result[0]
 
     def p2(self):
         """
