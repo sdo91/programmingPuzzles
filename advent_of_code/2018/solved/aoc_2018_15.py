@@ -98,10 +98,10 @@ class AdventOfCode(object):
             self.solve_part_1(puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            68324,
+            self.solve_part_2(puzzle_input)
+        )
 
         elapsed_time = time.time() - start_time
         print('elapsed_time: {:.3f} sec'.format(elapsed_time))
@@ -114,10 +114,10 @@ class AdventOfCode(object):
             self.solve_part_1(TEST_INPUT[0])
         )
 
-        # aoc_util.assert_equal(
-        #     TEST_OUTPUT_2[0],
-        #     self.solve_part_2(TEST_INPUT[0])
-        # )
+        aoc_util.assert_equal(
+            TEST_OUTPUT_2[0],
+            self.solve_part_2(TEST_INPUT[0])
+        )
 
         # aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
         # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
@@ -210,11 +210,17 @@ class Solver(object):
     def __init__(self, text: str):
         self.text = text.strip()
 
+        self.cached_results = {}
+
     def __repr__(self):
         return '{}:\n{}\n'.format(
             type(self).__name__, self.text)
 
     def run(self, elf_power):
+        # check if result is cached
+        if elf_power in self.cached_results:
+            return self.cached_results[elf_power]
+
         # load the map
         grid = DijkstraGrid(self.text, default='.', overlay_chars=self.UNIT_CHARS)
         grid.show()
@@ -254,7 +260,9 @@ class Solver(object):
                     print('Outcome: {} * {} = {}'.format(completed_rounds, remaining_hp, outcome))
                     num_dead_elves = num_start_elves - numbers['E']
                     print('num_dead_elves: {}'.format(num_dead_elves))
-                    return outcome, num_dead_elves
+                    result = (outcome, num_dead_elves)
+                    self.cached_results[elf_power] = result
+                    return result
 
                 # move the unit (if possible)
                 best_path = unit.find_best_path()
@@ -302,10 +310,21 @@ class Solver(object):
 
     def p2(self):
         """
+        algo:
+            do binary search
 
+            start min=3, max=4
+            check 4, 8, 16 etc
         """
-        z=0
-        return 2
+
+        def is_enough(elf_power):
+            return self.run(elf_power)[-1] == 0
+
+        min_elf_power = aoc_util.binary_search(3, is_enough)
+        print('min_elf_power: {}'.format(min_elf_power))
+        result = self.run(min_elf_power)
+        print('cached_results: {}'.format(self.cached_results))
+        return result[0]
 
 
 

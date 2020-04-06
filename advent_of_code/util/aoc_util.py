@@ -170,6 +170,34 @@ def is_reading_order(a, b):
     else:
         return a[1] < b[1]  # choose top
 
+def binary_search(start_value, func):
+    """
+    Args:
+        start_value (int):
+        func (function(int) -> bool)):
+
+    Returns:
+        the min int x for which func(x) == True
+    """
+    upper_bound = start_value
+    lower_bound = upper_bound - 1
+
+    # calc quick upper/lower bounds
+    while not func(upper_bound):
+        lower_bound = upper_bound
+        upper_bound *= 2
+
+    # do binary search
+    while True:
+        if upper_bound == lower_bound + 1:
+            return upper_bound
+
+        midpoint = (lower_bound + upper_bound) // 2
+        if func(midpoint):
+            upper_bound = midpoint
+        else:
+            lower_bound = midpoint
+
 
 
 
