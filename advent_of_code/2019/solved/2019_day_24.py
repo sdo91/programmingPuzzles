@@ -45,21 +45,14 @@ TEST_INPUT_1 = [
     """
 ]
 
-TEST_INPUT_2 = [
-    """
 
-    """, """
 
-    """, """
 
-    """
-]
 
-TEST_OUTPUT_2 = [
-    0,
-    0,
-    0,
-]
+
+
+
+
 
 class RecursiveBugTower(object):
     """
@@ -90,15 +83,11 @@ class RecursiveBugTower(object):
         self.prev = None
         self.total_bugs = 0
 
-        z=0
-
     def __str__(self):
         """
         1 level -> 0
         3 levels -> -1
         5 -> -2
-        Returns:
-
         """
         info = 'tower ({} generations, {} bugs):\n'.format(
             self.generations, self.total_bugs)
@@ -119,8 +108,6 @@ class RecursiveBugTower(object):
             for each level (-1 to 1):
                 for each spot
                     count adjacent
-
-
         """
         self.prev = deepcopy(self.tower_dict)
         self.total_bugs = 0
@@ -130,7 +117,6 @@ class RecursiveBugTower(object):
 
         for level in range(-magnitude, magnitude + 1):
             # print('debug: gen={}, level={}'.format(self.generations, level))
-            z=0
             for y in range(5):
                 for x in range(5):
                     self.resolve_coord(x, y, level)
@@ -150,9 +136,6 @@ class RecursiveBugTower(object):
             special cases:
                 18: uvwxy
                 ABCDE: 8
-
-
-
         """
         # middle is always ?
         if x == 2 and y == 2:
@@ -172,7 +155,6 @@ class RecursiveBugTower(object):
             value = self.prev[coord[2]].get(coord[0], coord[1])
             if value == '#':
                 adjacent_bugs += 1
-        coord = None
 
         # apply rules
         new_value = self.EMPTY
@@ -186,9 +168,6 @@ class RecursiveBugTower(object):
         if new_value == self.BUG:
             self.total_bugs += 1
         self.tower_dict[level].set(x, y, new_value)
-
-        if self.generations == 2 and level == 0:
-            z = 0
 
     @classmethod
     def get_spots_up(cls, col, row, level):
@@ -275,6 +254,7 @@ class BugGrid(Grid2D):
     EMPTY = '.'
 
     def __init__(self, text, is_recursive=False):
+        text = text.strip()
         super().__init__(text)
         self.is_recursive = is_recursive
 
@@ -347,7 +327,7 @@ class AdventOfCode(object):
 
         aoc_util.assert_equal(
             2120,
-            self.solve_test_case_2(puzzle_input, 200)
+            self.solve_part_2(puzzle_input, 200)
         )
 
     def run_tests(self):
@@ -367,8 +347,7 @@ class AdventOfCode(object):
             print('{} -> {}'.format(
                 coord, RecursiveBugTower.get_spots_up(*coord)))
 
-        # self.solve_test_case_2(TEST_INPUT_1[1], 5)
-        self.solve_test_case_2(TEST_INPUT_1[0], 10)
+        self.solve_part_2(TEST_INPUT_1[0], 10)
 
     def solve_part_1(self, test_input):
         test_input = test_input.strip()
@@ -400,27 +379,22 @@ class AdventOfCode(object):
 
         return biodiversity
 
-    def solve_test_case_2(self, test_input, num_gens):
+    def solve_part_2(self, test_input, num_gens):
         test_input = test_input.strip()
-        AocLogger.log('solve_test_case_2 test input:\n{}'.format(test_input))
+        AocLogger.log('solve_part_2 test input:\n{}'.format(test_input))
 
         tower = RecursiveBugTower(test_input)
 
         AocLogger.log(tower)
 
         for i in range(num_gens):
+            if i > 0 and i % int(num_gens // 10) == 0:
+                print('{}%'.format(int(i / num_gens * 100)))
             tower.inc()
 
-        print('total_bugs: {}'.format(tower.total_bugs))
+        p2_result = tower.total_bugs
+        print('p2_result: {}'.format(p2_result))
         return tower.total_bugs
-
-    def solve_part_2(self, puzzle_input: str):
-        puzzle_input = puzzle_input.strip()
-
-        result = 0
-
-        print('part 2 result: {}'.format(result))
-        return result
 
 
 
