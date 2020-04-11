@@ -16,17 +16,6 @@ from advent_of_code.util.intcode_computer import IntcodeComputer
 
 
 
-### CONSTANTS ###
-
-TEST_INPUT = [
-    """
-
-    """, """
-
-    """, """
-
-    """
-]
 
 
 
@@ -34,11 +23,19 @@ TEST_INPUT = [
 
 class Nic(IntcodeComputer):
 
-    is_done = False
+    part = ''
     nat_packet = None
     idle_nics = set()
     network = []
     last_y_sent_to_0 = -1
+
+    @classmethod
+    def setup(cls, part):
+        cls.part = part
+        cls.nat_packet = None
+        cls.idle_nics.clear()
+        cls.network.clear()
+        cls.last_y_sent_to_0 = -1
 
     def __init__(self, initial_memory, address):
         super().__init__(initial_memory)
@@ -53,9 +50,10 @@ class Nic(IntcodeComputer):
         dest_addr = packet[0]
 
         if dest_addr > len(cls.network) - 1:
-            print('NAT packet: {}'.format(packet))
+            AocLogger.log('NAT packet: {}'.format(packet))
             cls.nat_packet = packet
-            # raise RuntimeError('part 1: {}'.format(packet[2]))
+            if cls.part == 'p1':
+                raise RuntimeError(packet[2])
             return
 
         cls.network[dest_addr].queue_input(packet[1])
@@ -65,8 +63,8 @@ class Nic(IntcodeComputer):
     @classmethod
     def process_nat(cls):
         if len(cls.idle_nics) == 50:
-            if cls.nat_packet[2] == cls.last_y_sent_to_0:
-                raise RuntimeError('part 2: {}'.format(cls.last_y_sent_to_0))
+            if cls.nat_packet[2] == cls.last_y_sent_to_0 and cls.part == 'p2':
+                raise RuntimeError(cls.last_y_sent_to_0)
             cls.last_y_sent_to_0 = cls.nat_packet[2]
             packet = (0, cls.nat_packet[1], cls.nat_packet[2])
             cls.send_packet(packet)
@@ -82,12 +80,11 @@ class Nic(IntcodeComputer):
                 break
             elif self.is_state(self.STATE_INPUT_NEEDED):
                 if is_first_input:
-                    print('{}: no input x1'.format(self.address))
+                    # AocLogger.log('{}: no input x1'.format(self.address))
                     self.queue_input(-1)
-                    # todo: break here?
                     is_first_input = False
                 else:
-                    print('{}: no input x2'.format(self.address))
+                    # AocLogger.log('{}: no input x2'.format(self.address))
                     self.idle_nics.add(self.address)
                     break
             elif self.is_state(self.STATE_OUTPUT):
@@ -95,11 +92,12 @@ class Nic(IntcodeComputer):
                     packet = tuple(self.get_all_output())
                     self.clear_output()
                     self.send_packet(packet)
-                    print('{}: sent packet {}'.format(self.address, packet))
+                    AocLogger.log('{}: sent packet {}'.format(self.address, packet))
                     break
 
 
-        z=0
+
+
 
 
 
@@ -116,40 +114,23 @@ def main():
         puzzle_input = 'unable to get input'
     aoc_util.write_input(puzzle_input, __file__)
 
-    # AocLogger.verbose = True
-    # run_tests()
+    AocLogger.verbose = True
+    aoc_util.assert_equal(
+        21664,
+        run(puzzle_input)
+    )
 
     AocLogger.verbose = False
-
-    solve_part_1(puzzle_input)
-
-    # aoc_util.assert_equal(
-    #     0,
-    #     solve_part_1(puzzle_input)
-    # )
+    aoc_util.assert_equal(
+        16150,
+        run(puzzle_input, part='p2')
+    )
 
     elapsed_time = time.time() - start_time
     print('elapsed_time: {:.2f} sec'.format(elapsed_time))
 
 
-# def run_tests():
-#     aoc_util.assert_equal(
-#         42,
-#         solve_test_case(TEST_INPUT[0])
-#     )
-#
-#
-# def solve_test_case(test_input):
-#     test_input = test_input.strip()
-#     AocLogger.log('test_input:\n{}'.format(test_input))
-#
-#     result = 0
-#
-#     print('solve_test_case: {}'.format(result))
-#     return result
-
-
-def solve_part_1(puzzle_input):
+def run(puzzle_input, part='p1'):
     """
     --- Part Two ---
     Packets sent to address 255 are handled by a device called a NAT (Not Always Transmitting).
@@ -171,26 +152,29 @@ def solve_part_1(puzzle_input):
     What is the first Y value delivered by the NAT to the computer at address 0 twice in a row?
     """
     puzzle_input = puzzle_input.strip()
-    AocLogger.log('puzzle_input:\n{}'.format(puzzle_input))
+    AocLogger.log('\npuzzle_input:\n{}\n'.format(puzzle_input))
 
+    # set up the network
+    Nic.setup(part)
     for x in range(50):
         Nic(puzzle_input, x)
 
-    while not Nic.is_done:
-        for nic in Nic.network:
-            if Nic.is_done:
-                break
+    # run the network
+    try:
+        while True:
+            for nic in Nic.network:
+                nic.process()
+                Nic.process_nat()  # check if idle
+    except RuntimeError as e:
+        result = e.args[0]
 
-            nic.process()
-
-            # check if idle
-            Nic.process_nat()
-
-
-    result = 0
-
-    print('solve_part_1: {}'.format(result))
+    print('{} result: {}\n'.format(part, result))
     return result
+
+
+
+
+
 
 
 

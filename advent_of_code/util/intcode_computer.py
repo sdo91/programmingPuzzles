@@ -159,7 +159,8 @@ class IntcodeComputer(object):
                     if self.ascii_output_mode:
                         print(chr(a), end='')
                     else:
-                        AocLogger.log('intcode output: {}'.format(self.get_latest_output()))
+                        # AocLogger.log('intcode output: {}'.format(self.get_latest_output()))
+                        pass
                 self.state = self.STATE_OUTPUT
                 self.instruction_ptr += 2
                 break
