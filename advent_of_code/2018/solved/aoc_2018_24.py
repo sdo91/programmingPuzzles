@@ -278,6 +278,13 @@ class AdventOfCode(object):
 
     def solve_part_1(self, puzzle_input, boost=0):
         """
+        Args:
+            puzzle_input (str):
+            boost (int):
+
+        Returns:
+            tuple[int]: (winning_army, units_left)
+
         14897 is too low...
         """
         AocLogger.log()
@@ -382,46 +389,23 @@ class AdventOfCode(object):
             (min boost, num units left)
         """
 
-        # find lower/upper bound (such that opposite armies win)
-        lower_bound_min_boost = 1
-        upper_bound_min_boost = 2
-
         cached_results = {}
-        def check_boost(boost):
+
+        def run_with_boost(boost):
             if boost not in cached_results:
                 print('checking new boost: {}'.format(boost))
                 cached_results[boost] = self.solve_part_1(puzzle_input, boost)
                 print('new boost result: {}'.format([boost, cached_results[boost]]))
             return cached_results[boost]
 
-        while True:
-            war_result = check_boost(upper_bound_min_boost)
-            if war_result[0] == IMMUNE_SYSTEM:
-                # we have found the upper bound
-                break
-            else:
-                # adjust the bounds
-                lower_bound_min_boost = upper_bound_min_boost
-                upper_bound_min_boost *= 2
+        def is_boost_enough(boost):
+            winning_army, units_left = run_with_boost(boost)
+            return winning_army == IMMUNE_SYSTEM
 
-        print('lower_bound_min_boost: {}'.format([lower_bound_min_boost, check_boost(lower_bound_min_boost)]))
-        print('upper_bound_min_boost: {}'.format([upper_bound_min_boost, check_boost(upper_bound_min_boost)]))
-
-        # lower loses, upper wins
-        # do a binary search algo until lower and upper are next to each other
-        while True:
-            if upper_bound_min_boost - lower_bound_min_boost == 1:
-                break
-
-            mid_point_min_boost = (lower_bound_min_boost + upper_bound_min_boost) // 2
-            war_result = check_boost(mid_point_min_boost)
-            if war_result[0] == IMMUNE_SYSTEM:
-                upper_bound_min_boost = mid_point_min_boost
-            else:
-                lower_bound_min_boost = mid_point_min_boost
+        min_boost = aoc_util.binary_search((0, 1), is_boost_enough).min_true
 
         # now upper is the result
-        result = (upper_bound_min_boost, check_boost(upper_bound_min_boost)[1])
+        result = (min_boost, run_with_boost(min_boost)[1])
         print('part 2 result: {}'.format(result))
         return result
 

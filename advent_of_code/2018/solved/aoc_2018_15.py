@@ -217,6 +217,14 @@ class Solver(object):
             type(self).__name__, self.text)
 
     def run(self, elf_power):
+        """
+        Args:
+            elf_power (int): attack power of elves
+
+        Returns:
+            tuple[int]: (outcome, num_dead_elves)
+        """
+
         # check if result is cached
         if elf_power in self.cached_results:
             return self.cached_results[elf_power]
@@ -320,7 +328,7 @@ class Solver(object):
         def is_enough(elf_power):
             return self.run(elf_power)[-1] == 0
 
-        min_elf_power = aoc_util.binary_search(3, is_enough)
+        min_elf_power = aoc_util.binary_search((3, 4), is_enough).min_true
         print('min_elf_power: {}'.format(min_elf_power))
         result = self.run(min_elf_power)
         print('cached_results: {}'.format(self.cached_results))

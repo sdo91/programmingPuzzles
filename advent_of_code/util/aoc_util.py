@@ -4,10 +4,7 @@ import typing
 from os import path
 import time
 import pprint
-import json
-
-
-
+from collections import namedtuple
 
 
 class AocLogger(object):
@@ -32,7 +29,10 @@ class AocLogger(object):
             print()
 
 
-
+class BinarySearchResult(object):
+    def __init__(self, max_false, min_true):
+        self.max_false = max_false
+        self.min_true = min_true
 
 
 def lmap(func, *iterables):
@@ -170,33 +170,39 @@ def is_reading_order(a, b):
     else:
         return a[1] < b[1]  # choose top
 
-def binary_search(start_value, func):
+
+def binary_search(start_bounds, func):
     """
     Args:
-        start_value (int):
+        start_bounds (tuple[int]):
+            (low, high)
+            low: must resolve to False
+            high: may resolve to True or False
         func (function(int) -> bool)):
 
     Returns:
-        the min int x for which func(x) == True
+        BinarySearchResult:
+            (low, high) such that:
+                func(low) == False
+                func(high) == True
     """
-    upper_bound = start_value
-    lower_bound = upper_bound - 1
+    low, high = start_bounds
 
     # calc quick upper/lower bounds
-    while not func(upper_bound):
-        lower_bound = upper_bound
-        upper_bound *= 2
+    while not func(high):
+        low = high
+        high *= 2
 
     # do binary search
     while True:
-        if upper_bound == lower_bound + 1:
-            return upper_bound
+        if high == low + 1:
+            return BinarySearchResult(max_false=low, min_true=high)
 
-        midpoint = (lower_bound + upper_bound) // 2
+        midpoint = (low + high) // 2
         if func(midpoint):
-            upper_bound = midpoint
+            high = midpoint
         else:
-            lower_bound = midpoint
+            low = midpoint
 
 
 
