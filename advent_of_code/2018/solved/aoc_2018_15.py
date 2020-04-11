@@ -328,8 +328,10 @@ class Solver(object):
         def is_enough(elf_power):
             return self.run(elf_power)[-1] == 0
 
-        min_elf_power = aoc_util.binary_search((3, 4), is_enough).min_true
+        # do binary search
+        min_elf_power = aoc_util.binary_search(is_enough, 3).min_true
         print('min_elf_power: {}'.format(min_elf_power))
+
         result = self.run(min_elf_power)
         print('cached_results: {}'.format(self.cached_results))
         return result[0]

@@ -4,7 +4,6 @@ import typing
 from os import path
 import time
 import pprint
-from collections import namedtuple
 
 
 class AocLogger(object):
@@ -30,9 +29,45 @@ class AocLogger(object):
 
 
 class BinarySearchResult(object):
-    def __init__(self, max_false, min_true):
-        self.max_false = max_false
-        self.min_true = min_true
+    def __init__(self, start_result, low, high):
+        if start_result is True:
+            self.max_true = low
+            self.min_false = high
+        else:
+            self.max_false = low
+            self.min_true = high
+
+
+def binary_search(func, start_value):
+    """
+    Args:
+        func (function(int) -> bool)):
+        start_value (int): starting lower bound
+
+    Returns:
+        BinarySearchResult:
+    """
+    start_result = func(start_value)  # type: bool
+    low = start_value
+    high = low + 1
+
+    # quickly calculate upper/lower bounds
+    while func(high) == start_result:
+        low = high
+        high *= 2
+    # assert func(low) == start_result
+    # assert func(high) != start_result
+
+    # do binary search
+    while True:
+        if high == low + 1:
+            return BinarySearchResult(start_result, low, high)
+
+        midpoint = (low + high) // 2
+        if func(midpoint) == start_result:
+            low = midpoint
+        else:
+            high = midpoint
 
 
 def lmap(func, *iterables):
@@ -171,38 +206,6 @@ def is_reading_order(a, b):
         return a[1] < b[1]  # choose top
 
 
-def binary_search(start_bounds, func):
-    """
-    Args:
-        start_bounds (tuple[int]):
-            (low, high)
-            low: must resolve to False
-            high: may resolve to True or False
-        func (function(int) -> bool)):
-
-    Returns:
-        BinarySearchResult:
-            (low, high) such that:
-                func(low) == False
-                func(high) == True
-    """
-    low, high = start_bounds
-
-    # calc quick upper/lower bounds
-    while not func(high):
-        low = high
-        high *= 2
-
-    # do binary search
-    while True:
-        if high == low + 1:
-            return BinarySearchResult(max_false=low, min_true=high)
-
-        midpoint = (low + high) // 2
-        if func(midpoint):
-            high = midpoint
-        else:
-            low = midpoint
 
 
 

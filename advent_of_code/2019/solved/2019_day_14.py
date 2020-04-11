@@ -136,43 +136,27 @@ class AdventOfCode(object):
         return p1_result
 
     def solve_part_2(self, puzzle_input: str):
-        ONE_TRILLION = 1e12
+        ONE_TRILLION = int(1e12)
         puzzle_input = puzzle_input.strip()
 
-        # calc quick upper/lower bounds
-        lower_bound = 1
-        upper_bound = 2
-
-        while True:
-            num_ore_needed = self.calc_min_ore(puzzle_input, upper_bound)
-
-            if num_ore_needed > ONE_TRILLION:
-                print('bounds found: {}'.format([lower_bound, upper_bound]))
-                break
-
-            lower_bound = upper_bound
-            upper_bound *= 2
+        def can_produce_from_1t(num_fuel):
+            num_ore_needed = self.calc_min_ore(puzzle_input, num_fuel)
+            return num_ore_needed <= ONE_TRILLION
 
         # do binary search
-        while True:
-            if upper_bound == lower_bound + 1:
-                # if upper/lower bounds are neighbors we are done
-                break
-
-            midpoint = (upper_bound + lower_bound) // 2
-            num_ore_needed = self.calc_min_ore(puzzle_input, midpoint)
-
-            if num_ore_needed > ONE_TRILLION:
-                upper_bound = midpoint
-            else:
-                lower_bound = midpoint
-
-        # finish up
-        p2_result = lower_bound
+        p2_result = aoc_util.binary_search(can_produce_from_1t, 1).max_true
         print('p2_result: {}'.format(p2_result))
         return p2_result
 
     def calc_min_ore(self, puzzle_input: str, num_fuel=1):
+        """
+        Args:
+            puzzle_input (str):
+            num_fuel (int):
+
+        Returns:
+            (int): min num_ore needed to produce num_fuel
+        """
         puzzle_input = puzzle_input.strip()
 
         self.reaction_dict = {}

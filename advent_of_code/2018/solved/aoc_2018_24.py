@@ -402,7 +402,8 @@ class AdventOfCode(object):
             winning_army, units_left = run_with_boost(boost)
             return winning_army == IMMUNE_SYSTEM
 
-        min_boost = aoc_util.binary_search((0, 1), is_boost_enough).min_true
+        # do binary search
+        min_boost = aoc_util.binary_search(is_boost_enough, 1).min_true
 
         # now upper is the result
         result = (min_boost, run_with_boost(min_boost)[1])
