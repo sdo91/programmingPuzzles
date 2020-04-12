@@ -15,6 +15,7 @@ addToPath('../../..')
 
 ### IMPORTS ###
 
+import time
 from itertools import combinations
 
 import aocd
@@ -48,8 +49,10 @@ class Droid(IntcodeComputer):
     you can give it a single instruction terminated with a newline (ASCII code 10). Possible instructions are:
 
      - Movement via north, south, east, or west.
-     - To take an item the droid sees in the environment, use the command take <name of item>. For example, if the droid reports seeing a red ball, you can pick it up with take red ball.
-     - To drop an item the droid is carrying, use the command drop <name of item>. For example, if the droid is carrying a green ball, you can drop it with drop green ball.
+     - To take an item the droid sees in the environment, use the command take <name of item>.
+        For example, if the droid reports seeing a red ball, you can pick it up with take red ball.
+     - To drop an item the droid is carrying, use the command drop <name of item>.
+        For example, if the droid is carrying a green ball, you can drop it with drop green ball.
      - To get a list of all of the items the droid is currently carrying, use the command inv (for "inventory").
 
     Extra spaces or other characters aren't allowed - instructions must be provided precisely.
@@ -61,6 +64,17 @@ class Droid(IntcodeComputer):
 
     Look around the ship and see if you can find the password for the main airlock.
     """
+
+    SAVED_PATH = [
+        'ssaww',
+        'ssdsa',
+        'dsaas',
+        'wddd',
+        'awww',
+        'aswas',
+        'waa',
+        't',  # try all combos
+    ]
 
     directions = {
         'w': 'north',
@@ -82,6 +96,9 @@ class Droid(IntcodeComputer):
 
         self.do_auto_take = True
 
+        self.saved_path = ''.join(self.SAVED_PATH)
+        self.saved_path_index = 0
+
     def run_droid(self):
 
         while True:
@@ -94,14 +111,18 @@ class Droid(IntcodeComputer):
                 cmd = self.auto_take()
 
             if not cmd:
-                cmd = input()
+                # get next step on path if available
+                cmd = self.get_next_from_path()
+
+                if not cmd:
+                    cmd = input()
 
                 if cmd in self.directions:
                     print('{} -> {}'.format(cmd, self.directions[cmd]))
                     cmd = self.directions[cmd]
 
-                if cmd == '1':
-                    self.try_combos()
+                if cmd == 't':
+                    return self.try_combos()
 
             self.queue_input_string(cmd)
 
@@ -123,7 +144,6 @@ class Droid(IntcodeComputer):
             self.queue_input_string(cmd)
 
         self.queue_input_string('inv')
-        # self.queue_input_string('west')
         self.run_to_input_needed()
 
     def try_combos(self):
@@ -142,48 +162,85 @@ class Droid(IntcodeComputer):
             assert failed
             drop items
         """
-        CHECKPOINT = '== Security Checkpoint =='
+        # hide output
+        self.ascii_output_mode = False
 
-        # get list of items, drop all
+        # get list of items
         items = self.get_inv_list()
-        self.drop_items(items)
 
         # generate all combos
         combos = []
         for x in range(1, len(items)):
             combos += combinations(items, x)
-        print('ALL COMBOS:')
-        for c in combos:
-            print('\t{}'.format(c))
+        print('TRYING {} COMBOS:'.format(len(combos)))
+        # for c in combos:
+        #     print('\t{}'.format(c))
 
         # try each combo
+        prev_combo = items
         for combo in combos:
             print('TRYING COMBO: {}'.format(combo))
 
             # get correct items
+            commands = []
+            for item in prev_combo:
+                if item not in combo:
+                    commands.append('drop {}'.format(item))
             for item in combo:
-                cmd = 'take {}'.format(item)
+                if item not in prev_combo:
+                    commands.append('take {}'.format(item))
+            print('\tcommands: {}'.format(commands))
+            for cmd in commands:
                 self.queue_input_string(cmd)
 
             # try the room
-            self.queue_input_string('inv')
             self.run_to_input_needed()
             self.clear_output()
             self.queue_input_string('west')
-            self.run_to_input_needed()
-            text = self.get_output_string()
 
-            # check for success
-            assert CHECKPOINT in text
+            # run until halted or input needed
+            while not self.is_halted() and not self.is_input_needed():
+                self.run()
 
-            # drop items
-            self.drop_items(combo)
+            # check if done
+            if self.is_halted():
+                print()
+                print('Droid halted! combo: {}\n'.format(combo))
+
+                text = self.get_output_string()
+                print(text)
+
+                password = aoc_util.positive_ints(text)[0]
+                print('password: {}\n'.format(password))
+                return password
+
+            # prepare for next iteration
+            prev_combo = combo
 
         raise RuntimeError('no combo found')
 
-
+    def get_next_from_path(self):
+        """
+        Returns:
+            str:
+                the next step on path if available
+                else empty string
+        """
+        next_step = ''
+        try:
+            next_step = self.saved_path[self.saved_path_index]
+            self.saved_path_index += 1
+        except IndexError:
+            pass
+        return next_step
 
     def auto_take(self):
+        """
+        Returns:
+            str:
+                the command if we should take an item
+                else empty string
+        """
         ITEMS_HERE = 'Items here:'
         CHECKPOINT = '== Security Checkpoint =='
         cmd = ''
@@ -202,12 +259,6 @@ class Droid(IntcodeComputer):
         if len(safe_items) == 1:
             cmd = 'take {}'.format(items[0])
 
-        # cmd = input('which item: {}?\n'.format(items))
-        # for item in items:
-        #     if item.lower().startswith(cmd):
-        #         cmd = 'take {}'.format(item)
-        #         break
-
         return cmd
 
     def parse_items(self, text):
@@ -220,6 +271,7 @@ class Droid(IntcodeComputer):
 
 def main():
     print('starting {}'.format(__file__.split('/')[-1]))
+    start_time = time.time()
 
     try:
         puzzle_input = aocd.data
@@ -228,7 +280,14 @@ def main():
     aoc_util.write_input(puzzle_input, __file__)
 
     droid = Droid(puzzle_input)
-    droid.run_droid()
+
+    aoc_util.assert_equal(
+        2147485856,
+        droid.run_droid()
+    )
+
+    elapsed_time = time.time() - start_time
+    print('elapsed_time: {:.3f} sec'.format(elapsed_time))
 
 
 
