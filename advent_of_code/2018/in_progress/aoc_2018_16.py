@@ -85,7 +85,7 @@ class AdventOfCode(object):
         )
 
         aoc_util.assert_equal(
-            0,
+            656,
             self.solve_part_2(puzzle_input)
         )
 
@@ -124,15 +124,22 @@ class OpcodeDevice(object):
 
     def __init__(self):
         self.registers = [0] * 4
-
         self.opcodes_by_name = bidict()
-        # for name in self.get_opcode_method_names():
-        #     self.opcodes_by_name[name] = -1
-
-        z=0
 
     def get_opcode_method_names(self):
         return [x for x in dir(self) if x.startswith('opcode_') and callable(getattr(self, x))]
+
+    def clear_registers(self):
+        for x in range(len(self.registers)):
+            self.registers[x] = 0
+
+    def execute_instruction(self, text):
+        tokens = aoc_util.ints(text)
+        opcode = tokens[0]
+        abc = tokens[1:]
+        opcode_name = self.opcodes_by_name.inv[opcode]
+        opcode_method = getattr(self, opcode_name)
+        opcode_method(*abc)
 
     def opcode_addr(self, a, b, c):
         """
@@ -261,7 +268,7 @@ class Sample(object):
         return self.text
 
     def get_abc(self):
-        return tuple(self.instruction[1:])
+        return self.instruction[1:]
 
 
 
@@ -273,17 +280,17 @@ class Solver(object):
 
     def __init__(self, text: str):
         self.text = text.strip()
-        self.lines = aoc_util.stripped_lines(self.text)
+        self.text_parts = self.text.split('\n\n\n')
 
-        AocLogger.log(str(self))
+        self.samples_list = self.parse_samples(self.text_parts[0])
 
     def __repr__(self):
         return '{}:\n{}\n'.format(
             type(self).__name__, self.text)
 
-    def parse_samples(self):
+    def parse_samples(self, text):
         result = []
-        lines_iter = iter(self.lines)
+        lines_iter = iter(aoc_util.stripped_lines(text))
         num_blank_lines = 0
 
         try:
@@ -312,12 +319,11 @@ class Solver(object):
             return result
 
     def p1(self):
-        samples_list = self.parse_samples()
         device = OpcodeDevice()
         opcode_method_names = [x for x in dir(OpcodeDevice) if x.startswith('opcode')]
         num_3_plus = 0
 
-        for sample in samples_list:
+        for sample in self.samples_list:
             for name in opcode_method_names:
                 device.registers = sample.before.copy()
                 method = getattr(device, name)
@@ -330,12 +336,11 @@ class Solver(object):
         return num_3_plus
 
     def p2(self):
-        samples_list = self.parse_samples()
         device = OpcodeDevice()
 
         # figure out opcodes
         unassigned_opcode_names = device.get_opcode_method_names()
-        for sample in samples_list:
+        for sample in self.samples_list:
             for name in unassigned_opcode_names:
                 device.registers = sample.before.copy()
                 method = getattr(device, name)
@@ -354,7 +359,16 @@ class Solver(object):
 
         assert len(device.opcodes_by_name) == 16
 
-        return 2
+        # run program
+        program_lines = aoc_util.stripped_lines(self.text_parts[1].strip())
+        print(program_lines[0])
+        print(program_lines[-1])
+        device.clear_registers()
+
+        for line in program_lines:
+            device.execute_instruction(line)
+
+        return device.registers[0]
 
 
 
