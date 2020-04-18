@@ -17,7 +17,6 @@ addToPath('../../..')
 
 import time
 import traceback
-from bidict import bidict
 
 import aocd
 
@@ -40,12 +39,6 @@ After:  [3, 2, 2, 1]
 
 TEST_OUTPUT_1 = [
     1,
-    0,
-    0,
-]
-
-TEST_OUTPUT_2 = [
-    0,
     0,
     0,
 ]
@@ -95,7 +88,6 @@ class AdventOfCode(object):
     def run_tests(self):
         AocLogger.verbose = True
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def solve_part_1(self, puzzle_input: str):
         solver = Solver(puzzle_input)
@@ -124,22 +116,39 @@ class OpcodeDevice(object):
 
     def __init__(self):
         self.registers = [0] * 4
-        self.opcodes_by_name = bidict()
+        self.method_names_by_opcode = {}
 
     def get_opcode_method_names(self):
         return [x for x in dir(self) if x.startswith('opcode_') and callable(getattr(self, x))]
+
+    def set_registers(self, registers):
+        self.registers = registers.copy()
 
     def clear_registers(self):
         for x in range(len(self.registers)):
             self.registers[x] = 0
 
+    def process_sample(self, sample, opcode_names):
+        for name in opcode_names:
+            # see if the sample behaves like the opcode
+            self.set_registers(sample.before)
+            self.execute_opcode_name(name, sample.get_abc())
+            if self.registers == sample.after:
+                # found a match
+                sample.possible_opcode_names.add(name)
+
+    def execute_opcode_name(self, opcode_name, abc):
+        opcode_method = getattr(self, opcode_name)
+        opcode_method(*abc)
+
     def execute_instruction(self, text):
         tokens = aoc_util.ints(text)
         opcode = tokens[0]
         abc = tokens[1:]
-        opcode_name = self.opcodes_by_name.inv[opcode]
-        opcode_method = getattr(self, opcode_name)
-        opcode_method(*abc)
+        opcode_name = self.method_names_by_opcode[opcode]
+        self.execute_opcode_name(opcode_name, abc)
+
+    ### OPCODE METHODS ###
 
     def opcode_addr(self, a, b, c):
         """
@@ -255,6 +264,13 @@ class OpcodeDevice(object):
 
 
 
+
+
+
+
+
+
+
 class Sample(object):
 
     def __init__(self, lines):
@@ -269,6 +285,9 @@ class Sample(object):
 
     def get_abc(self):
         return self.instruction[1:]
+
+
+
 
 
 
@@ -320,16 +339,12 @@ class Solver(object):
 
     def p1(self):
         device = OpcodeDevice()
-        opcode_method_names = [x for x in dir(OpcodeDevice) if x.startswith('opcode')]
+        opcode_method_names = device.get_opcode_method_names()
         num_3_plus = 0
 
         for sample in self.samples_list:
-            for name in opcode_method_names:
-                device.registers = sample.before.copy()
-                method = getattr(device, name)
-                method(*sample.get_abc())
-                if device.registers == sample.after:
-                    sample.possible_opcode_names.add(name)
+            device.process_sample(sample, opcode_method_names)
+
             if len(sample.possible_opcode_names) >= 3:
                 num_3_plus += 1
 
@@ -341,28 +356,23 @@ class Solver(object):
         # figure out opcodes
         unassigned_opcode_names = device.get_opcode_method_names()
         for sample in self.samples_list:
-            for name in unassigned_opcode_names:
-                device.registers = sample.before.copy()
-                method = getattr(device, name)
-                method(*sample.get_abc())
-                if device.registers == sample.after:
-                    sample.possible_opcode_names.add(name)
+            device.process_sample(sample, unassigned_opcode_names)
 
             if len(sample.possible_opcode_names) == 1:
                 # found a match
                 opcode_name = sample.possible_opcode_names.pop()
                 opcode = sample.instruction[0]
 
-                device.opcodes_by_name[opcode_name] = opcode
+                device.method_names_by_opcode[opcode] = opcode_name
                 unassigned_opcode_names.remove(opcode_name)
-                print('opcode {} is {}'.format(opcode, opcode_name))
+                AocLogger.log('opcode {} is {}'.format(opcode, opcode_name))
 
-        assert len(device.opcodes_by_name) == 16
+        assert len(device.method_names_by_opcode) == 16
+        print('opcodes:')
+        AocLogger.log_dict(device.method_names_by_opcode, force_verbose=True)
 
         # run program
         program_lines = aoc_util.stripped_lines(self.text_parts[1].strip())
-        print(program_lines[0])
-        print(program_lines[-1])
         device.clear_registers()
 
         for line in program_lines:
