@@ -20,6 +20,7 @@ class Grid2D(object):
         self.max_y = 0
 
         self.overlay = {}
+        self.show_line_numbers = False
 
         if text:
             lines = text.split('\n')
@@ -109,6 +110,8 @@ class Grid2D(object):
                 value = self.get_top(coord)
                 formatted = '{:{}}'.format(value, self.value_width)
                 builder.append(formatted)
+            if self.show_line_numbers:
+                builder.append(' (line {})'.format(y))
             lines.append(''.join(builder))
         return '\n'.join(lines)
 

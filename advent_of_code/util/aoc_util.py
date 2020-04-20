@@ -126,11 +126,14 @@ def write_input(text, file_path):
         outfile.write(text)
 
 
-def run_tests(function, test_inputs, test_outputs):
+def run_tests(function, test_inputs, test_outputs, cases=None):
     AocLogger.log('\nrunning test cases ({})'.format(str(function)))
     num_tests_passed = 0
 
     for i in range(len(test_inputs)):
+        if cases and i not in cases:
+            print('skipping test case: {}'.format(i))
+            continue
         test_in = test_inputs[i]
         test_out = test_outputs[i]
 

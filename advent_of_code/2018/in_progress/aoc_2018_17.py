@@ -37,7 +37,24 @@ x=498, y=10..13
 x=504, y=10..13
 y=13, x=498..504
     """, """
-
+...........+.........
+.....................
+..................#..
+..#...............#..
+..#...............#..
+..#...............#..
+..#....######.....#..
+..#....#....#.....#..
+..#....######.....#..
+..#...............#..
+..#...............#..
+..#...............#..
+..#...............#..
+..#...............#..
+..#...............#..
+..#################..
+.....................
+.....................
     """, """
 
     """
@@ -45,7 +62,7 @@ y=13, x=498..504
 
 TEST_OUTPUT_1 = [
     57,
-    0,
+    194,
     0,
 ]
 
@@ -85,7 +102,7 @@ class AdventOfCode(object):
         AocLogger.verbose = False
 
         aoc_util.assert_equal(
-            0,
+            31934,
             self.solve_part_1(puzzle_input)
         )
 
@@ -99,7 +116,10 @@ class AdventOfCode(object):
 
     def run_tests(self):
         AocLogger.verbose = True
+
+        # aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1, cases={1})
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
+
         # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def solve_part_1(self, puzzle_input: str):
@@ -136,31 +156,46 @@ class Solver(object):
     def __init__(self, text: str):
         self.text = text.strip()
 
-        self.spring_coords = (500, 0)
+        if '=' in self.text:
+            # parse real input
+            self.grid = Grid2D(default='.')
+            self.grid.show_line_numbers = True
 
-        self.grid = Grid2D(default='.')
-        self.grid.set_tuple(self.spring_coords, '+')
+            lines = aoc_util.lines(self.text)
+            for line in lines:
+                line_values = aoc_util.ints(line)
+                if line.startswith('x'):
+                    coord1 = (line_values[0], line_values[1])
+                    coord2 = (line_values[0], line_values[2])
+                else:
+                    coord1 = (line_values[1], line_values[0])
+                    coord2 = (line_values[2], line_values[0])
 
-        lines = aoc_util.lines(self.text)
-        for line in lines:
-            line_values = aoc_util.ints(line)
-            if line.startswith('x'):
-                coord1 = (line_values[0], line_values[1])
-                coord2 = (line_values[0], line_values[2])
-            else:
-                coord1 = (line_values[1], line_values[0])
-                coord2 = (line_values[2], line_values[0])
+                self.grid.set_range(coord1, coord2, '#')
 
-            self.grid.set_range(coord1, coord2, '#')
+            self.min_y = self.grid.min_y
 
-        self.grid.show()
-        # AocLogger.log(str(self))
+            self.spring_coords = (500, 0)
+            self.grid.set_tuple(self.spring_coords, '+')
+        else:
+            # parse test case
+            self.grid = Grid2D(self.text, default='.')
+            self.grid.show_line_numbers = True
+
+            walls = self.grid.find('#')
+            y_coords = set([c[1] for c in walls])
+            self.min_y = min(y_coords)
+
+            self.spring_coords = self.grid.find('+')[0]
+
+        if AocLogger.verbose:
+            self.grid.show()
 
     def __repr__(self):
         return '{}:\n{}\n'.format(
             type(self).__name__, self.text)
 
-    def recursive_drip(self, start_coord):
+    def mark_reachable(self, start_coord):
         """
 
         if we cant go down, scan left and right
@@ -173,41 +208,51 @@ class Solver(object):
                 mark with |
                 call recursive on each drop off point (1 or 2)
 
+        31937 too high (forgot to exclude values above min y)
+
         """
-        current_coord = start_coord
+        source_blocks_queue = [start_coord]
+        all_source_blocks = {start_coord}
 
-        while True:
-            # check if done
-            if self.grid.is_out_of_bounds(current_coord):
-                # we have reached the bottom
-                break
+        while source_blocks_queue:
+            print('{} source blocks in queue'.format(len(source_blocks_queue)))
 
-            if self.can_move_down(current_coord):
-                if current_coord != self.spring_coords:
-                    self.grid.set_tuple(current_coord, '|')
-                current_coord = Grid2D.get_coord_south(current_coord)
-            else:
-                # next is solid
-
-                # scan left and right
-                left_coord, left_blocked = self.scan(current_coord, -1)
-                right_coord, right_blocked = self.scan(current_coord, +1)
-
-                if left_blocked and right_blocked:
-                    # mark as settled
-                    self.grid.set_range(left_coord, right_coord, '~')
-                else:
-                    self.grid.set_range(left_coord, right_coord, '|')
-                    if not left_blocked:
-                        self.recursive_drip(left_coord)
-                    if not right_blocked:
-                        self.recursive_drip(right_coord)
+            # process the next source
+            current_coord = source_blocks_queue.pop()
+            while True:
+                # check if done
+                if self.grid.is_out_of_bounds(current_coord):
+                    # we have reached the bottom
                     break
 
-                current_coord = Grid2D.get_coord_north(current_coord)
-        # end while
+                if self.can_move_down(current_coord):
+                    if current_coord != self.spring_coords:
+                        self.grid.set_tuple(current_coord, '|')
+                    current_coord = Grid2D.get_coord_south(current_coord)
+                else:
+                    # next is solid
 
-        self.grid.show()
+                    # scan left and right
+                    left_coord, left_blocked = self.scan(current_coord, -1)
+                    right_coord, right_blocked = self.scan(current_coord, +1)
+
+                    if left_blocked and right_blocked:
+                        # mark as settled
+                        self.grid.set_range(left_coord, right_coord, '~')
+                        current_coord = Grid2D.get_coord_north(current_coord)
+                    else:
+                        self.grid.set_range(left_coord, right_coord, '|')
+                        if not left_blocked and left_coord not in all_source_blocks:
+                            all_source_blocks.add(left_coord)
+                            source_blocks_queue.append(left_coord)
+                        if not right_blocked and right_coord not in all_source_blocks:
+                            all_source_blocks.add(right_coord)
+                            source_blocks_queue.append(right_coord)
+                        break
+            # done processing the source block
+
+            if AocLogger.verbose:
+                self.grid.show()
 
     def scan(self, start_coord, dx):
         current = start_coord
@@ -229,10 +274,14 @@ class Solver(object):
         return self.grid.is_value_in(coord_below, self.OPEN)
 
     def p1(self):
-        self.recursive_drip(self.spring_coords)
-        # self.grid.show()
+        self.mark_reachable(self.spring_coords)
+        self.grid.show()
         reachable = self.grid.find_by_function(lambda x: x in self.WET)
-        return len(reachable)
+
+        # exclude values above min y
+        num_to_exclude = self.min_y - 1
+
+        return len(reachable) - num_to_exclude
 
     def p2(self):
         """
