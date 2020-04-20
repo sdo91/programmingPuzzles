@@ -251,7 +251,7 @@ class Solver(object):
 
             self.targets[selected] += 1
 
-            if self.grid.is_on_edge(*coords):
+            if self.grid.is_on_edge(coords):
                 self.inf_targets.add(selected)
 
     def p2(self):

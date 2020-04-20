@@ -37,6 +37,16 @@ class Grid2D(object):
     def set_value_width(self, width):
         self.value_width = width
 
+    def set_range(self, coord1, coord2, value):
+        x_min = min(coord1[0], coord2[0])
+        x_max = max(coord1[0], coord2[0])
+        y_min = min(coord1[1], coord2[1])
+        y_max = max(coord1[1], coord2[1])
+        for x in range(x_min, x_max + 1):
+            for y in range(y_min, y_max + 1):
+                coord = (x, y)
+                self.set_tuple(coord, value)
+
     def set_tuple(self, coord, value):
         self.set(coord[0], coord[1], value)
 
@@ -130,8 +140,13 @@ class Grid2D(object):
         adj_coords = self.get_adjacent_coords(coord)
         return sum([1 for c in adj_coords if self.is_value(c, value)])
 
-    def is_on_edge(self, x, y):
+    def is_on_edge(self, coord):
+        x, y = coord
         return x == self.min_x or x == self.max_x or y == self.min_y or y == self.max_y
+
+    def is_out_of_bounds(self, coord):
+        x, y = coord
+        return x < self.min_x or x > self.max_x or y < self.min_y or y > self.max_y
 
     @classmethod
     def get_adjacent_coords(cls, coord):
