@@ -267,7 +267,7 @@ class BugGrid(Grid2D):
         for x in range(5):
             for y in range(5):
                 coord = (x, y)
-                adjacent_bugs = prev.count_adjacent(x, y, self.BUG)
+                adjacent_bugs = prev.count_adjacent(coord, self.BUG)
                 if prev.is_value(coord, self.BUG):
                     if adjacent_bugs == 1:
                         self.set_tuple(coord, self.BUG)

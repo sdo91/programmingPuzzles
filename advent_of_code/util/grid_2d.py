@@ -51,6 +51,9 @@ class Grid2D(object):
     def is_value(self, coord, value):
         return self.grid[coord] == value
 
+    def is_value_in(self, coord, collection):
+        return self.grid[coord] in collection
+
     def get_top(self, coord):
         if coord in self.overlay:
             return self.overlay[coord]
@@ -123,13 +126,8 @@ class Grid2D(object):
     def cols(self):
         return range(self.min_x, self.max_x + 1)
 
-    def count_adjacent(self, x, y, value):
-        adj_coords = [
-            (x-1, y),
-            (x+1, y),
-            (x, y-1),
-            (x, y+1),
-        ]
+    def count_adjacent(self, coord, value):
+        adj_coords = self.get_adjacent_coords(coord)
         return sum([1 for c in adj_coords if self.is_value(c, value)])
 
     def is_on_edge(self, x, y):
@@ -149,27 +147,31 @@ class Grid2D(object):
     def get_diagonal_coords(cls, coord):
         # in order by quadrant (important)
         return [
-            (coord[0] + 1, coord[1] - 1),
-            (coord[0] - 1, coord[1] - 1),
-            (coord[0] - 1, coord[1] + 1),
-            (coord[0] + 1, coord[1] + 1),
+            cls.adjust_coord(coord, +1, -1),
+            cls.adjust_coord(coord, -1, -1),
+            cls.adjust_coord(coord, -1, +1),
+            cls.adjust_coord(coord, +1, +1),
         ]
 
-    @staticmethod
-    def get_coord_north(coord: typing.Tuple[int]):
-        return coord[0], coord[1] - 1
+    @classmethod
+    def get_coord_north(cls, coord: typing.Tuple[int]):
+        return cls.adjust_coord(coord, dy=-1)
 
-    @staticmethod
-    def get_coord_east(coord: typing.Tuple[int]):
-        return coord[0] + 1, coord[1]
+    @classmethod
+    def get_coord_east(cls, coord: typing.Tuple[int]):
+        return cls.adjust_coord(coord, dx=+1)
 
-    @staticmethod
-    def get_coord_south(coord: typing.Tuple[int]):
-        return coord[0], coord[1] + 1
+    @classmethod
+    def get_coord_south(cls, coord: typing.Tuple[int]):
+        return cls.adjust_coord(coord, dy=+1)
 
-    @staticmethod
-    def get_coord_west(coord: typing.Tuple[int]):
-        return coord[0] - 1, coord[1]
+    @classmethod
+    def get_coord_west(cls, coord: typing.Tuple[int]):
+        return cls.adjust_coord(coord, dx=-1)
+
+    @classmethod
+    def adjust_coord(cls, coord: typing.Tuple[int], dx=0, dy=0):
+        return coord[0] + dx, coord[1] + dy
 
 
 
