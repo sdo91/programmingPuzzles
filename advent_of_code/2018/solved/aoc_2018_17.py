@@ -67,8 +67,8 @@ TEST_OUTPUT_1 = [
 ]
 
 TEST_OUTPUT_2 = [
-    0,
-    0,
+    29,
+    162,
     0,
 ]
 
@@ -106,10 +106,10 @@ class AdventOfCode(object):
             self.solve_part_1(puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            24790,
+            self.solve_part_2(puzzle_input)
+        )
 
         elapsed_time = time.time() - start_time
         print('elapsed_time: {:.3f} sec'.format(elapsed_time))
@@ -120,7 +120,7 @@ class AdventOfCode(object):
         # aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1, cases={1})
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
 
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+        aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def solve_part_1(self, puzzle_input: str):
         solver = Solver(puzzle_input)
@@ -215,7 +215,7 @@ class Solver(object):
         all_source_blocks = {start_coord}
 
         while source_blocks_queue:
-            print('{} source blocks in queue'.format(len(source_blocks_queue)))
+            AocLogger.log('{} source blocks in queue'.format(len(source_blocks_queue)))
 
             # process the next source
             current_coord = source_blocks_queue.pop()
@@ -275,20 +275,19 @@ class Solver(object):
 
     def p1(self):
         self.mark_reachable(self.spring_coords)
-        self.grid.show()
-        reachable = self.grid.find_by_function(lambda x: x in self.WET)
+        if not AocLogger.verbose:
+            self.grid.show()
+        wet_blocks = self.grid.find_by_function(lambda x: x in self.WET)
 
         # exclude values above min y
         num_to_exclude = self.min_y - 1
 
-        return len(reachable) - num_to_exclude
+        return len(wet_blocks) - num_to_exclude
 
     def p2(self):
-        """
-
-        """
-        z=0
-        return 2
+        self.mark_reachable(self.spring_coords)
+        settled_blocks = self.grid.find('~')
+        return len(settled_blocks)
 
 
 
