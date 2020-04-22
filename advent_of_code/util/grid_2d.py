@@ -35,6 +35,9 @@ class Grid2D(object):
                     else:
                         self.set_tuple(coord, char)
 
+    def __hash__(self):
+        return hash(str(self))
+
     def set_value_width(self, width):
         self.value_width = width
 
