@@ -91,10 +91,10 @@ class AdventOfCode(object):
             self.solve_part_1(puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            0,
+            self.solve_part_2(puzzle_input)
+        )
 
         elapsed_time = time.time() - start_time
         print('elapsed_time: {:.3f} sec'.format(elapsed_time))
@@ -142,15 +142,13 @@ class Solver(object):
         return '{}:\n{}\n'.format(
             type(self).__name__, self.text)
 
-    def p1(self):
+    def p1(self, num_minutes=10):
         """
         The change to each acre is based entirely on the contents of that acre as well as the number of open, wooded,
         or lumberyard acres adjacent to it at the start of each minute. Here, "adjacent" means any of the eight acres
         surrounding that acre. (Acres on the edges of the lumber collection area might have fewer than eight adjacent
         acres; the missing acres aren't counted.)
         """
-
-        num_minutes = 10
 
         current = Grid2D(self.text)
         prev = Grid2D(self.text)
@@ -201,8 +199,8 @@ class Solver(object):
                 else:
                     assert False
 
-            # print('After {} minutes:'.format(m))
-            # current.show()
+            print('After {} minutes:'.format(m))
+            current.show()
 
         # finish up
         print('Final state:')
@@ -219,7 +217,7 @@ class Solver(object):
 
         """
         z=0
-        return 2
+        return self.p1(1000000000)
 
 
 
