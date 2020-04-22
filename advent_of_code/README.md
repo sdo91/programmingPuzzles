@@ -11,10 +11,10 @@ steps:
 * open dev console
 * click network tab
 * go to: https://adventofcode.com/2016/day/1/input
-* under "Name" click 2nd
-* look for "session" under "Cookies"
-* double click, copy
-* `echo <session> > ~/.config/aocd/token`
+* under "Name" click on one of the entries (might be called input)
+* under "Cookies" look for "session"
+* double click "Value", copy
+* `echo <session value> > ~/.config/aocd/token`
 
 # PyCharm setup
 * (not needed anymore) mark `advent_of_code` dir as 'Sources Root'
