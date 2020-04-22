@@ -77,6 +77,9 @@ class Grid2D(object):
     def get(self, x, y):
         return self.grid[(x, y)]
 
+    def count(self, char):
+        return sum([1 for v in self.grid.values() if v == char])
+
     def find(self, char):
         # todo: rename to find_all
         result = []
@@ -139,9 +142,16 @@ class Grid2D(object):
     def cols(self):
         return range(self.min_x, self.max_x + 1)
 
-    def count_adjacent(self, coord, value):
-        adj_coords = self.get_adjacent_coords(coord)
-        return sum([1 for c in adj_coords if self.is_value(c, value)])
+    def coords(self):
+        for y in self.rows():
+            for x in self.cols():
+                yield x, y
+
+    def count_adjacent(self, coord, value, include_diagonal=False):
+        coords = self.get_adjacent_coords(coord)
+        if include_diagonal:
+            coords += self.get_diagonal_coords(coord)
+        return sum([1 for c in coords if self.is_value(c, value)])
 
     def is_on_edge(self, coord):
         x, y = coord
