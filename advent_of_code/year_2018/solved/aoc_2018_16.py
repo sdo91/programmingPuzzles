@@ -114,9 +114,15 @@ class AdventOfCode(object):
 
 class OpcodeDevice(object):
 
-    def __init__(self):
-        self.registers = [0] * 4
+    def __init__(self, num_registers=4):
+        self.registers = [0] * num_registers
         self.method_names_by_opcode = {}
+
+        self.verbose = False
+        self.english = ''
+
+    def get_english(self, ip_register):
+        return self.english.replace('r{}'.format(ip_register), 'ip')
 
     def get_opcode_method_names(self):
         return [x for x in dir(self) if x.startswith('opcode_') and callable(getattr(self, x))]
@@ -155,6 +161,8 @@ class OpcodeDevice(object):
         addr (add register)
         stores into register C the result of adding register A and register B.
         """
+        if self.verbose:
+            self.english = 'r{} = r{} + r{}'.format(c, a, b)
         self.registers[c] = self.registers[a] + self.registers[b]
 
     def opcode_addi(self, a, b, c):
@@ -162,6 +170,8 @@ class OpcodeDevice(object):
         addi (add immediate)
         stores into register C the result of adding register A and value B.
         """
+        if self.verbose:
+            self.english = 'r{} = r{} + {}'.format(c, a, b)
         self.registers[c] = self.registers[a] + b
 
     def opcode_mulr(self, a, b, c):
@@ -169,6 +179,8 @@ class OpcodeDevice(object):
         mulr (multiply register)
         stores into register C the result of multiplying register A and register B.
         """
+        if self.verbose:
+            self.english = 'r{} = r{} * r{}'.format(c, a, b)
         self.registers[c] = self.registers[a] * self.registers[b]
 
     def opcode_muli(self, a, b, c):
@@ -176,6 +188,8 @@ class OpcodeDevice(object):
         muli (multiply immediate)
         stores into register C the result of multiplying register A and value B.
         """
+        if self.verbose:
+            self.english = 'r{} = r{} * {}'.format(c, a, b)
         self.registers[c] = self.registers[a] * b
 
     def opcode_banr(self, a, b, c):
@@ -183,6 +197,8 @@ class OpcodeDevice(object):
         banr (bitwise AND register)
         stores into register C the result of the bitwise AND of register A and register B.
         """
+        if self.verbose:
+            assert False
         self.registers[c] = self.registers[a] & self.registers[b]
 
     def opcode_bani(self, a, b, c):
@@ -190,6 +206,8 @@ class OpcodeDevice(object):
         bani (bitwise AND immediate)
         stores into register C the result of the bitwise AND of register A and value B.
         """
+        if self.verbose:
+            assert False
         self.registers[c] = self.registers[a] & b
 
     def opcode_borr(self, a, b, c):
@@ -197,6 +215,8 @@ class OpcodeDevice(object):
         borr (bitwise OR register)
         stores into register C the result of the bitwise OR of register A and register B.
         """
+        if self.verbose:
+            assert False
         self.registers[c] = self.registers[a] | self.registers[b]
 
     def opcode_bori(self, a, b, c):
@@ -204,6 +224,8 @@ class OpcodeDevice(object):
         bori (bitwise OR immediate)
         stores into register C the result of the bitwise OR of register A and value B.
         """
+        if self.verbose:
+            assert False
         self.registers[c] = self.registers[a] | b
 
     def opcode_setr(self, a, b, c):
@@ -211,6 +233,8 @@ class OpcodeDevice(object):
         setr (set register)
         copies the contents of register A into register C. (Input B is ignored.)
         """
+        if self.verbose:
+            self.english = 'r{} = r{}'.format(c, a)
         self.registers[c] = self.registers[a]
 
     def opcode_seti(self, a, b, c):
@@ -218,6 +242,8 @@ class OpcodeDevice(object):
         seti (set immediate)
         stores value A into register C. (Input B is ignored.)
         """
+        if self.verbose:
+            self.english = 'r{} = {}'.format(c, a)
         self.registers[c] = a
 
     def opcode_gtir(self, a, b, c):
@@ -225,6 +251,8 @@ class OpcodeDevice(object):
         gtir (greater-than immediate/register)
         sets register C to 1 if value A is greater than register B. Otherwise, register C is set to 0.
         """
+        if self.verbose:
+            self.english = 'r{} = ({} > r{})'.format(c, a, b)
         self.registers[c] = int(a > self.registers[b])
 
     def opcode_gtri(self, a, b, c):
@@ -232,6 +260,8 @@ class OpcodeDevice(object):
         gtri (greater-than register/immediate)
         sets register C to 1 if register A is greater than value B. Otherwise, register C is set to 0.
         """
+        if self.verbose:
+            self.english = 'r{} = (r{} > {})'.format(c, a, b)
         self.registers[c] = int(self.registers[a] > b)
 
     def opcode_gtrr(self, a, b, c):
@@ -239,6 +269,8 @@ class OpcodeDevice(object):
         gtrr (greater-than register/register)
         sets register C to 1 if register A is greater than register B. Otherwise, register C is set to 0.
         """
+        if self.verbose:
+            self.english = 'r{} = (r{} > r{})'.format(c, a, b)
         self.registers[c] = int(self.registers[a] > self.registers[b])
 
     def opcode_eqir(self, a, b, c):
@@ -246,6 +278,8 @@ class OpcodeDevice(object):
         eqir (equal immediate/register)
         sets register C to 1 if value A is equal to register B. Otherwise, register C is set to 0.
         """
+        if self.verbose:
+            self.english = 'r{} = ({} == r{})'.format(c, a, b)
         self.registers[c] = int(a == self.registers[b])
 
     def opcode_eqri(self, a, b, c):
@@ -253,6 +287,8 @@ class OpcodeDevice(object):
         eqri (equal register/immediate)
         sets register C to 1 if register A is equal to value B. Otherwise, register C is set to 0.
         """
+        if self.verbose:
+            self.english = 'r{} = (r{} == {})'.format(c, a, b)
         self.registers[c] = int(self.registers[a] == b)
 
     def opcode_eqrr(self, a, b, c):
@@ -260,6 +296,8 @@ class OpcodeDevice(object):
         eqrr (equal register/register)
         sets register C to 1 if register A is equal to register B. Otherwise, register C is set to 0.
         """
+        if self.verbose:
+            self.english = 'r{} = (r{} == r{})'.format(c, a, b)
         self.registers[c] = int(self.registers[a] == self.registers[b])
 
 
