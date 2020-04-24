@@ -83,10 +83,10 @@ class AdventOfCode(object):
     def run(self):
         start_time = time.time()
 
-        # self.run_tests()
+        self.run_tests()
 
         AocLogger.verbose = False
-
+        # AocLogger.verbose = True
         # aoc_util.assert_equal(
         #     1056,
         #     self.solve_part_1(self.puzzle_input)
@@ -104,7 +104,8 @@ class AdventOfCode(object):
     def run_tests(self):
         AocLogger.verbose = True
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+
+        aoc_util.assert_equal(1056, Solver.code_decompiled(989))
 
     def solve_part_1(self, text: str):
         solver = Solver(text)
@@ -135,6 +136,7 @@ class Solver(object):
 
     def __init__(self, text: str):
         self.text = text.strip()
+        AocLogger.log(str(self))
 
         self.instructions = []
         for line in aoc_util.lines(self.text):
@@ -145,33 +147,22 @@ class Solver(object):
                 opcode_name = 'opcode_{}'.format(line.split()[0])
                 self.instructions.append((opcode_name, tuple(ints)))
 
-
-        AocLogger.log(str(self))
-
     def __repr__(self):
         return '{}:\n{}\n'.format(
             type(self).__name__, self.text)
 
-    def p1(self, start_val=0):
-        """
-
-        """
-
+    def p1(self, start_val=0, max_num_steps=-1):
         opcode_device = OpcodeDevice(num_registers=6)
-        opcode_device.verbose = True
-        ip = 0
-        state = ''
-
         opcode_device.registers[0] = start_val
-        x=0
+        opcode_device.verbose = AocLogger.verbose
 
+        ip = 0
+        x = 0
+        state = ''
         while True:
             # check ip range
-            if ip >= len(self.instructions) or x >= 1e5:
+            if ip >= len(self.instructions):
                 break
-
-            if x > 20 and ip >= 17:
-                assert False
 
             # ip -> register
             opcode_device.registers[self.ip_register] = ip
@@ -185,8 +176,6 @@ class Solver(object):
             opcode_device.execute_opcode_name(*instruction)
             if AocLogger.verbose:
                 state += ' {:18} {}'.format(opcode_device.get_english(self.ip_register), opcode_device.registers)
-                # if instruction[-1][-1] == self.ip_register:
-                #     state += ' ip jumped!'
                 print(state)
 
             # register -> ip
@@ -195,12 +184,88 @@ class Solver(object):
             # inc ip
             ip += 1
             x += 1
-            z=0
 
         return opcode_device.registers[0]
 
     def p2(self):
-        return self.p1(start_val=1)
+        """
+
+
+
+
+
+        10551389 too low
+        """
+
+        opcode_device = OpcodeDevice(num_registers=6)
+        opcode_device.verbose = True
+
+        # print out the instructions
+        for i, inst in enumerate(self.instructions):
+            if i == 17:
+                print()
+            opcode_device.execute_opcode_name(*inst)
+            print('{}: {}'.format(i, opcode_device.get_english(self.ip_register)))
+            opcode_device.clear_registers()
+        # assert False
+
+
+
+        opcode_device.registers[0] = 1
+
+
+
+        return opcode_device.registers[0]
+
+    @staticmethod
+    def code_decompiled(input_value):
+        """
+        r0: result
+        r1: if chamber
+        r2: inner counter
+        r3: ip
+        r4: bug num
+        r5: outer counter
+
+        calculates the sum of divisors of 10551389
+        """
+        text = ''
+
+        # start of program does setup
+        r0 = 0
+        r4 = input_value
+        # returns to line 1
+
+        # line 1-2
+        r5 = 1  # (line 1)
+
+        while True:
+            r2 = 1  # (line 2)
+
+            # lines 3-11
+            while True:
+                if (r5 * r2) == r4:  # (lines 3/4)
+                    # if factors, add r5 to result
+                    r0 += r5  # (line 7)
+                    if AocLogger.verbose:
+                        if text:
+                            text += ' + '
+                        text += str(r5)
+
+                r2 += 1  # (line 8)
+                if r2 > r4:  # (line 9)
+                    break  # (line 10)
+                # goto 3
+
+            # lines 12-16
+            r5 += 1  # (line 12)
+            if r5 > r4:  # (line 13):
+                if AocLogger.verbose:
+                    text = '{} = {}'.format(text, r0)
+                    print(text)
+                return r0  # (line 16)
+            # goto 2
+
 
 
 
