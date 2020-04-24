@@ -16,6 +16,7 @@ addToPath('../../..')
 ### IMPORTS ###
 
 import time
+import math
 import traceback
 
 import aocd
@@ -86,15 +87,14 @@ class AdventOfCode(object):
         self.run_tests()
 
         AocLogger.verbose = False
-        # AocLogger.verbose = True
-        # aoc_util.assert_equal(
-        #     1056,
-        #     self.solve_part_1(self.puzzle_input)
-        # )
-
-        AocLogger.verbose = True
         aoc_util.assert_equal(
-            0,
+            1056,
+            self.solve_part_1(self.puzzle_input)
+        )
+
+        # AocLogger.verbose = True
+        aoc_util.assert_equal(
+            10915260,
             self.solve_part_2(self.puzzle_input)
         )
 
@@ -106,6 +106,7 @@ class AdventOfCode(object):
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
 
         aoc_util.assert_equal(1056, Solver.code_decompiled(989))
+        aoc_util.assert_equal(1056, sum(Solver.divisors(989)))
 
     def solve_part_1(self, text: str):
         solver = Solver(text)
@@ -189,11 +190,6 @@ class Solver(object):
 
     def p2(self):
         """
-
-
-
-
-
         10551389 too low
         """
 
@@ -209,13 +205,21 @@ class Solver(object):
             opcode_device.clear_registers()
         # assert False
 
+        # after reverse engineering the code, it comes out to this:
+        result = sum(self.divisors(10551389))
+        return result
 
-
-        opcode_device.registers[0] = 1
-
-
-
-        return opcode_device.registers[0]
+    @staticmethod
+    def divisors(n):
+        results = set()
+        i = 1
+        root = math.sqrt(n)
+        while i <= root:
+            if n % i == 0:
+                results.add(i)
+                results.add(n//i)
+            i += 1
+        return results
 
     @staticmethod
     def code_decompiled(input_value):
@@ -224,10 +228,11 @@ class Solver(object):
         r1: if chamber
         r2: inner counter
         r3: ip
-        r4: bug num
+        r4: input_value
         r5: outer counter
 
-        calculates the sum of divisors of 10551389
+        calculates the sum of divisors of input_value
+        NOTE: input_value for p1 is 989, p2 is 10551389
         """
         text = ''
 
