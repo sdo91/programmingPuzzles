@@ -127,6 +127,13 @@ def write_input(text, file_path):
 
 
 def run_tests(function, test_inputs, test_outputs, cases=None):
+    """
+    Args:
+        function (func):
+        test_inputs (list):
+        test_outputs (list):
+        cases (set[int]):
+    """
     AocLogger.log('\nrunning test cases ({})'.format(str(function)))
     num_tests_passed = 0
 
