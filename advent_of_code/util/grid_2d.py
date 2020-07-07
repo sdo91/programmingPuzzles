@@ -6,10 +6,20 @@ from advent_of_code.util.aoc_util import AocLogger
 
 class Grid2D(object):
 
+    DIRECTIONS = {
+        'N': (0, -1),
+        'E': (+1, 0),
+        'S': (0, +1),
+        'W': (-1, 0),
+    }
+
+    EAST_WEST = {'E', 'W'}
+
     def __init__(self, text='', default=' ', overlay_chars=frozenset()):
         """
         NOTE: uses an inverted y-axis (increasing downwards)
         """
+        self.default_value = default
         self.grid = defaultdict(lambda: default)
 
         self.value_width = 1
@@ -65,6 +75,9 @@ class Grid2D(object):
     def is_value(self, coord, value):
         return self.grid[coord] == value
 
+    def is_default(self, coord):
+        return self.grid[coord] == self.default_value
+
     def is_value_in(self, coord, collection):
         return self.grid[coord] in collection
 
@@ -105,6 +118,11 @@ class Grid2D(object):
                 result.append(coord)
         return result
 
+    def replace(self, old, new):
+        for coord, value in self.grid.items():
+            if value == old:
+                self.set_tuple(coord, new)
+
     def to_string(self, top_left, bottom_right):
         row_range = range(top_left[1], bottom_right[1] + 1)
         col_range = range(top_left[0], bottom_right[0] + 1)
@@ -134,10 +152,14 @@ class Grid2D(object):
             self.to_string(top_left, bottom_right)
         ))
 
-    def show(self):
+    def show(self, overlay_coord=None, overlay_char='*'):
+        if overlay_coord:
+            self.overlay = {overlay_coord: overlay_char}
         top_left = (self.min_x, self.min_y)
         bottom_right = (self.max_x, self.max_y)
         self.show_from(top_left, bottom_right)
+        if overlay_coord:
+            self.overlay = {}
 
     def rows(self):
         return range(self.min_y, self.max_y + 1)
@@ -184,6 +206,14 @@ class Grid2D(object):
             cls.adjust_coord(coord, +1, +1),
         ]
 
+    def set_coords_default(self, coords_list, value):
+        """
+        set each coord in 'coords_list' to 'value' if is was previously the default value
+        """
+        for coord in coords_list:
+            if self.is_default(coord):
+                self.set_tuple(coord, value)
+
     @classmethod
     def get_coord_north(cls, coord: typing.Tuple[int]):
         return cls.adjust_coord(coord, dy=-1)
@@ -203,6 +233,11 @@ class Grid2D(object):
     @classmethod
     def adjust_coord(cls, coord: typing.Tuple[int], dx=0, dy=0):
         return coord[0] + dx, coord[1] + dy
+
+    @classmethod
+    def get_coord_direction(cls, coord: typing.Tuple[int], direction: str):
+        dx, dy = cls.DIRECTIONS[direction]
+        return cls.adjust_coord(coord, dx, dy)
 
 
 

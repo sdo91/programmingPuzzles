@@ -35,11 +35,11 @@ class DijkstraGrid(Grid2D):
         """
         Args:
             start_coord (tuple):
-            open_chars (set[str]):
-            goal_chars (set[str]):
+            open_chars (set[str]): can pass through these coords
+            goal_chars (set[str]): these are walls
 
         Returns:
-            list[tuple]:
+            list[tuple]: the coords that make up a shortest path (reading order)
 
         given:
             start coord
