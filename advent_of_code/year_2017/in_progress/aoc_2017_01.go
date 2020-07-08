@@ -1,0 +1,149 @@
+package main
+
+import (
+	"fmt"
+	"strconv"
+)
+
+var testInputs1 = []string{
+	"1122",
+	"1111",
+	"1234",
+	"91212129",
+}
+
+var testOutputs1 = []int{
+	3,
+	4,
+	0,
+	9,
+}
+
+var testInputs2 = []string{
+	"1212",
+	"1221",
+	"123425",
+	"123123",
+	"12131415",
+}
+
+var testOutputs2 = []int{
+	6,
+	0,
+	4,
+	12,
+	4,
+}
+
+const puzzleInput = "181445682966897848665963472661939865313976877194312684993521259486517527961396717561854825453963181134379574918373213732184697746668399631642622373684425326112585283946462323363991753895647177797691214784149215198715986947573668987188746878678399624533792551651335979847131975965677957755571358934665327487287312467771187981424785514785421781781976477326712674311994735947987383516699897916595433228294198759715959469578766739518475118771755787196238772345762941477359483456641194685333528329581113788599843621326313592354167846466415943566183192946217689936174884493199368681514958669615226362538622898367728662941275658917124167353496334664239539753835439929664552886538885727235662548783529353611441231681613535447417941911479391558481443933134283852879511395429489152435996669232681215627723723565872291296878528334773391626672491878762288953597499218397146685679387438634857358552943964839321464529237533868734473777756775687759355878519113426969197211824325893376812556798483325994128743242544899625215765851923959798197562831313891371735973761384464685316273343541852758525318144681364492173465174512856618292785483181956548813344752352933634979165667651165776587656468598791994573513652324764687515345959621493346623821965554755615219855842969932269414839446887613738174567989512857785566352285988991946436148652839391593178736624957214917527759574235133666461988355855613377789115472297915429318142824465141688559333787512328799783539285826471818279818457674417354335454395644435889386297695625378256613558911695145397779576526397241795181294322797687168326696497256684943829666672341162656479563522892141714998477865114944671225898297338685958644728534192317628618817551492975251364233974374724968483637518876583946828819994321129556511537619253381981544394112184655586964655164192552352534626295996968762388827294873362719636616182786976922445125551927969267591395292198155775434997827738862786341543524544822321112131815475829945625787561369956264826651461575948462782869972654343749617939132353399334744265286151177931594514857563664329299713436914721119746932159456287267887878779218815883191236858656959258484139254446341"
+
+type aocSolverFunc func(string) int
+
+func toDigits(text string) []int {
+	result := []int{}
+	// fmt.Println(result)
+
+	for _, c := range text {
+		asChar := string(c)
+		asDigit, err := strconv.Atoi(asChar)
+		if err != nil {
+			panic(err)
+		}
+		// fmt.Printf("%v, %c, %v, %v \n", i, c, asChar, asDigit)
+		result = append(result, asDigit)
+	}
+
+	// fmt.Println(result)
+	return result
+}
+
+func p1(text string) int {
+	// find the sum of all digits that match the next digit in the list
+
+	// 1122 produces a sum of 3 (1 + 2) because the first digit (1) matches the second digit and the third digit (2) matches the fourth digit.
+	// 1111 produces 4 because each digit (all 1) matches the next.
+	// 1234 produces 0 because no digit matches the next.
+	// 91212129 produces 9 because the only digit that matches the next one is the last digit, 9.
+
+	// fmt.Printf("text: %v \n", text)
+
+	digits := toDigits(text)
+
+	// fmt.Printf("digits: %v \n", digits)
+
+	sum := 0
+
+	for i := range digits {
+
+		digit := digits[i]
+
+		var nextDigit int
+		if i == len(digits)-1 {
+			nextDigit = digits[0]
+		} else {
+			nextDigit = digits[i+1]
+		}
+
+		// fmt.Printf("digit: %v, next: %v \n", digit, nextDigit)
+
+		if digit == nextDigit {
+			sum += digit
+		}
+	}
+
+	fmt.Println("sum:", sum)
+	return sum
+}
+
+func p2(text string) int {
+	// Now, instead of considering the next digit, it wants you to consider the digit halfway around the circular list.
+
+	// 1212 produces 6: the list contains 4 items, and all four digits match the digit 2 items ahead.
+	// 1221 produces 0, because every comparison is between a 1 and a 2.
+	// 123425 produces 4, because both 2s match each other, but no other digit has a match.
+	// 123123 produces 12.
+	// 12131415 produces 4.
+
+	digits := toDigits(text)
+	numDigits := len(digits)
+
+	sum := 0
+
+	for i := range digits {
+		digit := digits[i]
+		otherDigitIdx := (i + numDigits / 2) % numDigits
+		otherDigit := digits[otherDigitIdx]
+
+		if digit == otherDigit {
+			sum += digit
+		}
+	}
+
+	fmt.Println("sum:", sum)
+	return sum
+}
+
+func test(solver aocSolverFunc, input string, expectedOutput int) {
+	actualOutput := solver(input)
+	if actualOutput != expectedOutput {
+		err := fmt.Sprintf("f(%v) returns %v, expected %v", input, actualOutput, expectedOutput)
+		panic(err)
+	}
+}
+
+func main() {
+	fmt.Println("hello world")
+
+	fmt.Printf("testInputs1: %v \n", testInputs1)
+	fmt.Printf("testOutputs1: %v \n", testOutputs1)
+
+	for i := range testInputs1 {
+		test(p1, testInputs1[i], testOutputs1[i])
+	}
+    p1(puzzleInput)
+
+	for i := range testInputs1 {
+		test(p2, testInputs2[i], testOutputs2[i])
+	}
+	p2(puzzleInput)
+}
