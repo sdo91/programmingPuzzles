@@ -23,7 +23,7 @@ from advent_of_code.util import aoc_util
 from advent_of_code.util.aoc_util import AocLogger
 from advent_of_code.util.min_heap import MinHeap
 
-from advent_of_corona.util import corona_util
+from corona.util import corona_util
 
 
 ### CONSTANTS ###
