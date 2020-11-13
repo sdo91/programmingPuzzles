@@ -23,6 +23,8 @@ import aocd
 from advent_of_code.util import aoc_util
 from advent_of_code.util.aoc_util import AocLogger
 
+from advent_of_code.year_2018.solved.aoc_2018_16 import OpcodeDevice
+
 
 ### CONSTANTS ###
 TEST_INPUT = [
@@ -74,7 +76,7 @@ class AdventOfCode(object):
     def run(self):
         start_time = time.time()
 
-        self.run_tests()
+        # self.run_tests()
 
         AocLogger.verbose = False
 
@@ -127,6 +129,15 @@ class Solver(object):
         self.text = text.strip()
         AocLogger.log(str(self))
 
+        self.instructions = []
+        for line in aoc_util.lines(self.text):
+            ints = aoc_util.ints(line)
+            if line.startswith('#'):
+                self.ip_register = ints[0]
+            else:
+                opcode_name = 'opcode_{}'.format(line.split()[0])
+                self.instructions.append((opcode_name, tuple(ints)))
+
     def __repr__(self):
         return '{}:\n{}\n'.format(
             type(self).__name__, self.text)
@@ -135,7 +146,16 @@ class Solver(object):
         """
 
         """
-        z=0
+        opcode_device = OpcodeDevice(num_registers=6)
+        opcode_device.verbose = True
+
+        # print out the instructions
+        for i, instruction in enumerate(self.instructions):
+            opcode_device.execute_opcode_name(*instruction)
+            print('{}: {}'.format(i, opcode_device.get_english(self.ip_register)))
+            opcode_device.clear_registers()
+        assert False
+
         return 1
 
     def p2(self):

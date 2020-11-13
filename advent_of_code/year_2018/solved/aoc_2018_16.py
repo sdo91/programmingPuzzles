@@ -198,7 +198,7 @@ class OpcodeDevice(object):
         stores into register C the result of the bitwise AND of register A and register B.
         """
         if self.verbose:
-            assert False
+            self.english = 'r{} = r{} & r{}'.format(c, a, b)
         self.registers[c] = self.registers[a] & self.registers[b]
 
     def opcode_bani(self, a, b, c):
@@ -207,7 +207,7 @@ class OpcodeDevice(object):
         stores into register C the result of the bitwise AND of register A and value B.
         """
         if self.verbose:
-            assert False
+            self.english = 'r{} = r{} & {}'.format(c, a, b)
         self.registers[c] = self.registers[a] & b
 
     def opcode_borr(self, a, b, c):
@@ -216,7 +216,7 @@ class OpcodeDevice(object):
         stores into register C the result of the bitwise OR of register A and register B.
         """
         if self.verbose:
-            assert False
+            self.english = 'r{} = r{} | r{}'.format(c, a, b)
         self.registers[c] = self.registers[a] | self.registers[b]
 
     def opcode_bori(self, a, b, c):
@@ -225,7 +225,7 @@ class OpcodeDevice(object):
         stores into register C the result of the bitwise OR of register A and value B.
         """
         if self.verbose:
-            assert False
+            self.english = 'r{} = r{} | {}'.format(c, a, b)
         self.registers[c] = self.registers[a] | b
 
     def opcode_setr(self, a, b, c):
