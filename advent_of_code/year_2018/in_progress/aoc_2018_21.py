@@ -86,7 +86,7 @@ class AdventOfCode(object):
         # )
 
         aoc_util.assert_equal(
-            0,
+            14431711,
             self.solve_part_2(self.puzzle_input)
         )
 
@@ -205,22 +205,25 @@ class Solver(object):
         return opcode_device.registers[0]
 
     @staticmethod
-    def code_decompiled(input_value):
+    def code_decompiled(mode, input_value=42):
         """
+        modes:
+            'HALT': return number of checks
+            'P1': return input for fastest halt
+            'P2': return input for slowest halt
+
         r0: input value
         r1:
         r2: exit value
         r3:
         r4: ip
         r5:
-
-        hex:
-        65536 -> 0x10000
-        255 -> 0xff
         """
-        # ip = 0
         r0 = input_value
+        r1 = 0
         num_checks = 0
+        previous_r2 = 0
+        seen_values = set()
 
         # lines 0-5 just test bitwise AND
         while True:
@@ -281,71 +284,36 @@ class Solver(object):
             '''
             num_checks += 1
             if r2 == r0:
+                assert mode == 'HALT'
                 return num_checks
+
+            if mode == 'P1':
+                return r2
+
+            if num_checks % 1000 == 0 or r2 in seen_values:
+                # time to print info
+                print('num_checks: {}, r1={:10}, r2={:10}, r3={:10}, r5={:10}'.format(
+                    num_checks, r1, r2, r3, r5
+                ))
+                print('previous_r2: {}'.format(previous_r2))
+
+                if r2 in seen_values:
+                    # repeating pattern found
+                    assert mode == 'P2'
+                    return previous_r2
+
+            # prep for next loop
+            seen_values.add(r2)
+            previous_r2 = r2
 
             # ip = 5  # (line 30) -> loop back to 6
 
     def p2(self):
         """
-        notes:
-            goal: halt fast
-                find lowest r0 to halt fast
-            r0 only used by line 28
+        notes: look for pattern
         """
-        opcode_device = OpcodeDevice(num_registers=6)
-        opcode_device.verbose = True
-        opcode_device.show_hex = True
-
-        # print out the instructions
-        for i, instruction in enumerate(self.instructions):
-            opcode_device.execute_opcode_name(*instruction)
-            print('{}  # (line {})'.format(opcode_device.get_english(self.ip_register), i))
-            opcode_device.clear_registers()
-        print()
-
-        # decompile
-        assert self.code_decompiled(12980435) == 1
-
-        # print verbose output
-        opcode_device.registers[0] = 12980435
-        AocLogger.verbose = True
-        opcode_device.show_hex = False
-        opcode_device.verbose = AocLogger.verbose
-
-        ip = 0
-        x = 0  # just a counter
-        state = ''
-        while True:
-            # check ip range
-            if ip >= len(self.instructions):
-                break
-
-            # stop after a while
-            if x > 1e6:
-                break
-
-            # ip -> register
-            opcode_device.registers[self.ip_register] = ip
-
-            # print registers
-            instruction = self.instructions[ip]
-            if AocLogger.verbose:
-                state = '{:}: ip={:2} {:45} {:35}'.format(x, ip, str(opcode_device.registers), str(instruction))
-
-            # do instruction
-            opcode_device.execute_opcode_name(*instruction)
-            if AocLogger.verbose:
-                state += ' {:20} {}'.format(opcode_device.get_english(self.ip_register), opcode_device.registers)
-                print(state)
-
-            # register -> ip
-            ip = opcode_device.registers[self.ip_register]
-
-            # increment
-            ip += 1
-            x += 1
-
-        return opcode_device.registers[0]
+        result = self.code_decompiled('P2')
+        return result
 
 
 
