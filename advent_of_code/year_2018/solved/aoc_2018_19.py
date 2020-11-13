@@ -158,7 +158,7 @@ class Solver(object):
         opcode_device.verbose = AocLogger.verbose
 
         ip = 0
-        x = 0
+        x = 0  # just a counter
         state = ''
         while True:
             # check ip range
