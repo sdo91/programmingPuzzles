@@ -80,10 +80,10 @@ class AdventOfCode(object):
 
         AocLogger.verbose = False
 
-        # aoc_util.assert_equal(
-        #     12980435,
-        #     self.solve_part_1(self.puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            12980435,
+            self.solve_part_1(self.puzzle_input)
+        )
 
         aoc_util.assert_equal(
             14431711,
@@ -127,7 +127,7 @@ class Solver(object):
 
     def __init__(self, text: str):
         self.text = text.strip()
-        AocLogger.log(str(self))
+        # AocLogger.log(str(self))
 
         self.instructions = []
         for line in aoc_util.lines(self.text):
@@ -149,6 +149,7 @@ class Solver(object):
                 find lowest r0 to halt fast
             r0 only used by line 28
         """
+        result = -1
         opcode_device = OpcodeDevice(num_registers=6)
         opcode_device.verbose = True
         opcode_device.show_hex = True
@@ -160,11 +161,8 @@ class Solver(object):
             opcode_device.clear_registers()
         print()
 
-        # decompile
-        assert self.code_decompiled(12980435) == 1
-
         # print verbose output
-        opcode_device.registers[0] = 12980435
+        opcode_device.registers[0] = 42  # any value should work
         AocLogger.verbose = True
         opcode_device.show_hex = False
         opcode_device.verbose = AocLogger.verbose
@@ -175,11 +173,16 @@ class Solver(object):
         while True:
             # check ip range
             if ip >= len(self.instructions):
+                assert False
+
+            # check if done
+            if ip == 28:
+                result = opcode_device.registers[2]
                 break
 
-            # stop after a while
-            if x > 1e6:
-                break
+            # # stop after a while
+            # if x > 1e6:
+            #     break
 
             # ip -> register
             opcode_device.registers[self.ip_register] = ip
@@ -202,7 +205,12 @@ class Solver(object):
             ip += 1
             x += 1
 
-        return opcode_device.registers[0]
+        # decompile
+        assert self.code_decompiled('P1') == result
+        assert self.code_decompiled('HALT', result) == 1
+
+        return result
+
 
     @staticmethod
     def code_decompiled(mode, input_value=42):
@@ -292,10 +300,9 @@ class Solver(object):
 
             if num_checks % 1000 == 0 or r2 in seen_values:
                 # time to print info
-                print('num_checks: {}, r1={:10}, r2={:10}, r3={:10}, r5={:10}'.format(
-                    num_checks, r1, r2, r3, r5
+                print('num_checks: {}, previous_r2: {}, r1={:10}, r2={:10}, r3={:10}, r5={:10}'.format(
+                    num_checks, previous_r2, r1, r2, r3, r5
                 ))
-                print('previous_r2: {}'.format(previous_r2))
 
                 if r2 in seen_values:
                     # repeating pattern found
