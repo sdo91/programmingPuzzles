@@ -80,15 +80,15 @@ class AdventOfCode(object):
 
         AocLogger.verbose = False
 
-        aoc_util.assert_equal(
-            12980435,
-            self.solve_part_1(self.puzzle_input)
-        )
-
         # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(self.puzzle_input)
+        #     12980435,
+        #     self.solve_part_1(self.puzzle_input)
         # )
+
+        aoc_util.assert_equal(
+            0,
+            self.solve_part_2(self.puzzle_input)
+        )
 
         elapsed_time = time.time() - start_time
         print('elapsed_time: {:.3f} sec'.format(elapsed_time))
@@ -161,7 +161,7 @@ class Solver(object):
         print()
 
         # decompile
-        self.code_decompiled(12980435)
+        assert self.code_decompiled(12980435) == 1
 
         # print verbose output
         opcode_device.registers[0] = 12980435
@@ -287,10 +287,65 @@ class Solver(object):
 
     def p2(self):
         """
-
+        notes:
+            goal: halt fast
+                find lowest r0 to halt fast
+            r0 only used by line 28
         """
-        z=0
-        return 2
+        opcode_device = OpcodeDevice(num_registers=6)
+        opcode_device.verbose = True
+        opcode_device.show_hex = True
+
+        # print out the instructions
+        for i, instruction in enumerate(self.instructions):
+            opcode_device.execute_opcode_name(*instruction)
+            print('{}  # (line {})'.format(opcode_device.get_english(self.ip_register), i))
+            opcode_device.clear_registers()
+        print()
+
+        # decompile
+        assert self.code_decompiled(12980435) == 1
+
+        # print verbose output
+        opcode_device.registers[0] = 12980435
+        AocLogger.verbose = True
+        opcode_device.show_hex = False
+        opcode_device.verbose = AocLogger.verbose
+
+        ip = 0
+        x = 0  # just a counter
+        state = ''
+        while True:
+            # check ip range
+            if ip >= len(self.instructions):
+                break
+
+            # stop after a while
+            if x > 1e6:
+                break
+
+            # ip -> register
+            opcode_device.registers[self.ip_register] = ip
+
+            # print registers
+            instruction = self.instructions[ip]
+            if AocLogger.verbose:
+                state = '{:}: ip={:2} {:45} {:35}'.format(x, ip, str(opcode_device.registers), str(instruction))
+
+            # do instruction
+            opcode_device.execute_opcode_name(*instruction)
+            if AocLogger.verbose:
+                state += ' {:20} {}'.format(opcode_device.get_english(self.ip_register), opcode_device.registers)
+                print(state)
+
+            # register -> ip
+            ip = opcode_device.registers[self.ip_register]
+
+            # increment
+            ip += 1
+            x += 1
+
+        return opcode_device.registers[0]
 
 
 

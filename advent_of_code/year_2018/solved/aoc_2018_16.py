@@ -156,10 +156,10 @@ class OpcodeDevice(object):
         self.execute_opcode_name(opcode_name, abc)
 
     def format_immediate(self, x):
-        result = str(x)
-        if self.show_hex:
-            result += ' [{}]'.format(hex(x))
-        return result
+        if self.show_hex and x > 0x20:
+            return hex(x)
+        else:
+            return str(x)
 
     ### OPCODE METHODS ###
 
