@@ -24,7 +24,8 @@ import aocd
 
 from advent_of_code.util import aoc_util
 from advent_of_code.util.aoc_util import AocLogger
-from advent_of_code.util.dijkstra_grid import DijkstraGrid
+from advent_of_code.util.dijkstra_solver import DijkstraSolver
+from advent_of_code.util.grid_2d import Grid2D
 
 
 ### CONSTANTS ###
@@ -152,7 +153,7 @@ class Unit(object):
     BASE_ATTACK_POWER = 3
     elf_attack_power = BASE_ATTACK_POWER
 
-    def __init__(self, coord, grid: DijkstraGrid):
+    def __init__(self, coord, grid: Grid2D):
         self.coord = coord
         self.grid = grid
         self.char = self.grid.overlay[self.coord]
@@ -176,7 +177,8 @@ class Unit(object):
             return 'G'
 
     def find_best_path(self):
-        path = self.grid.find_shortest_path(self.coord, {'.'}, {self.target_char})
+        solver = DijkstraSolver(self.grid, {'.'}, {self.target_char})
+        path = solver.find_shortest_path(self.coord)
         return path
 
     def get_target(self, units_dict):
@@ -230,7 +232,7 @@ class Solver(object):
             return self.cached_results[elf_power]
 
         # load the map
-        grid = DijkstraGrid(self.text, default='.', overlay_chars=self.UNIT_CHARS)
+        grid = Grid2D(self.text, default='.', overlay_chars=self.UNIT_CHARS)
         grid.show()
         print('START!\n\n\n')
 
