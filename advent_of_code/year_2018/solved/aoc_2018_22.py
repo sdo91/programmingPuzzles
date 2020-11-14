@@ -217,7 +217,7 @@ class Solver(object):
         if is_example:
             buffer = 6
         else:
-            buffer = 100
+            buffer = 20
 
         cave_grid = Grid2D(default=None)
 
@@ -238,6 +238,29 @@ class Solver(object):
         solver = CaveSolver(cave_grid, {0, 1, 2}, self.target)
         start_coord = (0, 0, CaveSolver.TOOL_TORCH)
         node = solver.find_shortest_path(start_coord)
+
+        # trace path
+        prev_tool = CaveSolver.TOOL_TORCH
+        max_x_coord = 0
+        num_switches = 0
+        cave_grid.overlay[(0, 0)] = ' '
+        for coord_3d in node.path:
+            x, y, tool = coord_3d
+            coord_2d = x, y
+            max_x_coord = max(max_x_coord, x)
+
+            if tool != prev_tool:
+                # switch tool
+                cave_grid.overlay[coord_2d] = 'S'
+                prev_tool = tool
+                num_switches += 1
+            else:
+                cave_grid.overlay[coord_2d] = ' '
+
+        cave_grid.value_width = 1
+        cave_grid.show_converted(self.to_type)
+        print('max_x_coord: {}'.format(max_x_coord))
+        print('num_switches: {}'.format(num_switches))
 
         return node.dist
 

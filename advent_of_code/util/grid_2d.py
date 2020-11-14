@@ -81,9 +81,11 @@ class Grid2D(object):
     def is_value_in(self, coord, collection):
         return self.grid[coord] in collection
 
-    def get_top(self, coord):
+    def get_top(self, coord, conversion_method=None):
         if coord in self.overlay:
             return self.overlay[coord]
+        elif conversion_method:
+            return conversion_method(self.grid[coord])
         else:
             return self.grid[coord]
 
@@ -131,9 +133,7 @@ class Grid2D(object):
             builder = []
             for x in col_range:
                 coord = (x, y)
-                value = self.get_top(coord)
-                if conversion_method:
-                    value = conversion_method(value)
+                value = self.get_top(coord, conversion_method)
                 formatted = '{:{}}'.format(value, self.value_width)
                 builder.append(formatted)
             if self.show_line_numbers:
