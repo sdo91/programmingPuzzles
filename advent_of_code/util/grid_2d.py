@@ -123,7 +123,7 @@ class Grid2D(object):
             if value == old:
                 self.set_tuple(coord, new)
 
-    def to_string(self, top_left, bottom_right):
+    def to_string(self, top_left, bottom_right, conversion_method=None):
         row_range = range(top_left[1], bottom_right[1] + 1)
         col_range = range(top_left[0], bottom_right[0] + 1)
         lines = []
@@ -132,6 +132,8 @@ class Grid2D(object):
             for x in col_range:
                 coord = (x, y)
                 value = self.get_top(coord)
+                if conversion_method:
+                    value = conversion_method(value)
                 formatted = '{:{}}'.format(value, self.value_width)
                 builder.append(formatted)
             if self.show_line_numbers:
@@ -144,12 +146,12 @@ class Grid2D(object):
         bottom_right = (self.max_x, self.max_y)
         return self.to_string(top_left, bottom_right)
 
-    def show_from(self, top_left, bottom_right):
+    def show_from(self, top_left, bottom_right, conversion_method=None):
         print('\n{}: {} to {}\n{}\n'.format(
             type(self).__name__,
             top_left,
             bottom_right,
-            self.to_string(top_left, bottom_right)
+            self.to_string(top_left, bottom_right, conversion_method)
         ))
 
     def show(self, overlay_coord=None, overlay_char='*'):
@@ -160,6 +162,11 @@ class Grid2D(object):
         self.show_from(top_left, bottom_right)
         if overlay_coord:
             self.overlay = {}
+
+    def show_converted(self, conversion_method):
+        top_left = (self.min_x, self.min_y)
+        bottom_right = (self.max_x, self.max_y)
+        self.show_from(top_left, bottom_right, conversion_method)
 
     def rows(self):
         return range(self.min_y, self.max_y + 1)
