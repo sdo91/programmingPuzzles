@@ -23,6 +23,7 @@ import aocd
 from advent_of_code.util import aoc_util
 from advent_of_code.util.aoc_util import AocLogger
 from advent_of_code.util.grid_2d import Grid2D
+from advent_of_code.util.dijkstra_solver import DijkstraSolver
 
 
 ### CONSTANTS ###
@@ -44,7 +45,7 @@ TEST_OUTPUT_1 = [
 ]
 
 TEST_OUTPUT_2 = [
-    0,
+    45,
     0,
     0,
 ]
@@ -81,14 +82,14 @@ class AdventOfCode(object):
         AocLogger.verbose = False
 
         aoc_util.assert_equal(
-            0,
+            7915,
             self.solve_part_1(self.puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(self.puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            980,
+            self.solve_part_2(self.puzzle_input)
+        )
 
         elapsed_time = time.time() - start_time
         print('elapsed_time: {:.3f} sec'.format(elapsed_time))
@@ -96,7 +97,7 @@ class AdventOfCode(object):
     def run_tests(self):
         AocLogger.verbose = True
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+        aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def solve_part_1(self, text: str):
         solver = Solver(text)
@@ -211,12 +212,78 @@ class Solver(object):
         """
 
         """
-        z=0
-        return 2
+        is_example = (self.target == (10, 10))
+
+        if is_example:
+            buffer = 6
+        else:
+            buffer = 100
+
+        cave_grid = Grid2D(default=None)
+
+        for y in range(self.target[1] + buffer):
+            for x in range(self.target[0] + buffer):
+                coord = (x, y)
+
+                geologic_index = self.calc_geologic_index(coord)
+                erosion_level = self.calc_erosion_level(geologic_index)
+
+                self.erosion_levels.set_tuple(coord, erosion_level)
+                cave_grid.set_tuple(coord, erosion_level % 3)
+
+        if AocLogger.verbose:
+            self.erosion_levels.show_converted(self.to_type)
+            cave_grid.show()
+
+        solver = CaveSolver(cave_grid, {0, 1, 2}, self.target)
+        start_coord = (0, 0, CaveSolver.TOOL_TORCH)
+        node = solver.find_shortest_path(start_coord)
+
+        return node.dist
 
 
+class CaveSolver(DijkstraSolver):
 
+    TOOL_NONE = 0   # not rocky
+    TOOL_TORCH = 1  # not wet
+    TOOL_GEAR = 2   # not narrow
 
+    def __init__(self, grid, open_chars, target_2d):
+        super().__init__(grid, open_chars, set())
+        self.target_3d = (target_2d[0], target_2d[1], self.TOOL_TORCH)
+
+    def is_done(self, coord):
+        return coord == self.target_3d
+
+    def get_adjacent(self, coord):
+        x, y, tool = coord
+        adj_coords = [
+            (x + 0, y - 1, tool),
+            (x - 1, y + 0, tool),
+            (x + 1, y + 0, tool),
+            (x + 0, y + 1, tool),
+            (x, y, (tool - 1) % 3),
+            (x, y, (tool + 1) % 3),
+        ]
+        return adj_coords
+
+    def can_reach(self, coord):
+        x, y, tool = coord
+        if x < 0 or y < 0:
+            return False
+        region_type = self.grid.get(x, y)
+        if region_type is None:
+            # hack: coord is OOB
+            return False
+        if tool == region_type:
+            return False
+        return True
+
+    def distance(self, first, second):
+        if first[2] == second[2]:
+            return 1
+        else:
+            return 7
 
 
 

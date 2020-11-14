@@ -4,7 +4,7 @@ import math
 from advent_of_code.util import aoc_util
 
 
-class Node(object):
+class DijkstraNode(object):
 
     def __init__(self, coord):
         self.coord = coord

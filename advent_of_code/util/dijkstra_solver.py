@@ -1,5 +1,5 @@
 
-from advent_of_code.util.dijkstra_node import Node
+from advent_of_code.util.dijkstra_node import DijkstraNode
 from advent_of_code.util.grid_2d import Grid2D
 from advent_of_code.util.min_heap import MinHeap
 
@@ -22,13 +22,16 @@ class DijkstraSolver(object):
         char_at_coord = self.grid.get_top(coord)
         return char_at_coord in self.open_chars or char_at_coord in self.goal_chars
 
-    def find_shortest_path(self, start_coord):
+    def distance(self, first, second):
+        return 1
+
+    def find_shortest_path(self, start_coord=(0, 0)):
         """
         Args:
             start_coord (tuple):
 
         Returns:
-            list[tuple]: the coords that make up a shortest path (reading order)
+            DijkstraNode: the final node, with distance and path
 
         given:
             start coord
@@ -50,12 +53,12 @@ class DijkstraSolver(object):
 
         priority_queue = MinHeap()  # unvisited
 
-        start_node = Node(start_coord)
+        start_node = DijkstraNode(start_coord)
         start_node.dist = 0
         # start_node.path.append(start_coord)
 
         all_nodes = {
-            start_coord: Node(start_coord)
+            start_coord: DijkstraNode(start_coord)
         }
 
         priority_queue.insert(start_node, 0)
@@ -64,12 +67,12 @@ class DijkstraSolver(object):
         while priority_queue:
 
             # select node at shortest distance
-            selected_node = priority_queue.pop()  # type: Node
+            selected_node = priority_queue.pop()  # type: DijkstraNode
             # print('\nselected_node: {}'.format(selected_node))
 
             # check if done
             if self.is_done(selected_node.coord):
-                return selected_node.path
+                return selected_node
 
             # update dist to reachable nodes
             for adj_coord in self.get_adjacent(selected_node.coord):
@@ -78,8 +81,8 @@ class DijkstraSolver(object):
                     # coord is valid
 
                     # create the potential new node
-                    new_node = Node(adj_coord)
-                    new_node.dist = selected_node.dist + 1
+                    new_node = DijkstraNode(adj_coord)
+                    new_node.dist = selected_node.dist + self.distance(selected_node.coord, adj_coord)
                     new_node.path = selected_node.path.copy()
                     new_node.path.append(adj_coord)
 
@@ -94,7 +97,7 @@ class DijkstraSolver(object):
                     all_nodes[adj_coord] = new_node
                     priority_queue.insert(new_node, new_node.dist)
 
-        return []  # no path found
+        return start_node  # no path found
 
 
 

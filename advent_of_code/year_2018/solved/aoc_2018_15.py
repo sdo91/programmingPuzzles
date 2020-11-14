@@ -178,8 +178,8 @@ class Unit(object):
 
     def find_best_path(self):
         solver = DijkstraSolver(self.grid, {'.'}, {self.target_char})
-        path = solver.find_shortest_path(self.coord)
-        return path
+        node = solver.find_shortest_path(self.coord)
+        return node.path
 
     def get_target(self, units_dict):
         best_target = None  # type: Unit
