@@ -27,7 +27,15 @@ from advent_of_code.util.aoc_util import AocLogger
 ### CONSTANTS ###
 TEST_INPUT = [
     """
-
+pos=<0,0,0>, r=4
+pos=<1,0,0>, r=1
+pos=<4,0,0>, r=3
+pos=<0,2,0>, r=1
+pos=<0,5,0>, r=3
+pos=<0,0,3>, r=1
+pos=<1,1,1>, r=1
+pos=<1,1,2>, r=1
+pos=<1,3,1>, r=1
     """, """
 
     """, """
@@ -36,7 +44,7 @@ TEST_INPUT = [
 ]
 
 TEST_OUTPUT_1 = [
-    0,
+    7,
     0,
     0,
 ]
@@ -117,14 +125,23 @@ class AdventOfCode(object):
 
 
 
+class Nanobot(object):
 
+    def __init__(self, text):
+        ints = aoc_util.ints(text)
+        self.pos = tuple(ints[:3])
+        self.radius = ints[-1]
 
+    def can_see(self, other):
+        dist = aoc_util.manhatten_dist(self.pos, other.pos)
+        return dist <= self.radius
 
 
 class Solver(object):
 
     def __init__(self, text: str):
         self.text = text.strip()
+        self.lines = aoc_util.lines(self.text)
         AocLogger.log(str(self))
 
     def __repr__(self):
@@ -135,8 +152,27 @@ class Solver(object):
         """
 
         """
-        z=0
-        return 1
+
+        bots = []
+
+        max_rad = 0
+        max_bot = None
+
+        for line in self.lines:
+            bot = Nanobot(line)
+
+            if bot.radius > max_rad:
+                max_rad = bot.radius
+                max_bot = bot
+
+            bots.append(bot)
+
+        total_in_range = 0
+        for bot in bots:
+            if max_bot.can_see(bot):
+                total_in_range += 1
+
+        return total_in_range
 
     def p2(self):
         """
