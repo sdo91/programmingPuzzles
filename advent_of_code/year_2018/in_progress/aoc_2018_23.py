@@ -100,8 +100,14 @@ class AdventOfCode(object):
 
     def run_tests(self):
         AocLogger.verbose = True
+        self.test_poi_finders()
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
         aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+
+    def test_poi_finders(self):
+        case_1 = 'pos=<10,10,0>, r=3 \n pos=<15,11,0>, r=5'
+        solver = Solver(case_1)
+        assert solver.test_poi_finders()
 
     def solve_part_1(self, text: str):
         solver = Solver(text)
@@ -188,52 +194,6 @@ class Solver(object):
 
         return total_in_range
 
-    def find_points_of_interest_slow(self, first: Nanobot, second: Nanobot):
-        """
-        for now:
-            2d only
-            slow
-        """
-        print('comparing: {}'.format([first, second]))
-        # corners = set()
-        # for p in first.get_corners() + second.get_corners():
-        #     corners.add(p)
-
-        # first.calc_range(second.pos, 0)
-
-        min_x = math.inf
-        min_y = math.inf
-        max_x = -math.inf
-        max_y = -math.inf
-
-        points_in_both = set()
-        for z in first.calc_range(second, 2):
-            for y in first.calc_range(second, 1):
-                for x in first.calc_range(second, 0):
-                    point = x, y, z
-                    # if point == (12, 12, 12):
-                    #     z = 0
-                    if first.can_see(point) and second.can_see(point):
-                        points_in_both.add(point)
-
-                        if x < min_x:
-                            min_x = x
-                        if y < min_y:
-                            min_y = y
-
-                        if x > max_x:
-                            max_x = x
-                        if y > max_y:
-                            max_y = y
-
-        result = set()
-        for point in points_in_both:
-            x, y, z = point
-            if x == min_x or x == max_x or y == min_y or y == max_y:
-                result.add(point)
-
-        return result
-
     def p2(self):
         """
         To increase the probability of success, you need to find the coordinate which puts you in range of the
@@ -280,6 +240,60 @@ class Solver(object):
                 shortest_dist = dist
 
         return shortest_dist
+
+    def find_points_of_interest_slow(self, first: Nanobot, second: Nanobot):
+        """
+        for now:
+            2d only
+            slow
+        """
+        print('comparing: {}'.format([first, second]))
+        # corners = set()
+        # for p in first.get_corners() + second.get_corners():
+        #     corners.add(p)
+
+        # first.calc_range(second.pos, 0)
+
+        min_x = math.inf
+        min_y = math.inf
+        max_x = -math.inf
+        max_y = -math.inf
+
+        points_in_both = set()
+        for z in first.calc_range(second, 2):
+            for y in first.calc_range(second, 1):
+                for x in first.calc_range(second, 0):
+                    point = x, y, z
+                    # if point == (12, 12, 12):
+                    #     z = 0
+                    if first.can_see(point) and second.can_see(point):
+                        points_in_both.add(point)
+
+                        if x < min_x:
+                            min_x = x
+                        if y < min_y:
+                            min_y = y
+
+                        if x > max_x:
+                            max_x = x
+                        if y > max_y:
+                            max_y = y
+
+        result = set()
+        for point in points_in_both:
+            x, y, z = point
+            if x == min_x or x == max_x or y == min_y or y == max_y:
+                result.add(point)
+
+        return result
+
+    def find_points_of_interest_fast(self, first: Nanobot, second: Nanobot):
+        return set()
+
+    def test_poi_finders(self):
+        slow = self.find_points_of_interest_slow(self.nanobots[0], self.nanobots[1])
+        fast = self.find_points_of_interest_fast(self.nanobots[0], self.nanobots[1])
+        return slow == fast
 
 
 if __name__ == '__main__':
