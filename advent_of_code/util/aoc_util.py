@@ -137,12 +137,16 @@ def run_tests(function, test_inputs, test_outputs, cases=None):
     AocLogger.log('\nrunning test cases ({})'.format(str(function)))
     num_tests_passed = 0
 
-    for i in range(len(test_inputs)):
+    for i in range_len(test_inputs):
         if cases and i not in cases:
             print('skipping test case: {}'.format(i))
             continue
         test_in = test_inputs[i]
         test_out = test_outputs[i]
+
+        if test_out is None:
+            print('skipping test case: {} (out is None)'.format(i))
+            continue
 
         if type(test_in) == str:
             test_in = test_in.strip()
@@ -165,7 +169,7 @@ def run_tests(function, test_inputs, test_outputs, cases=None):
 
 def manhatten_dist(a, b):
     result = 0
-    for i in range(len(a)):
+    for i in range_len(a):
         result += abs(a[i] - b[i])
     return result
 
@@ -216,8 +220,5 @@ def is_reading_order(a, b):
         return a[1] < b[1]  # choose top
 
 
-
-
-
-
-
+def range_len(x):
+    return range(len(x))
