@@ -18,8 +18,12 @@ addToPath('../../..')
 
 import aocd
 import math
+import pprint
+import random
 import time
 import traceback
+
+from collections import defaultdict
 
 from advent_of_code.util import aoc_util
 from advent_of_code.util.aoc_util import AocLogger
@@ -105,9 +109,78 @@ class AdventOfCode(object):
         aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def test_poi_finders(self):
-        case_1 = 'pos=<10,10,0>, r=3 \n pos=<15,11,0>, r=5'
-        solver = Solver(case_1)
-        assert solver.test_poi_finders()
+
+        # # make sure both algos are same
+        test_cases = [
+            # 24 pts (max possible)
+            'pos=<1,1,3>, r=12 \n pos=<7,5,9>, r=13',
+            'pos=<8,8,9>, r=12 \n pos=<2,2,5>, r=11',
+
+            # line on z plane
+            'pos=<0,9,0>, r=15 \n pos=<8,0,0>, r=15',
+
+            # 'pos=<9,10,0>, r=14 \n pos=<0,1,0>, r=13',
+            # 'pos=<10,9,0>, r=14 \n pos=<1,0,0>, r=15',
+
+            'pos=<2,9,7>, r=12 \n pos=<10,0,0>, r=15',
+
+            'pos=<10,10,0>, r=3 \n pos=<15,11,2>, r=5',
+            'pos=<10,10,0>, r=3 \n pos=<15,11,1>, r=5',
+            'pos=<10,10,0>, r=3 \n pos=<15,11,0>, r=5',
+
+            'pos=<10,1,0>, r=9 \n pos=<2,5,0>, r=15',
+            'pos=<13,7,9>, r=13 \n pos=<14,11,0>, r=13',
+            'pos=<10,10,0>, r=3 \n pos=<15,11,0>, r=5',
+
+        ]
+        for case in test_cases:
+            solver = Solver(case)
+
+            poi_slow = solver.find_points_of_interest_slow(*solver.get_first_pair())
+            poi_slow = sorted(poi_slow)
+
+            poi_fast = solver.find_points_of_interest_fast(*solver.get_first_pair())
+
+            assert solver.test_poi_finders()
+
+        # randomize
+        counts = defaultdict(int)
+        cases = defaultdict(list)
+        bound_xy = 10
+        bound_r = 15
+        for x in range(10000):
+            text = 'pos=<{},{},{}>, r={} \n pos=<{},{},{}>, r={}'.format(
+                # random.randint(0, bound_xy), random.randint(0, bound_xy), 0,
+                random.randint(0, bound_xy), random.randint(0, bound_xy), random.randint(0, bound_xy),
+                random.randint(0, bound_r),
+                # random.randint(0, bound_xy), random.randint(0, bound_xy), 0,
+                random.randint(0, bound_xy), random.randint(0, bound_xy), random.randint(0, bound_xy),
+                random.randint(0, bound_r),
+            )
+            solver = Solver(text)
+            poi = solver.find_points_of_interest_slow(*solver.get_first_pair())
+
+            counts[len(poi)] += 1
+
+            if len(poi) >= 24:
+                cases[len(poi)].append(text)
+
+            # if len(poi) == 32:
+            #     print(text)
+
+            # poi = sorted(poi)
+
+        # print(counts)
+
+        # pp = pprint.PrettyPrinter(indent=4)
+        # pp.print(counts)
+
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(counts)
+        pp.pprint(cases)
+
+        z = 0
+        assert False
 
     def solve_part_1(self, text: str):
         solver = Solver(text)
@@ -141,13 +214,14 @@ class Nanobot(object):
         return dist <= self.radius
 
     def get_corners(self):
-        # todo: 2d -> 3d
         x, y, z = self.pos
         return [
-            (x + 0, y - 1, z),
-            (x + 1, y + 0, z),
-            (x + 0, y + 1, z),
-            (x - 1, y + 0, z),
+            (x - self.radius, y, z),
+            (x + self.radius, y, z),
+            (x, y - self.radius, z),
+            (x, y + self.radius, z),
+            (x, y, z - self.radius),
+            (x, y, z + self.radius),
         ]
 
     def calc_range(self, other, axis):
@@ -241,58 +315,137 @@ class Solver(object):
 
         return shortest_dist
 
+    def get_first_pair(self):
+        return self.nanobots[:2]
+
     def find_points_of_interest_slow(self, first: Nanobot, second: Nanobot):
         """
         for now:
-            2d only
             slow
         """
         print('comparing: {}'.format([first, second]))
-        # corners = set()
-        # for p in first.get_corners() + second.get_corners():
-        #     corners.add(p)
-
-        # first.calc_range(second.pos, 0)
 
         min_x = math.inf
         min_y = math.inf
+        min_z = math.inf
         max_x = -math.inf
         max_y = -math.inf
+        max_z = -math.inf
 
-        points_in_both = set()
+        all_shared = set()
         for z in first.calc_range(second, 2):
             for y in first.calc_range(second, 1):
                 for x in first.calc_range(second, 0):
                     point = x, y, z
-                    # if point == (12, 12, 12):
-                    #     z = 0
                     if first.can_see(point) and second.can_see(point):
-                        points_in_both.add(point)
+                        all_shared.add(point)
 
+                        # also keep track of bounds
                         if x < min_x:
                             min_x = x
                         if y < min_y:
                             min_y = y
+                        if z < min_z:
+                            min_z = z
 
                         if x > max_x:
                             max_x = x
                         if y > max_y:
                             max_y = y
+                        if z > max_z:
+                            max_z = z
 
-        result = set()
-        for point in points_in_both:
+        # find/min max sets from all 6 dirs
+        x_min_set = set()
+        x_max_set = set()
+        y_min_set = set()
+        y_max_set = set()
+        z_min_set = set()
+        z_max_set = set()
+
+        for point in all_shared:
             x, y, z = point
-            if x == min_x or x == max_x or y == min_y or y == max_y:
+            if x == min_x:
+                x_min_set.add(point)
+            if x == max_x:
+                x_max_set.add(point)
+            if y == min_y:
+                y_min_set.add(point)
+            if y == max_y:
+                y_max_set.add(point)
+            if z == min_z:
+                z_min_set.add(point)
+            if z == max_z:
+                z_max_set.add(point)
+
+        # find corners
+        result = set()
+
+        result |= self.find_line_corners(x_min_set, 0)
+        result |= self.find_line_corners(x_max_set, 0)
+        result |= self.find_line_corners(y_min_set, 1)
+        result |= self.find_line_corners(y_max_set, 1)
+        result |= self.find_line_corners(z_min_set, 2)
+        result |= self.find_line_corners(z_max_set, 2)
+
+        # done
+        # result = sorted(result)
+        return result
+
+    def find_line_corners(self, points, dimension):
+        min_x = math.inf
+        min_y = math.inf
+        min_z = math.inf
+        max_x = -math.inf
+        max_y = -math.inf
+        max_z = -math.inf
+
+        # find min/max
+        for point in points:
+            x, y, z = point
+
+            if x < min_x:
+                min_x = x
+            if y < min_y:
+                min_y = y
+            if z < min_z:
+                min_z = z
+
+            if x > max_x:
+                max_x = x
+            if y > max_y:
+                max_y = y
+            if z > max_z:
+                max_z = z
+
+        # filter
+        result = set()
+        for point in points:
+            x, y, z = point
+
+            if dimension != 0 and (x == min_x or x == max_x):
+                result.add(point)
+            if dimension != 1 and (y == min_y or y == max_y):
+                result.add(point)
+            if dimension != 2 and (z == min_z or z == max_z):
                 result.add(point)
 
         return result
 
     def find_points_of_interest_fast(self, first: Nanobot, second: Nanobot):
-        return set()
+        shared_corners = set()
+        for corner in first.get_corners():
+            if second.can_see(corner):
+                shared_corners.add(corner)
+        for corner in second.get_corners():
+            if first.can_see(corner):
+                shared_corners.add(corner)
+
+        return shared_corners
 
     def test_poi_finders(self):
-        slow = self.find_points_of_interest_slow(self.nanobots[0], self.nanobots[1])
-        fast = self.find_points_of_interest_fast(self.nanobots[0], self.nanobots[1])
+        slow = self.find_points_of_interest_slow(*self.get_first_pair())
+        fast = self.find_points_of_interest_fast(*self.get_first_pair())
         return slow == fast
 
 
