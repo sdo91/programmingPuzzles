@@ -7,11 +7,13 @@ https://gist.github.com/mcpower/87427528b9ba5cac6f0c679370789661
 https://github.com/wimglenn/advent-of-code-data
 
 steps:
+- copy this:
+    - https://adventofcode.com/2018/day/22/input
 - open new chrome tab (ctrl T)
 - open dev console (ctrl shift J)
 - click network tab
-- open an input page (copy, Ctrl L, Ctrl V)
-    - https://adventofcode.com/2016/day/1/input
+- nav to aoc input page (Ctrl L, Ctrl V)
+    - see above
 - under "Name" click on input
     - other entries might work?
 - under "Cookies" look for "session"
