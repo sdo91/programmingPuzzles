@@ -26,7 +26,9 @@ import traceback
 from collections import defaultdict
 
 from advent_of_code.util import aoc_util
+from advent_of_code.util import math_3d
 from advent_of_code.util.aoc_util import AocLogger
+from advent_of_code.util.math_3d import Polygon
 
 ### CONSTANTS ###
 TEST_INPUT = [
@@ -110,8 +112,11 @@ class AdventOfCode(object):
 
     def test_poi_finders(self):
 
-        # # make sure both algos are same
+        # make sure both algos are same
         test_cases = [
+
+            'pos=<10,10,10>, r=10 \n pos=<12,14,16>, r=10',
+
             # 24 pts (max possible)
             'pos=<1,1,3>, r=12 \n pos=<7,5,9>, r=13',
             'pos=<8,8,9>, r=12 \n pos=<2,2,5>, r=11',
@@ -143,44 +148,44 @@ class AdventOfCode(object):
 
             assert solver.test_poi_finders()
 
-        # randomize
-        counts = defaultdict(int)
-        cases = defaultdict(list)
-        bound_xy = 10
-        bound_r = 15
-        for x in range(10000):
-            text = 'pos=<{},{},{}>, r={} \n pos=<{},{},{}>, r={}'.format(
-                # random.randint(0, bound_xy), random.randint(0, bound_xy), 0,
-                random.randint(0, bound_xy), random.randint(0, bound_xy), random.randint(0, bound_xy),
-                random.randint(0, bound_r),
-                # random.randint(0, bound_xy), random.randint(0, bound_xy), 0,
-                random.randint(0, bound_xy), random.randint(0, bound_xy), random.randint(0, bound_xy),
-                random.randint(0, bound_r),
-            )
-            solver = Solver(text)
-            poi = solver.find_points_of_interest_slow(*solver.get_first_pair())
-
-            counts[len(poi)] += 1
-
-            if len(poi) >= 24:
-                cases[len(poi)].append(text)
-
-            # if len(poi) == 32:
-            #     print(text)
-
-            # poi = sorted(poi)
-
-        # print(counts)
-
+        # # randomize
+        # counts = defaultdict(int)
+        # cases = defaultdict(list)
+        # bound_xy = 10
+        # bound_r = 15
+        # for x in range(10000):
+        #     text = 'pos=<{},{},{}>, r={} \n pos=<{},{},{}>, r={}'.format(
+        #         # random.randint(0, bound_xy), random.randint(0, bound_xy), 0,
+        #         random.randint(0, bound_xy), random.randint(0, bound_xy), random.randint(0, bound_xy),
+        #         random.randint(0, bound_r),
+        #         # random.randint(0, bound_xy), random.randint(0, bound_xy), 0,
+        #         random.randint(0, bound_xy), random.randint(0, bound_xy), random.randint(0, bound_xy),
+        #         random.randint(0, bound_r),
+        #     )
+        #     solver = Solver(text)
+        #     poi = solver.find_points_of_interest_slow(*solver.get_first_pair())
+        #
+        #     counts[len(poi)] += 1
+        #
+        #     if len(poi) >= 24:
+        #         cases[len(poi)].append(text)
+        #
+        #     # if len(poi) == 32:
+        #     #     print(text)
+        #
+        #     # poi = sorted(poi)
+        #
+        # # print(counts)
+        #
+        # # pp = pprint.PrettyPrinter(indent=4)
+        # # pp.print(counts)
+        #
         # pp = pprint.PrettyPrinter(indent=4)
-        # pp.print(counts)
-
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(counts)
-        pp.pprint(cases)
-
-        z = 0
-        assert False
+        # pp.pprint(counts)
+        # pp.pprint(cases)
+        #
+        # z = 0
+        # assert False
 
     def solve_part_1(self, text: str):
         solver = Solver(text)
@@ -228,6 +233,20 @@ class Nanobot(object):
         min_index = min(self.pos[axis] - self.radius, other.pos[axis] - other.radius)
         max_index = max(self.pos[axis] + self.radius, other.pos[axis] + other.radius)
         return range(min_index, max_index + 1)
+
+    def get_faces(self):
+        corners = self.get_corners()
+        x_corners = corners[0:2]
+        y_corners = corners[2:4]
+        z_corners = corners[4:6]
+
+        result = []
+        for xc in x_corners:
+            for yc in y_corners:
+                for zc in z_corners:
+                    poly = Polygon([xc, yc, zc])
+                    result.append(poly)
+        return result
 
 
 class Solver(object):
@@ -433,6 +452,17 @@ class Solver(object):
         return result
 
     def find_points_of_interest_fast(self, first: Nanobot, second: Nanobot):
+        """
+        see: https://stackoverflow.com/questions/6195413/intersection-between-3d-flat-polygons
+
+        algo:
+            for each pair of faces
+                find intersection of the two triangles
+                case1: coplanar
+                    cases: point, line, poly, none
+                case2: not
+                    cases: point, line, none
+        """
         shared_corners = set()
         for corner in first.get_corners():
             if second.can_see(corner):
@@ -440,6 +470,18 @@ class Solver(object):
         for corner in second.get_corners():
             if first.can_see(corner):
                 shared_corners.add(corner)
+
+        # get all faces
+        faces_1 = first.get_faces()
+        faces_2 = second.get_faces()
+
+        for f1 in faces_1:
+            for f2 in faces_2:
+                print('comparing: {}'.format([f1, f2]))
+
+                math_3d.are_coplanar_triangles(f1, f2)
+
+                z = 0
 
         return shared_corners
 
