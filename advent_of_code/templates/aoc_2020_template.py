@@ -11,6 +11,7 @@ def addToPath(relPath):
     else:
         print('already in path: {}'.format(dirToAdd))
 
+
 addToPath('../../..')
 
 ### IMPORTS ###
@@ -22,7 +23,6 @@ import aocd
 
 from advent_of_code.util import aoc_util
 from advent_of_code.util.aoc_util import AocLogger
-
 
 ### CONSTANTS ###
 TEST_INPUT = [
@@ -46,14 +46,6 @@ TEST_OUTPUT_2 = [
     0,
     0,
 ]
-
-
-
-
-
-
-
-
 
 
 class AdventOfCode(object):
@@ -113,14 +105,6 @@ class AdventOfCode(object):
         return part_2_result
 
 
-
-
-
-
-
-
-
-
 class Solver(object):
 
     def __init__(self, text: str):
@@ -135,29 +119,17 @@ class Solver(object):
         """
 
         """
-        z=0
+        z = 0
         return 1
 
     def p2(self):
         """
 
         """
-        z=0
+        z = 0
         return 2
-
-
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
     instance = AdventOfCode()
     instance.run()
-
-
-
-
