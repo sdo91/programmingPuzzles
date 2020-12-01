@@ -27,7 +27,12 @@ from advent_of_code.util.aoc_util import AocLogger
 ### CONSTANTS ###
 TEST_INPUT = [
     """
-
+1721
+979
+366
+299
+675
+1456
     """, """
 
     """, """
@@ -36,13 +41,13 @@ TEST_INPUT = [
 ]
 
 TEST_OUTPUT_1 = [
-    0,
+    514579,
     0,
     0,
 ]
 
 TEST_OUTPUT_2 = [
-    0,
+    241861950,
     0,
     0,
 ]
@@ -72,14 +77,14 @@ class AdventOfCode(object):
         AocLogger.verbose = False
 
         aoc_util.assert_equal(
-            0,
+            63616,
             self.solve_part_1(self.puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(self.puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            67877784,
+            self.solve_part_2(self.puzzle_input)
+        )
 
         elapsed_time = time.time() - start_time
         print('elapsed_time: {:.3f} sec'.format(elapsed_time))
@@ -87,7 +92,7 @@ class AdventOfCode(object):
     def run_tests(self):
         AocLogger.verbose = True
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+        aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def solve_part_1(self, text: str):
         solver = Solver(text)
@@ -111,24 +116,24 @@ class Solver(object):
     def __init__(self, text: str):
         self.text = text.strip()
         AocLogger.log(str(self))
+        self.numbers = aoc_util.ints(self.text)
 
     def __repr__(self):
         return '{}:\n{}\n'.format(
             type(self).__name__, self.text)
 
     def p1(self):
-        """
-
-        """
-        z = 0
-        return 1
+        for first in self.numbers:
+            for second in self.numbers:
+                if first + second == 2020:
+                    return first * second
 
     def p2(self):
-        """
-
-        """
-        z = 0
-        return 2
+        for first in self.numbers:
+            for second in self.numbers:
+                for third in self.numbers:
+                    if first + second + third == 2020:
+                        return first * second * third
 
 
 if __name__ == '__main__':
