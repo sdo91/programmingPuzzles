@@ -230,7 +230,9 @@ def tokenize(text, delimiters=' \t\n'):
         if x >= len(text) or text[x] in delimiters:
             # save the token
             if chars_to_keep:
-                result.append(text[start_index:x])
+                token = text[start_index:x]
+                token = to_number_if_possible(token)
+                result.append(token)
             # reset
             start_index = x + 1
             chars_to_keep = 0
@@ -239,3 +241,13 @@ def tokenize(text, delimiters=' \t\n'):
             chars_to_keep += 1
 
     return result
+
+
+def to_number_if_possible(x):
+    try:
+        return int(x)
+    except ValueError:
+        try:
+            return float(x)
+        except ValueError:
+            return x

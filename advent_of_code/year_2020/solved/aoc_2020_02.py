@@ -79,7 +79,7 @@ class AdventOfCode(object):
         )
 
         aoc_util.assert_equal(
-            0,
+            634,
             self.solve_part_2(self.puzzle_input)
         )
 
@@ -120,24 +120,15 @@ class Solver(object):
             type(self).__name__, self.text)
 
     def p1(self):
-        """
-
-        """
-
         total = 0
         for line in self.lines:
-            line = line.replace(':', '')
-            tokens = line.split(' ')
+            tokens = aoc_util.tokenize(line, '- :')
+            min_count, max_count, char, pwd = tokens
 
-            min_count = int(tokens[0].split('-')[0])
-            max_count = int(tokens[0].split('-')[1])
+            count = pwd.count(char)
+            if min_count <= count <= max_count:
+                total += 1
 
-            count = tokens[-1].count(tokens[-2])
-
-            if min_count <= count <= max_count: \
-                    total += 1
-
-            z = 0
         return total
 
     def p2(self):
@@ -147,27 +138,13 @@ class Solver(object):
         """
         total = 0
         for line in self.lines:
-            line = line.replace(':', '')
-            tokens = line.split(' ')
+            first, second, char, pwd = aoc_util.tokenize(line, '- :')
+            first -= 1
+            second -= 1
 
-            first = int(tokens[0].split('-')[0]) - 1
-            second = int(tokens[0].split('-')[1]) - 1
+            if (pwd[first] == char) != (pwd[second] == char):
+                total += 1
 
-            char = tokens[1]
-            pwd = tokens[2]
-
-            try:
-                matches = 0
-                if pwd[first] == char:
-                    matches += 1
-                if pwd[second] == char:
-                    matches += 1
-                if matches == 1:
-                    total += 1
-            except:
-                pass
-
-            z = 0
         return total
 
 
