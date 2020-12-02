@@ -1,4 +1,3 @@
-
 import re
 import typing
 from os import path
@@ -7,7 +6,6 @@ import pprint
 
 
 class AocLogger(object):
-
     verbose = True
 
     @classmethod
@@ -222,3 +220,22 @@ def is_reading_order(a, b):
 
 def range_len(x):
     return range(len(x))
+
+
+def tokenize(text, delimiters=' \t\n'):
+    result = []
+    start_index = 0
+    chars_to_keep = 0
+    for x in range(len(text) + 1):
+        if x >= len(text) or text[x] in delimiters:
+            # save the token
+            if chars_to_keep:
+                result.append(text[start_index:x])
+            # reset
+            start_index = x + 1
+            chars_to_keep = 0
+        else:
+            # keep the char
+            chars_to_keep += 1
+
+    return result
