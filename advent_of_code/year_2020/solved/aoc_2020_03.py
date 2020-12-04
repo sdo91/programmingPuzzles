@@ -88,7 +88,7 @@ class AdventOfCode(object):
         )
 
         aoc_util.assert_equal(
-            0,
+            1206576000,
             self.solve_part_2(self.puzzle_input)
         )
 
@@ -130,11 +130,6 @@ class Solver(object):
             type(self).__name__, self.text)
 
     def p1(self, dx=3, dy=1):
-        """
-
-        """
-        z = 0
-
         trees = 0
         y_coord = 0
         x_coord = 0
@@ -147,19 +142,14 @@ class Solver(object):
             x_coord %= (self.grid.max_x + 1)
 
             char = self.grid.get_tuple((x_coord, y_coord))
-            print(x_coord, y_coord, char)
-
+            if AocLogger.verbose:
+                print(x_coord, y_coord, char)
             if char == '#':
                 trees += 1
-
-        z=0
 
         return trees
 
     def p2(self):
-        """
-
-        """
         product = 1
         slopes = [
             (1, 1),
