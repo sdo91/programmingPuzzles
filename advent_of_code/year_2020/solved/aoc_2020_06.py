@@ -24,12 +24,25 @@ import aocd
 
 from advent_of_code.util import aoc_util
 from advent_of_code.util.aoc_util import AocLogger
-from advent_of_code.util.grid_2d import Grid2D
 
 ### CONSTANTS ###
 TEST_INPUT = [
     """
+abc
 
+a
+b
+c
+
+ab
+ac
+
+a
+a
+a
+a
+
+b
     """, """
 
     """, """
@@ -38,13 +51,13 @@ TEST_INPUT = [
 ]
 
 TEST_OUTPUT_1 = [
-    0,
+    11,
     0,
     0,
 ]
 
 TEST_OUTPUT_2 = [
-    0,
+    6,
     0,
     0,
 ]
@@ -74,14 +87,14 @@ class AdventOfCode(object):
         AocLogger.verbose = False
 
         aoc_util.assert_equal(
-            0,
+            6583,
             self.solve_part_1(self.puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(self.puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            3290,
+            self.solve_part_2(self.puzzle_input)
+        )
 
         elapsed_time = time.time() - start_time
         print('elapsed_time: {:.3f} sec'.format(elapsed_time))
@@ -89,7 +102,7 @@ class AdventOfCode(object):
     def run_tests(self):
         AocLogger.verbose = True
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+        aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def solve_part_1(self, text: str):
         solver = Solver(text)
@@ -114,23 +127,42 @@ class Solver(object):
         self.text = text.strip()
         AocLogger.log(str(self))
 
+        self.groups = self.text.split('\n\n')
+
     def __repr__(self):
         return '{}:\n{}\n'.format(
             type(self).__name__, self.text)
 
     def p1(self):
-        """
+        total = 0
+        for group in self.groups:
+            yes_set = set()
 
-        """
-        z = 0
-        return 1
+            people = group.split()
+            for person in people:
+                for char in person:
+                    yes_set.add(char)
+
+            total += len(yes_set)
+
+        return total
 
     def p2(self):
-        """
+        total = 0
 
-        """
-        z = 0
-        return 2
+        for group in self.groups:
+            counts = defaultdict(int)
+
+            people = group.split()
+            for person in people:
+                for char in person:
+                    counts[char] += 1
+
+            for char in counts:
+                if counts[char] == len(people):
+                    total += 1
+
+        return total
 
 
 if __name__ == '__main__':
