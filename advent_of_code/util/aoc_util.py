@@ -251,3 +251,13 @@ def to_number_if_possible(x):
             return float(x)
         except ValueError:
             return x
+
+
+def has_duplicates(collection):
+    all = set()
+    for item in collection:
+        if item in all:
+            return True
+        all.add(item)
+    assert len(all) == len(collection)
+    return False
