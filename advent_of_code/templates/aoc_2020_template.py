@@ -112,6 +112,7 @@ class Solver(object):
 
     def __init__(self, text: str):
         self.text = text.strip()
+        # self.lines = aoc_util.lines(text)
         AocLogger.log(str(self))
 
     def __repr__(self):
