@@ -165,7 +165,7 @@ def run_tests(function, test_inputs, test_outputs, cases=None):
     AocLogger.log('\n' * 5)
 
 
-def manhatten_dist(a, b):
+def manhatten_dist(a, b=(0, 0, 0)):
     result = 0
     for i in range_len(a):
         result += abs(a[i] - b[i])

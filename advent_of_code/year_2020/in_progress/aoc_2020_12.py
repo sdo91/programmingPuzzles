@@ -19,6 +19,7 @@ addToPath('../../..')
 import time
 import traceback
 from collections import defaultdict
+import numpy as np
 
 import aocd
 
@@ -29,7 +30,11 @@ from advent_of_code.util.grid_2d import Grid2D
 ### CONSTANTS ###
 TEST_INPUT = [
     """
-
+F10
+N3
+F7
+R90
+F11
     """, """
 
     """, """
@@ -38,7 +43,7 @@ TEST_INPUT = [
 ]
 
 TEST_OUTPUT_1 = [
-    0,
+    25,
     0,
     0,
 ]
@@ -74,7 +79,7 @@ class AdventOfCode(object):
         AocLogger.verbose = False
 
         aoc_util.assert_equal(
-            0,
+            1631,
             self.solve_part_1(self.puzzle_input)
         )
 
@@ -109,21 +114,54 @@ class AdventOfCode(object):
 
 
 class Solver(object):
+    DELTAS = {
+        0: np.array([0, 1]),
+        90: np.array([1, 0]),
+        180: np.array([0, -1]),
+        270: np.array([-1, 0]),
+    }
+
+    DIRECTIONS = {
+        'N': 0,
+        'E': 90,
+        'S': 180,
+        'W': 270,
+    }
 
     def __init__(self, text: str):
         self.text = text.strip()
         AocLogger.log(str(self))
+        self.lines = aoc_util.lines(text)
 
     def __repr__(self):
         return '{}:\n{}\n'.format(
             type(self).__name__, self.text)
 
     def p1(self):
-        """
+        heading = 90
+        coord = np.array([0, 0])
 
-        """
-        z = 0
-        return 1
+        for line in self.lines:
+            cmd = line[0]
+            arg = int(line[1:])
+
+            if cmd == 'L':
+                heading -= arg
+                heading %= 360
+            elif cmd == 'R':
+                heading += arg
+                heading %= 360
+            else:
+                # move
+                if cmd == 'F':
+                    dir = heading
+                else:
+                    dir = self.DIRECTIONS[cmd]
+
+                delta = self.DELTAS[dir]
+                coord += arg * delta
+
+        return aoc_util.manhatten_dist(coord)
 
     def p2(self):
         """
