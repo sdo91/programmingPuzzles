@@ -16,16 +16,15 @@ addToPath('../../..')
 
 ### IMPORTS ###
 
+import math
 import time
 import traceback
-from collections import defaultdict
-import numpy as np
 
 import aocd
+import numpy as np
 
 from advent_of_code.util import aoc_util
 from advent_of_code.util.aoc_util import AocLogger
-from advent_of_code.util.grid_2d import Grid2D
 
 ### CONSTANTS ###
 TEST_INPUT = [
@@ -49,7 +48,7 @@ TEST_OUTPUT_1 = [
 ]
 
 TEST_OUTPUT_2 = [
-    0,
+    286,
     0,
     0,
 ]
@@ -83,10 +82,10 @@ class AdventOfCode(object):
             self.solve_part_1(self.puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(self.puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            58606,
+            self.solve_part_2(self.puzzle_input)
+        )
 
         elapsed_time = time.time() - start_time
         print('elapsed_time: {:.3f} sec'.format(elapsed_time))
@@ -94,7 +93,8 @@ class AdventOfCode(object):
     def run_tests(self):
         AocLogger.verbose = True
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+        Solver.test_rotation()
+        aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def solve_part_1(self, text: str):
         solver = Solver(text)
@@ -154,21 +154,66 @@ class Solver(object):
             else:
                 # move
                 if cmd == 'F':
-                    dir = heading
+                    direction = heading
                 else:
-                    dir = self.DIRECTIONS[cmd]
+                    direction = self.DIRECTIONS[cmd]
 
-                delta = self.DELTAS[dir]
+                delta = self.DELTAS[direction]
                 coord += arg * delta
 
         return aoc_util.manhatten_dist(coord)
 
     def p2(self):
         """
-
+        high: 58856
         """
-        z = 0
-        return 2
+        ship = np.array([0, 0])
+        waypoint = np.array([10, 1])
+
+        for line in self.lines:
+            cmd = line[0]
+            arg = int(line[1:])
+
+            if cmd == 'F':
+                ship += arg * waypoint
+            elif cmd == 'L':
+                waypoint = self.rotate_point(waypoint, arg)
+            elif cmd == 'R':
+                waypoint = self.rotate_point(waypoint, -arg)
+            else:
+                # move waypoint
+                direction = self.DIRECTIONS[cmd]
+                delta = self.DELTAS[direction]
+                waypoint += arg * delta
+
+        return aoc_util.manhatten_dist(ship)
+
+    @classmethod
+    def rotate_point(cls, point, degrees):
+        """
+        rotate the point about the origin
+        NOTE: positive rotation is CCW
+        see: https://academo.org/demos/rotation-about-point/
+        """
+        radians = degrees * math.pi / 180
+        sine = math.sin(radians)
+        cosine = math.cos(radians)
+
+        new_east = point[0] * cosine - point[1] * sine
+        new_north = point[0] * sine + point[1] * cosine
+
+        new_east = round(new_east)
+        new_north = round(new_north)
+
+        return np.array([new_east, new_north])
+
+    @classmethod
+    def test_rotation(cls):
+        start_point = np.array([10, 4])
+        assert list(cls.rotate_point(start_point, 0)) == [10, 4]
+        assert list(cls.rotate_point(start_point, -90)) == [4, -10]
+        assert list(cls.rotate_point(start_point, -180)) == [-10, -4]
+        assert list(cls.rotate_point(start_point, -270)) == [-4, 10]
 
 
 if __name__ == '__main__':
