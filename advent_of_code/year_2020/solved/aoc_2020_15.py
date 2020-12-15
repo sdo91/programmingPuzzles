@@ -120,30 +120,31 @@ class Solver(object):
 
     def p1(self, end=2020):
         ints = aoc_util.ints(self.text)
-        all = defaultdict(list)
+        turns_by_number = defaultdict(list)
 
         for i, number in enumerate(ints):
             turn = i + 1
-            all[number].append(turn)
+            turns_by_number[number].append(turn)
 
-        while len(ints) < end:
-            turn_number = len(ints) + 1
+        prev_number = ints[-1]
+        for turn_number in range(len(ints) + 1, end + 1):
             if turn_number % 1000000 == 0:
                 print(turn_number)
 
-            prev_number = ints[-1]
-            prev_turns = all[prev_number]
+            prev_turns = turns_by_number[prev_number]
             prev_count = len(prev_turns)
 
-            if prev_count == 1:
-                next = 0
-            else:
-                next = prev_turns[-1] - prev_turns[-2]
+            next_number = 0
+            if prev_count > 1:
+                next_number = prev_turns[-1] - prev_turns[-2]
 
-            ints.append(next)
-            all[next].append(turn_number)
+            turns_by_number[next_number].append(turn_number)
+            while len(turns_by_number[next_number]) > 2:
+                turns_by_number[next_number].pop(0)
+            prev_number = next_number
 
-        return ints[-1]
+        print('len turns_by_number: {}'.format(len(turns_by_number)))
+        return prev_number
 
 
 if __name__ == '__main__':
