@@ -265,3 +265,21 @@ class Grid2D(object):
                 result.set_tuple((x, y), value)
             prev_grid = result.grid
         return result
+
+    def flip(self, axis: str):
+        """
+        Args:
+            axis (str): 'X' or 'Y'
+
+        Returns:
+            Grid2D: new grid flipped over the specified axis
+        """
+        axis = axis.upper()[0]
+        result = Grid2D()
+        for coord, value in self.grid.items():
+            if axis == 'X':
+                new_coord = coord[0], -coord[1]
+            else:
+                new_coord = -coord[0], coord[1]
+            result.set_tuple(new_coord, value)
+        return result
