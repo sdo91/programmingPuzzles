@@ -1,11 +1,9 @@
-
 import typing
 from collections import defaultdict
 from advent_of_code.util.aoc_util import AocLogger
 
 
 class Grid2D(object):
-
     DIRECTIONS = {
         'N': (0, -1),
         'E': (+1, 0),
@@ -24,9 +22,9 @@ class Grid2D(object):
 
         self.value_width = 1
 
-        self.min_x = 2**32
+        self.min_x = 2 ** 32
         self.max_x = 0
-        self.min_y = 2**32
+        self.min_y = 2 ** 32
         self.max_y = 0
 
         self.overlay = {}
@@ -125,6 +123,12 @@ class Grid2D(object):
             if value == old:
                 self.set_tuple(coord, new)
 
+    def top_left(self):
+        return self.min_x, self.min_y
+
+    def bottom_right(self):
+        return self.max_x, self.max_y
+
     def to_string(self, top_left, bottom_right, conversion_method=None):
         row_range = range(top_left[1], bottom_right[1] + 1)
         col_range = range(top_left[0], bottom_right[0] + 1)
@@ -142,8 +146,8 @@ class Grid2D(object):
         return '\n'.join(lines)
 
     def __repr__(self):
-        top_left = (self.min_x, self.min_y)
-        bottom_right = (self.max_x, self.max_y)
+        top_left = self.top_left()
+        bottom_right = self.bottom_right()
         return self.to_string(top_left, bottom_right)
 
     def show_from(self, top_left, bottom_right, conversion_method=None):
@@ -157,15 +161,15 @@ class Grid2D(object):
     def show(self, overlay_coord=None, overlay_char='*'):
         if overlay_coord:
             self.overlay = {overlay_coord: overlay_char}
-        top_left = (self.min_x, self.min_y)
-        bottom_right = (self.max_x, self.max_y)
+        top_left = self.top_left()
+        bottom_right = self.bottom_right()
         self.show_from(top_left, bottom_right)
         if overlay_coord:
             self.overlay = {}
 
     def show_converted(self, conversion_method):
-        top_left = (self.min_x, self.min_y)
-        bottom_right = (self.max_x, self.max_y)
+        top_left = self.top_left()
+        bottom_right = self.bottom_right()
         self.show_from(top_left, bottom_right, conversion_method)
 
     def rows(self):
@@ -246,7 +250,18 @@ class Grid2D(object):
         dx, dy = cls.DIRECTIONS[direction]
         return cls.adjust_coord(coord, dx, dy)
 
-
-
-
-
+    def rot90(self, n=1):
+        """
+        Returns:
+            Grid2D: new grid rotated 90 degrees CCW
+        """
+        prev_grid = self.grid
+        result = None
+        for i in range(n):
+            result = Grid2D()
+            for coord, value in prev_grid.items():
+                x = coord[1]
+                y = -coord[0]
+                result.set_tuple((x, y), value)
+            prev_grid = result.grid
+        return result
