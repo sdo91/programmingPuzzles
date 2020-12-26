@@ -180,7 +180,7 @@ class AdventOfCode(object):
         AocLogger.verbose = False
 
         aoc_util.assert_equal(
-            0,
+            15670959891893,
             self.solve_part_1(self.puzzle_input)
         )
 
@@ -256,22 +256,20 @@ class Solver(object):
             place it in the picture
             add bottom to neighbors
             move list
-
-
         """
         self.parse_tiles()
 
         while self.tiles_unassigned:
             self.picture.show()
             self.process_tiles()
-
+            time.sleep(0.1)
         self.picture.show()
+
         result = 1
         result *= self.picture.get_tuple(self.picture.top_left())
         result *= self.picture.get_tuple(self.picture.top_right())
         result *= self.picture.get_tuple(self.picture.bottom_left())
         result *= self.picture.get_tuple(self.picture.bottom_right())
-
         return result
 
     def process_tiles(self):
@@ -297,8 +295,9 @@ class Solver(object):
                 if new_tile:
                     new_tile.coord = new_coord
                     self.picture.set_tuple(new_tile.coord, new_tile.id)
-                    AocLogger.log('new tile in picture:')
-                    self.picture.show()
+                    if AocLogger.verbose:
+                        AocLogger.log('new tile in picture:')
+                        self.picture.show()
 
                     # add new tile
                     tiles_to_add[new_tile.id] = new_tile
@@ -318,21 +317,17 @@ class Solver(object):
         find match if it exists
         (ie, not on the edge)
         """
-        print('finding match: {}'.format([side, edge]))
+        AocLogger.log('finding match: {}'.format([side, edge]))
 
         for tile in self.tiles_unassigned.values():  # type: Tile
             if edge in tile.all_edges:
                 AocLogger.log('match found')
-                tile.grid.show()
                 # match found, orient the tile
 
                 opposite_side = (side + 2) % 4
                 flipped_edge = Tile.reverse(edge)
                 tile.orient(opposite_side, flipped_edge)
                 tile.sides_visited[opposite_side] = True
-
-                AocLogger.log('match found')
-                tile.grid.show()
 
                 return tile
 
@@ -359,7 +354,8 @@ class Solver(object):
                 is_first = False
                 tile.coord = (0, 0)
                 self.picture.set_tuple(tile.coord, tile.id)
-                self.picture.show()
+                if AocLogger.verbose:
+                    self.picture.show()
 
                 self.tiles_in_progress[tile.id] = tile
             else:
@@ -412,7 +408,7 @@ class Tile:
         self.id = aoc_util.ints(tokens[0])[0]
 
         self.grid = Grid2D(tokens[1])  # type: Grid2D
-        if is_first:
+        if is_first and AocLogger.verbose:
             self.grid = self.grid.flip('X')
             self.grid = Grid2D(repr(self.grid))
             print('flipped:')
@@ -434,7 +430,7 @@ class Tile:
         orient the tile such that the edge is at the side
         """
         if edge not in self.cw_edges:
-            print('flip')
+            AocLogger.log('flip')
             self.grid = self.grid.flip('y')
 
         self.rotate(side, edge)
@@ -447,7 +443,7 @@ class Tile:
         for x in range(4):
             if self.get_edge_on_side(side) == edge:
                 return
-            print('rotate')
+            AocLogger.log('rotate')
             self.grid = self.grid.rot90()
         assert False
 
