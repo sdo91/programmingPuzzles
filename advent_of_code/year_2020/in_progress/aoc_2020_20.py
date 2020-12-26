@@ -218,10 +218,13 @@ class Solver(object):
 
     def __init__(self, text: str):
         self.text = text.strip()
-        # self.lines = aoc_util.lines(text)
-        AocLogger.log(str(self))
-
         self.tiles_raw = text.split('\n\n')
+
+        self.picture = Grid2D()
+        self.picture.value_width = 5
+
+        self.tiles_unassigned = {}
+        self.tiles_in_progress = {}
 
     def __repr__(self):
         return '{}:\n{}\n'.format(
@@ -246,42 +249,121 @@ class Solver(object):
                     add to partial list
                 remove from partial list
 
-        """
+        algo (top edge of OG tile):
+            get string for top edge
+            check each tile to find the one that contains the top edge
+            orient the tile until it is correct
+            place it in the picture
+            add bottom to neighbors
+            move list
 
+
+        """
+        self.parse_tiles()
+
+        while self.tiles_unassigned:
+            self.picture.show()
+            self.process_tiles()
+
+        self.picture.show()
+        result = 1
+        result *= self.picture.get_tuple(self.picture.top_left())
+        result *= self.picture.get_tuple(self.picture.top_right())
+        result *= self.picture.get_tuple(self.picture.bottom_left())
+        result *= self.picture.get_tuple(self.picture.bottom_right())
+
+        return result
+
+    def process_tiles(self):
+        tiles_to_add = {}
+        tiles_to_remove = set()
+
+        for old_tile in self.tiles_in_progress.values():  # type: Tile
+            if AocLogger.verbose:
+                print('tile in progress: {}'.format(old_tile.id))
+                old_tile.grid.show()
+
+            for side, edge_str in old_tile.get_unmatched_edges().items():
+                old_tile.sides_visited[side] = True  # do I need this?
+
+                # get the coord on that side
+                new_coord = old_tile.get_coord_to_side(side)
+
+                if self.picture.has_coord(new_coord):
+                    AocLogger.log('coord already processed: {}'.format(new_coord))
+                    continue
+
+                new_tile = self.find_match(side, edge_str)
+                if new_tile:
+                    new_tile.coord = new_coord
+                    self.picture.set_tuple(new_tile.coord, new_tile.id)
+                    AocLogger.log('new tile in picture:')
+                    self.picture.show()
+
+                    # add new tile
+                    tiles_to_add[new_tile.id] = new_tile
+
+            # mark tile as done
+            tiles_to_remove.add(old_tile.id)
+
+        # update tiles in progress
+        for tile_id in tiles_to_remove:
+            del self.tiles_in_progress[tile_id]
+        for tile_id, tile in tiles_to_add.items():
+            del self.tiles_unassigned[tile_id]
+            self.tiles_in_progress[tile_id] = tile
+
+    def find_match(self, side: int, edge: str):
+        """
+        find match if it exists
+        (ie, not on the edge)
+        """
+        print('finding match: {}'.format([side, edge]))
+
+        for tile in self.tiles_unassigned.values():  # type: Tile
+            if edge in tile.all_edges:
+                AocLogger.log('match found')
+                tile.grid.show()
+                # match found, orient the tile
+
+                opposite_side = (side + 2) % 4
+                flipped_edge = Tile.reverse(edge)
+                tile.orient(opposite_side, flipped_edge)
+                tile.sides_visited[opposite_side] = True
+
+                AocLogger.log('match found')
+                tile.grid.show()
+
+                return tile
+
+        # if we get to here, we are on an edge
+        return None
+
+    def parse_tiles(self):
         counts = defaultdict(int)
         max_count = 0
 
+        # initialize all tiles
         is_first = True
-
-        unassigned_tiles = {}
-        partial_tiles = {}
-        # enclosed_tiles = {}  # just remove
-
         for text in self.tiles_raw:
-            tile = Tile(text)
-            if AocLogger.verbose:
-                tile.show()
+            tile = Tile(text, is_first)
+            # if AocLogger.verbose:
+            #     tile.grid.show()
 
             for edge in tile.all_edges:
                 counts[edge] += 1
-
                 if counts[edge] > max_count:
                     max_count = counts[edge]
 
             if is_first:
                 is_first = False
                 tile.coord = (0, 0)
-                tile.final_edges = tile.cw_edges
-                partial_tiles[tile.id] = tile
+                self.picture.set_tuple(tile.coord, tile.id)
+                self.picture.show()
+
+                self.tiles_in_progress[tile.id] = tile
             else:
-                unassigned_tiles[tile.id] = tile
-
-        # for partial_tile in partial_tiles.values():
-        #     for unmatched_edge in partial_tile.get_unmatched_edges():
-        #         pass
-
-        z = 0
-        return 1
+                self.tiles_unassigned[tile.id] = tile
 
     def p2(self):
         """
@@ -291,7 +373,7 @@ class Solver(object):
         return 2
 
 
-class Tile(Grid2D):
+class Tile:
     """
     keep track of all edges
 
@@ -325,10 +407,16 @@ class Tile(Grid2D):
     BOTTOM = 2
     LEFT = 3
 
-    def __init__(self, text):
+    def __init__(self, text, is_first):
         tokens = aoc_util.split_and_strip_each(text, ':')
-        super().__init__(tokens[1])
         self.id = aoc_util.ints(tokens[0])[0]
+
+        self.grid = Grid2D(tokens[1])  # type: Grid2D
+        if is_first:
+            self.grid = self.grid.flip('X')
+            self.grid = Grid2D(repr(self.grid))
+            print('flipped:')
+            self.grid.show()
 
         self.cw_edges = self.get_cw_edges()
         self.ccw_edges = self.get_ccw_edges()
@@ -336,27 +424,50 @@ class Tile(Grid2D):
 
         # init
         self.coord = None
-        self.final_edges = None
-        self.edge_matches = [False] * 4
-
-        # self.is_flipped = None
-        # self.rotation = None
+        self.sides_visited = [False] * 4  # True: visited
 
     def __repr__(self):
-        return 'coord={}, final={}'.format(self.coord, self.final_edges)
+        return 'coord={}, id={}'.format(self.coord, self.id)
+
+    def orient(self, side: int, edge: str):
+        """
+        orient the tile such that the edge is at the side
+        """
+        if edge not in self.cw_edges:
+            print('flip')
+            self.grid = self.grid.flip('y')
+
+        self.rotate(side, edge)
+        # rotation should be correct now
+
+    def rotate(self, side: int, edge: str):
+        """
+        rotate until correct
+        """
+        for x in range(4):
+            if self.get_edge_on_side(side) == edge:
+                return
+            print('rotate')
+            self.grid = self.grid.rot90()
+        assert False
+
+    def get_edge_on_side(self, side: int):
+        if side == self.TOP:
+            return self.get_edge(self.grid.top_left(), (1, 0))
+        elif side == self.RIGHT:
+            return self.get_edge(self.grid.top_right(), (0, 1))
+        elif side == self.BOTTOM:
+            return self.get_edge(self.grid.bottom_right(), (-1, 0))
+        elif side == self.LEFT:
+            return self.get_edge(self.grid.bottom_left(), (0, -1))
+        else:
+            assert False
 
     def get_cw_edges(self):
-        top = self.get_edge((0, 0), (1, 0))
-        right = self.get_edge((9, 0), (0, 1))
-        bottom = self.get_edge((9, 9), (-1, 0))
-        left = self.get_edge((0, 9), (0, -1))
-
-        return [
-            top,
-            right,
-            bottom,
-            left,
-        ]
+        result = []
+        for side in range(4):
+            result.append(self.get_edge_on_side(side))
+        return result
 
     def get_ccw_edges(self):
         return [
@@ -366,36 +477,44 @@ class Tile(Grid2D):
             self.reverse(self.cw_edges[self.RIGHT]),
         ]
 
-    def reverse(self, edge):
+    @classmethod
+    def reverse(cls, edge):
         return edge[::-1]
-
-    # def get_all_edges(self):
-    #     top = self.get_edge((0, 0), (1, 0))
-    #     left = self.get_edge((0, 0), (0, 1))
-    #     bottom = self.get_edge((9, 9), (-1, 0))
-    #     right = self.get_edge((9, 9), (0, -1))
-    #
-    #     return [
-    #         self.pick_edge(top),
-    #         self.pick_edge(left),
-    #         self.pick_edge(bottom),
-    #         self.pick_edge(right),
-    #     ]
-
-    # def pick_edge(self, text: str):
-    #     rev = text[::-1]
-    #     return sorted([text, rev])[0]
 
     def get_edge(self, start, delta):
         result = []
         coord = start
         for _ in range(10):
-            result.append(self.get_tuple(coord))
-            coord = self.adjust_coord(coord, *delta)
+            result.append(self.grid.get_tuple(coord))
+            coord = Grid2D.adjust_coord(coord, *delta)
         return ''.join(result)
 
     def get_unmatched_edges(self):
-        pass
+        """
+        Returns:
+            dict[int, str]: edges not yet matched
+        """
+        # self.show()
+        result = {}
+        for side in range(4):
+            if not self.sides_visited[side]:
+                # side has not been checked
+                result[side] = self.get_edge_on_side(side)
+        return result
+
+    def get_coord_to_side(self, side: int):
+        old_coord = self.coord
+        if side == self.TOP:
+            new_coord = Grid2D.get_coord_north(old_coord)
+        elif side == self.RIGHT:
+            new_coord = Grid2D.get_coord_east(old_coord)
+        elif side == self.BOTTOM:
+            new_coord = Grid2D.get_coord_south(old_coord)
+        elif side == self.LEFT:
+            new_coord = Grid2D.get_coord_west(old_coord)
+        else:
+            assert False
+        return new_coord
 
 
 if __name__ == '__main__':

@@ -93,6 +93,9 @@ class Grid2D(object):
     def get(self, x, y):
         return self.grid[(x, y)]
 
+    def has_coord(self, coord):
+        return coord in self.grid and not self.is_default(coord)
+
     def count(self, char):
         return sum([1 for v in self.grid.values() if v == char])
 
@@ -128,6 +131,12 @@ class Grid2D(object):
 
     def bottom_right(self):
         return self.max_x, self.max_y
+
+    def top_right(self):
+        return self.max_x, self.min_y
+
+    def bottom_left(self):
+        return self.min_x, self.max_y
 
     def to_string(self, top_left, bottom_right, conversion_method=None):
         row_range = range(top_left[1], bottom_right[1] + 1)
