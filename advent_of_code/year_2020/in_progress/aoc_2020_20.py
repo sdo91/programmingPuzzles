@@ -415,12 +415,11 @@ class Tile:
             self.grid.show()
 
         self.cw_edges = self.get_cw_edges()
-        self.ccw_edges = self.get_ccw_edges()
-        self.all_edges = set(self.cw_edges + self.ccw_edges)
+        self.all_edges = self.cw_edges | self.get_ccw_edges()
 
         # init
         self.coord = None
-        self.sides_visited = [False] * 4  # True: visited
+        self.sides_visited = [False] * 4  # True: visited (todo: is this needed?)
 
     def __repr__(self):
         return 'coord={}, id={}'.format(self.coord, self.id)
@@ -460,18 +459,16 @@ class Tile:
             assert False
 
     def get_cw_edges(self):
-        result = []
+        result = set()
         for side in range(4):
-            result.append(self.get_edge_on_side(side))
+            result.add(self.get_edge_on_side(side))
         return result
 
     def get_ccw_edges(self):
-        return [
-            self.reverse(self.cw_edges[self.TOP]),
-            self.reverse(self.cw_edges[self.LEFT]),
-            self.reverse(self.cw_edges[self.BOTTOM]),
-            self.reverse(self.cw_edges[self.RIGHT]),
-        ]
+        result = set()
+        for edge in self.cw_edges:
+            result.add(self.reverse(edge))
+        return result
 
     @classmethod
     def reverse(cls, edge):
