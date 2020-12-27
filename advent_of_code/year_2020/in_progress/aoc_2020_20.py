@@ -150,7 +150,7 @@ TEST_OUTPUT_1 = [
 ]
 
 TEST_OUTPUT_2 = [
-    0,
+    273,
     0,
     0,
 ]
@@ -184,10 +184,10 @@ class AdventOfCode(object):
             self.solve_part_1(self.puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(self.puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            0,
+            self.solve_part_2(self.puzzle_input)
+        )
 
         elapsed_time = time.time() - start_time
         print('elapsed_time: {:.3f} sec'.format(elapsed_time))
@@ -195,7 +195,7 @@ class AdventOfCode(object):
     def run_tests(self):
         AocLogger.verbose = True
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+        aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def solve_part_1(self, text: str):
         solver = Solver(text)
@@ -220,8 +220,8 @@ class Solver(object):
         self.text = text.strip()
         self.tiles_raw = text.split('\n\n')
 
-        self.picture = Grid2D()
-        self.picture.value_width = 5
+        self.assembled_tile_ids = Grid2D()
+        self.assembled_tile_ids.value_width = 5
 
         self.tiles_unassigned = {}
         self.tiles_in_progress = {}
@@ -257,20 +257,23 @@ class Solver(object):
             add bottom to neighbors
             move list
         """
-        self.parse_tiles()
-
-        while self.tiles_unassigned:
-            self.picture.show()
-            self.process_tiles()
-            time.sleep(0.1)
-        self.picture.show()
+        self.assemble_tiles()
 
         result = 1
-        result *= self.picture.get_tuple(self.picture.top_left())
-        result *= self.picture.get_tuple(self.picture.top_right())
-        result *= self.picture.get_tuple(self.picture.bottom_left())
-        result *= self.picture.get_tuple(self.picture.bottom_right())
+        result *= self.assembled_tile_ids.get_tuple(self.assembled_tile_ids.top_left())
+        result *= self.assembled_tile_ids.get_tuple(self.assembled_tile_ids.top_right())
+        result *= self.assembled_tile_ids.get_tuple(self.assembled_tile_ids.bottom_left())
+        result *= self.assembled_tile_ids.get_tuple(self.assembled_tile_ids.bottom_right())
         return result
+
+    def assemble_tiles(self):
+        # make picture
+        self.parse_tiles()
+        while self.tiles_unassigned:
+            self.assembled_tile_ids.show()
+            self.process_tiles()
+            time.sleep(0.1)
+        self.assembled_tile_ids.show()
 
     def process_tiles(self):
         tiles_to_add = {}
@@ -287,17 +290,17 @@ class Solver(object):
                 # get the coord on that side
                 new_coord = old_tile.get_coord_to_side(side)
 
-                if self.picture.has_coord(new_coord):
+                if self.assembled_tile_ids.has_coord(new_coord):
                     AocLogger.log('coord already processed: {}'.format(new_coord))
                     continue
 
                 new_tile = self.find_match(side, edge_str)
                 if new_tile:
                     new_tile.coord = new_coord
-                    self.picture.set_tuple(new_tile.coord, new_tile.id)
+                    self.assembled_tile_ids.set_tuple(new_tile.coord, new_tile.id)
                     if AocLogger.verbose:
                         AocLogger.log('new tile in picture:')
-                        self.picture.show()
+                        self.assembled_tile_ids.show()
 
                     # add new tile
                     tiles_to_add[new_tile.id] = new_tile
@@ -353,9 +356,9 @@ class Solver(object):
             if is_first:
                 is_first = False
                 tile.coord = (0, 0)
-                self.picture.set_tuple(tile.coord, tile.id)
+                self.assembled_tile_ids.set_tuple(tile.coord, tile.id)
                 if AocLogger.verbose:
-                    self.picture.show()
+                    self.assembled_tile_ids.show()
 
                 self.tiles_in_progress[tile.id] = tile
             else:
@@ -365,6 +368,10 @@ class Solver(object):
         """
 
         """
+        self.assemble_tiles()
+
+
+
         z = 0
         return 2
 
@@ -379,7 +386,6 @@ class Tile:
 
     keep track of which edge is on each side
 
-
     given origin tile:
         check all tiles to find one that matches the top edge
         redraw that matching tile in the correct orientation
@@ -393,9 +399,6 @@ class Tile:
 
                 else:
                     # tile is flipped
-
-
-
     """
 
     TOP = 0
