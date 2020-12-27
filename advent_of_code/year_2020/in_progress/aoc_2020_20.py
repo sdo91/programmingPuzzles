@@ -19,6 +19,7 @@ addToPath('../../..')
 import time
 import traceback
 from collections import defaultdict
+import re
 
 import aocd
 
@@ -195,7 +196,7 @@ class AdventOfCode(object):
     def run_tests(self):
         AocLogger.verbose = True
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def solve_part_1(self, text: str):
         solver = Solver(text)
@@ -371,14 +372,32 @@ class Solver(object):
             self.tiles_all[tile.id] = tile
 
     def p2(self):
+        """
+        2204 high
+        """
         self.assemble_tiles()
 
-        final_image = self.assemble_image()
+        img_str = self.assemble_image()
 
-        self.count_monsters(final_image)
+        img_grid = Grid2D(img_str)
+
+        # temp
+        roughness_list = []
+
+        for x in range(8):
+            if x == 4:
+                img_grid = img_grid.flip('y')
+
+            roughness = self.calc_water_roughness(img_grid)
+            roughness_list.append(roughness)
+            img_grid = img_grid.rot90()
+
+
+        # img_grid = img_grid.rot90()
+        # result = self.calc_water_roughness(img_grid)
 
         z = 0
-        return 2
+        return min(roughness_list)
 
     def assemble_image(self):
         """
@@ -413,8 +432,49 @@ class Solver(object):
         AocLogger.log('final_image:\n{}'.format(final_image))
         return final_image
 
-    def count_monsters(self, final_image):
-        pass
+    def calc_water_roughness(self, img_grid: Grid2D):
+        extra_width = img_grid.get_width() - 20
+
+        # temp
+
+        img_str = repr(img_grid)
+
+        print('oriented:')
+        print(img_str)
+
+        img_str_single = img_str.replace('\n', '')
+
+        # regex
+        patterns = [
+            '..................#.',
+            '#....##....##....###',
+            '.#..#..#..#..#..#...',
+        ]
+
+        joiner = '.' * extra_width
+        full_pattern = joiner.join(patterns)
+
+        length = len(full_pattern)
+
+        img_str_single.count('#')
+
+        # matcher = re.compile(mid_pattern)
+        # for match in matcher.finditer(img_str):
+        #
+        #     string = match.group()
+        #
+        #     pos = img_str.find(string)
+        #
+        #     print(match.group())
+
+        x = aoc_util.re_find_all_positions(full_pattern, img_str_single)
+        num_monsters = len(x)
+        if num_monsters:
+            print('num_monsters: {}'.format(num_monsters))
+            z=0
+
+        roughness = img_str_single.count('#') - (num_monsters * full_pattern.count('#'))
+        return roughness
 
 
 class Tile:

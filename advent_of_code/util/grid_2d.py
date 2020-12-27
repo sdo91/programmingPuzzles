@@ -292,3 +292,9 @@ class Grid2D(object):
                 new_coord = -coord[0], coord[1]
             result.set_tuple(new_coord, value)
         return result
+
+    def get_width(self):
+        return self.max_x - self.min_x + 1
+
+    def get_height(self):
+        return self.max_y - self.min_y + 1

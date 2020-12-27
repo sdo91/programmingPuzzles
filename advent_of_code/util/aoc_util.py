@@ -177,6 +177,15 @@ def re_find_all_matches(pattern, text):
     return [match.group() for match in matcher.finditer(text)]
 
 
+def re_find_all_positions(pattern, text):
+    matcher = re.compile(pattern)
+    result = []
+    for match in matcher.finditer(text):
+        pos = match.span()[0]
+        result.append(pos)
+    return result
+
+
 def tuple_add(a, b):
     return tuple(i + j for i, j in zip(a, b))
 
