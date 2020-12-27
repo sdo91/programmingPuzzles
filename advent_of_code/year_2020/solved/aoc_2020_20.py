@@ -16,12 +16,12 @@ addToPath('../../..')
 
 ### IMPORTS ###
 
-import time
 import traceback
 from collections import defaultdict
-import re
 
 import aocd
+import regex
+import time
 
 from advent_of_code.util import aoc_util
 from advent_of_code.util.aoc_util import AocLogger
@@ -186,7 +186,7 @@ class AdventOfCode(object):
         )
 
         aoc_util.assert_equal(
-            0,
+            1964,
             self.solve_part_2(self.puzzle_input)
         )
 
@@ -196,7 +196,7 @@ class AdventOfCode(object):
     def run_tests(self):
         AocLogger.verbose = True
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+        aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def solve_part_1(self, text: str):
         solver = Solver(text)
@@ -375,28 +375,21 @@ class Solver(object):
         """
         2204 high
         """
-        self.assemble_tiles()
-
+        # assemble the image
+        self.assemble_tiles()  # from p1
         img_str = self.assemble_image()
-
         img_grid = Grid2D(img_str)
 
-        # temp
+        # calc roughness in each orientation
         roughness_list = []
-
         for x in range(8):
             if x == 4:
                 img_grid = img_grid.flip('y')
-
             roughness = self.calc_water_roughness(img_grid)
             roughness_list.append(roughness)
             img_grid = img_grid.rot90()
 
-
-        # img_grid = img_grid.rot90()
-        # result = self.calc_water_roughness(img_grid)
-
-        z = 0
+        # choose the right one
         return min(roughness_list)
 
     def assemble_image(self):
@@ -432,47 +425,30 @@ class Solver(object):
         AocLogger.log('final_image:\n{}'.format(final_image))
         return final_image
 
-    def calc_water_roughness(self, img_grid: Grid2D):
+    @classmethod
+    def calc_water_roughness(cls, img_grid: Grid2D):
         extra_width = img_grid.get_width() - 20
 
-        # temp
-
+        # convert to string
         img_str = repr(img_grid)
-
-        print('oriented:')
-        print(img_str)
-
+        AocLogger.log('oriented:')
+        AocLogger.log(img_str)
         img_str_single = img_str.replace('\n', '')
 
-        # regex
+        # find w/ regex
         patterns = [
             '..................#.',
             '#....##....##....###',
             '.#..#..#..#..#..#...',
         ]
-
         joiner = '.' * extra_width
         full_pattern = joiner.join(patterns)
+        matches = regex.findall(full_pattern, img_str_single, overlapped=True)
 
-        length = len(full_pattern)
-
-        img_str_single.count('#')
-
-        # matcher = re.compile(mid_pattern)
-        # for match in matcher.finditer(img_str):
-        #
-        #     string = match.group()
-        #
-        #     pos = img_str.find(string)
-        #
-        #     print(match.group())
-
-        x = aoc_util.re_find_all_positions(full_pattern, img_str_single)
-        num_monsters = len(x)
+        # calc result
+        num_monsters = len(matches)
         if num_monsters:
             print('num_monsters: {}'.format(num_monsters))
-            z=0
-
         roughness = img_str_single.count('#') - (num_monsters * full_pattern.count('#'))
         return roughness
 
