@@ -226,6 +226,9 @@ class Solver(object):
         self.tiles_unassigned = {}
         self.tiles_in_progress = {}
 
+        # p2 stuff
+        self.tiles_all = {}
+
     def __repr__(self):
         return '{}:\n{}\n'.format(
             type(self).__name__, self.text)
@@ -272,7 +275,7 @@ class Solver(object):
         while self.tiles_unassigned:
             self.assembled_tile_ids.show()
             self.process_tiles()
-            time.sleep(0.1)
+            # time.sleep(0.1)
         self.assembled_tile_ids.show()
 
     def process_tiles(self):
@@ -364,16 +367,54 @@ class Solver(object):
             else:
                 self.tiles_unassigned[tile.id] = tile
 
-    def p2(self):
-        """
+            # for p2
+            self.tiles_all[tile.id] = tile
 
-        """
+    def p2(self):
         self.assemble_tiles()
 
+        final_image = self.assemble_image()
 
+        self.count_monsters(final_image)
 
         z = 0
         return 2
+
+    def assemble_image(self):
+        """
+        get tiles by row
+        for each row of tiles
+            join line 1
+            ...
+            join line 8
+        then read into a grid
+        """
+        final_image_chunks = []
+
+        for y in self.assembled_tile_ids.rows():
+
+            row_of_tiles = Grid2D()
+            row_of_tiles.value_width = 8
+
+            for x in self.assembled_tile_ids.cols():
+                id_coord = (x, y)
+                tile_id = self.assembled_tile_ids.get_tuple(id_coord)
+                tile = self.tiles_all[tile_id]
+
+                middle = tile.get_middle()
+                lines = middle.split()
+                for line_y, line in enumerate(lines):
+                    coord = (x, line_y)
+                    row_of_tiles.set_tuple(coord, line)
+
+            final_image_chunks.append(repr(row_of_tiles))
+
+        final_image = '\n'.join(final_image_chunks)
+        AocLogger.log('final_image:\n{}'.format(final_image))
+        return final_image
+
+    def count_monsters(self, final_image):
+        pass
 
 
 class Tile:
@@ -511,6 +552,13 @@ class Tile:
         else:
             assert False
         return new_coord
+
+    def get_middle(self) -> str:
+        top_left = (self.grid.min_x + 1, self.grid.min_y + 1)
+        bottom_right = (self.grid.max_x - 1, self.grid.max_y - 1)
+        result = self.grid.to_string(top_left, bottom_right)
+        # print(result)
+        return result
 
 
 if __name__ == '__main__':
