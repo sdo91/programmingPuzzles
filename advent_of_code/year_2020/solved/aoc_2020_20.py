@@ -427,13 +427,10 @@ class Solver(object):
 
     @classmethod
     def calc_water_roughness(cls, img_grid: Grid2D):
-        extra_width = img_grid.get_width() - 20
-
         # convert to string
         img_str = repr(img_grid)
         AocLogger.log('oriented:')
         AocLogger.log(img_str)
-        img_str_single = img_str.replace('\n', '')
 
         # find w/ regex
         patterns = [
@@ -441,15 +438,16 @@ class Solver(object):
             '#....##....##....###',
             '.#..#..#..#..#..#...',
         ]
-        joiner = '.' * extra_width
+        extra_width = img_grid.get_width() - len(patterns[0]) + 1
+        joiner = '[.#\\s]{{{}}}'.format(extra_width)
         full_pattern = joiner.join(patterns)
-        matches = regex.findall(full_pattern, img_str_single, overlapped=True)
+        matches = regex.findall(full_pattern, img_str, overlapped=True)
 
         # calc result
         num_monsters = len(matches)
         if num_monsters:
             print('num_monsters: {}'.format(num_monsters))
-        roughness = img_str_single.count('#') - (num_monsters * full_pattern.count('#'))
+        roughness = img_str.count('#') - (num_monsters * 15)
         return roughness
 
 
