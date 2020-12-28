@@ -29,7 +29,10 @@ from advent_of_code.util.grid_2d import Grid2D
 ### CONSTANTS ###
 TEST_INPUT = [
     """
-
+mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X
+mem[8] = 11
+mem[7] = 101
+mem[8] = 0
     """, """
 
     """, """
@@ -38,7 +41,7 @@ TEST_INPUT = [
 ]
 
 TEST_OUTPUT_1 = [
-    0,
+    165,
     0,
     0,
 ]
@@ -112,19 +115,50 @@ class Solver(object):
 
     def __init__(self, text: str):
         self.text = text.strip()
-        # self.lines = aoc_util.lines(text)
+        self.lines = aoc_util.lines(text)
         AocLogger.log(str(self))
+
+        self.mask_1 = 0x00
+        self.mask_0 = 0x00
+
+        self.memory = {}
 
     def __repr__(self):
         return '{}:\n{}\n'.format(
             type(self).__name__, self.text)
 
     def p1(self):
-        """
+        for line in self.lines:
+            if line.startswith('mask'):
+                mask = line.split()[-1]
+                self.parse_mask(mask)
+            elif line.startswith('mem'):
+                ptr, value = aoc_util.ints(line)
+                value |= self.mask_1
+                value &= ~self.mask_0
+                self.memory[ptr] = value
+            else:
+                assert False
 
-        """
-        z = 0
-        return 1
+        # return sum
+        return sum(self.memory.values())
+
+    def parse_mask(self, mask):
+        # reset
+        self.mask_1 = 0x00
+        self.mask_0 = 0x00
+
+        place = 1
+        for c in reversed(mask):
+            if c != 'X':
+                AocLogger.log('{} @ {}'.format(c, place))
+
+            if c == '1':
+                self.mask_1 += place
+            elif c == '0':
+                self.mask_0 += place
+
+            place *= 2
 
     def p2(self):
         """

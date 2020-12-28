@@ -12,7 +12,7 @@ steps:
 - open new chrome tab (ctrl T)
 - open dev console (ctrl shift J)
 - click network tab
-- nav to aoc input page (Ctrl L, Ctrl V)
+- nav to aoc input page (Ctrl L, Ctrl V, Enter)
     - see above
 - under "Name" click on input
     - other entries might work?
