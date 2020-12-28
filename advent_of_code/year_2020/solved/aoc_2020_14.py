@@ -16,15 +16,13 @@ addToPath('../../..')
 
 ### IMPORTS ###
 
-import time
 import traceback
-from collections import defaultdict
 
 import aocd
+import time
 
 from advent_of_code.util import aoc_util
 from advent_of_code.util.aoc_util import AocLogger
-from advent_of_code.util.grid_2d import Grid2D
 
 ### CONSTANTS ###
 TEST_INPUT = [
@@ -34,7 +32,10 @@ mem[8] = 11
 mem[7] = 101
 mem[8] = 0
     """, """
-
+mask = 000000000000000000000000000000X1001X
+mem[42] = 100
+mask = 00000000000000000000000000000000X0XX
+mem[26] = 1
     """, """
 
     """
@@ -42,13 +43,13 @@ mem[8] = 0
 
 TEST_OUTPUT_1 = [
     165,
-    0,
+    None,
     0,
 ]
 
 TEST_OUTPUT_2 = [
-    0,
-    0,
+    None,
+    208,
     0,
 ]
 
@@ -77,14 +78,14 @@ class AdventOfCode(object):
         AocLogger.verbose = False
 
         aoc_util.assert_equal(
-            0,
+            14839536808842,
             self.solve_part_1(self.puzzle_input)
         )
 
-        # aoc_util.assert_equal(
-        #     0,
-        #     self.solve_part_2(self.puzzle_input)
-        # )
+        aoc_util.assert_equal(
+            4215284199669,
+            self.solve_part_2(self.puzzle_input)
+        )
 
         elapsed_time = time.time() - start_time
         print('elapsed_time: {:.3f} sec'.format(elapsed_time))
@@ -92,7 +93,7 @@ class AdventOfCode(object):
     def run_tests(self):
         AocLogger.verbose = True
         aoc_util.run_tests(self.solve_part_1, TEST_INPUT, TEST_OUTPUT_1)
-        # aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
+        aoc_util.run_tests(self.solve_part_2, TEST_INPUT, TEST_OUTPUT_2)
 
     def solve_part_1(self, text: str):
         solver = Solver(text)
@@ -123,6 +124,10 @@ class Solver(object):
 
         self.memory = {}
 
+        # p2
+        self.mask_f = 0x00
+        self.floating_bits = []
+
     def __repr__(self):
         return '{}:\n{}\n'.format(
             type(self).__name__, self.text)
@@ -147,25 +152,54 @@ class Solver(object):
         # reset
         self.mask_1 = 0x00
         self.mask_0 = 0x00
+        self.mask_f = 0x00
+        self.floating_bits.clear()
 
         place = 1
         for c in reversed(mask):
-            if c != 'X':
-                AocLogger.log('{} @ {}'.format(c, place))
+            # if c != 'X':
+            #     AocLogger.log('{} @ {}'.format(c, place))
 
             if c == '1':
                 self.mask_1 += place
             elif c == '0':
                 self.mask_0 += place
+            else:
+                self.mask_f += place
+                self.floating_bits.append(place)
 
             place *= 2
 
     def p2(self):
-        """
+        for line in self.lines:
+            if line.startswith('mask'):
+                mask = line.split()[-1]
+                self.parse_mask(mask)
+            elif line.startswith('mem'):
+                addr, value = aoc_util.ints(line)
+                addresses = self.apply_mask(addr)
+                for addr in addresses:
+                    self.memory[addr] = value
+            else:
+                assert False
 
-        """
-        z = 0
-        return 2
+        # return sum
+        return sum(self.memory.values())
+
+    def apply_mask(self, addr):
+        base_addr = addr
+        base_addr |= self.mask_1
+        base_addr &= ~self.mask_f
+
+        results = [base_addr]
+        for fb in self.floating_bits:
+            num_addr = len(results)
+            for i in range(num_addr):
+                addr = results[i]
+                alt_addr = addr | fb
+                results.append(alt_addr)
+
+        return results
 
 
 if __name__ == '__main__':
